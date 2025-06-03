@@ -15,7 +15,7 @@ export const categoryController = {
    */
   list: async (req: Request, res: Response): Promise<Response> => {
     try {
-      const categories = await CategoryModel.find({ isDeleted: false });
+      const categories = await CategoryModel.find();
       return res
         .status(200)
         .json(
@@ -39,11 +39,7 @@ export const categoryController = {
         return res.status(400).json(apiResponse.error('Invalid category id'));
       }
 
-      const category = await CategoryModel.findOne({
-        _id: id,
-        isDeleted: false
-      });
-
+      const category = await CategoryModel.findById(id);
       if (!category) {
         return res.status(404).json(apiResponse.error('Category not found'));
       }
@@ -65,28 +61,23 @@ export const categoryController = {
     try {
       const { title, image = '', description = '' } = req.body;
 
-      if (!title || title.trim() === '') {
+      if (!title?.trim()) {
         return res
           .status(400)
           .json(apiResponse.error('Title field is required'));
       }
 
-      const duplicate = await CategoryModel.findOne({
-        title,
-        isDeleted: false
-      });
+      const duplicate = await CategoryModel.findOne({ title });
       if (duplicate) {
         return res
           .status(409)
           .json(apiResponse.error('Category title already exists'));
       }
 
-      let validParentId: Types.ObjectId | null = null;
-
       const category = await CategoryModel.create({
         title,
         image,
-        description,
+        description
       });
 
       return res
@@ -111,21 +102,18 @@ export const categoryController = {
         return res.status(400).json(apiResponse.error('Invalid category id'));
       }
 
-      const savedCategory = await CategoryModel.findOne({
-        _id: id,
-        isDeleted: false
-      });
+      const savedCategory = await CategoryModel.findById(id);
       if (!savedCategory) {
         return res.status(404).json(apiResponse.error('Category not found'));
       }
 
       if (title && title !== savedCategory.title) {
-        const dup = await CategoryModel.findOne({ title, isDeleted: false });
+        const dup = await CategoryModel.findOne({ title });
         if (dup) {
           return res
             .status(409)
             .json(
-              apiResponse.error('Another category already uses this title')
+              apiResponse.error('Category title already exists')
             );
         }
       }
@@ -160,13 +148,8 @@ export const categoryController = {
         return res.status(400).json(apiResponse.error('Invalid category id'));
       }
 
-      const category = await CategoryModel.findOneAndUpdate(
-        { _id: id, isDeleted: false },
-        { isDeleted: true },
-        { new: true }
-      );
-
-      if (!category) {
+      const deleted = await CategoryModel.findByIdAndDelete(id);
+      if (!deleted) {
         return res.status(404).json(apiResponse.error('Category not found'));
       }
 
