@@ -8,6 +8,8 @@ router.get('/', asyncHandler(variantController.list));
 router.post('/', asyncHandler(variantController.create));
 
 router.get('/:id', asyncHandler(variantController.show));
+router.get('/code/:variantCode', asyncHandler(variantController.getByCode));
+
 router.put('/:id', asyncHandler(variantController.update));
 router.delete('/:id', asyncHandler(variantController.remove));
 

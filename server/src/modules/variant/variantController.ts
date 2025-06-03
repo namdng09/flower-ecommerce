@@ -50,6 +50,37 @@ export const variantController = {
     }
   },
 
+  /**
+   * GET /variants/code/:variantCode
+   * variantController.getByCode()
+   */
+  getByCode: async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { variantCode } = req.params;
+
+      if (!variantCode || variantCode.trim() === '') {
+        return res
+          .status(400)
+          .json(apiResponse.error('Variant Code is required'));
+      }
+
+      const variant = await VariantModel.findOne({
+        variantCode: variantCode.trim()
+      });
+
+      if (!variant) {
+        return res.status(404).json(apiResponse.error('Variant not found'));
+      }
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Variant fetched successfully', variant));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return res.status(500).json(apiResponse.error(message));
+    }
+  },
+
   /*
    * POST /variants
    * variantController.create()
@@ -180,5 +211,5 @@ export const variantController = {
     } catch (error) {
       return res.status(500).json(apiResponse.error((error as Error).message));
     }
-  },
+  }
 };
