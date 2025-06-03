@@ -7,7 +7,7 @@ const router = createBrowserRouter([
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: '/',
+        path: '',
         Component: lazy(() => import('../app/page'))
       }
     ]
@@ -17,11 +17,11 @@ const router = createBrowserRouter([
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: '/login',
+        path: 'login',
         Component: lazy(() => import('../app/auth/login/page'))
       },
       {
-        path: '/register',
+        path: 'register',
         Component: lazy(() => import('../app/auth/register/page'))
       }
     ]
@@ -31,7 +31,7 @@ const router = createBrowserRouter([
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: '/',
+        path: '',
         Component: lazy(() => import('../app/quizzes/page'))
       }
     ]
