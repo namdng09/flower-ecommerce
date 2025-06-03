@@ -35,7 +35,21 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/quizzes/page'))
       }
     ]
-  }
+  },
+  {
+    path: '/home',
+    Component: lazy(() => import('../layouts/homepageLayout')),
+    children: [
+      {
+        index: true,
+        Component: lazy(() => import('../app/home/homepage/Homepage'))
+      },
+      // {
+      //   path: 'register',
+      //   Component: lazy(() => import('../app/auth/register/page'))
+      // }
+    ]
+  },
 ]);
 
 export default router;
