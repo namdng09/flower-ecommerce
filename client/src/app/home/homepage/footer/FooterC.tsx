@@ -37,9 +37,6 @@ function FooterC() {
                         <div className='mb-5 md:mb-0'>
                             <a href='/' className='flex items-center'>
                                 <img src={logo} className='h-40 me-3' alt='RibbonBox Logo' />
-                                <span className='self-center text-2xl font-semibold whitespace-nowrap text-[#AD3542]'>
-                                    Flaura
-                                </span>
                             </a>
                         </div>
 

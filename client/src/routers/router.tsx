@@ -44,10 +44,6 @@ const router = createBrowserRouter([
         index: true,
         Component: lazy(() => import('../app/home/homepage/Homepage'))
       },
-      // {
-      //   path: 'register',
-      //   Component: lazy(() => import('../app/auth/register/page'))
-      // }
     ]
   },
 ]);
