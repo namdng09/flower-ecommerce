@@ -6,7 +6,7 @@ import { apiResponse } from '~/types/apiResponse';
 
 const authController = {
   async register(req: Request, res: Response) {
-    const { username, email, password } = req.body;
+    const { fullName, username, email, phoneNumber, role, password } = req.body;
 
     try {
       const existingUser = await UserModel.findOne({
@@ -17,8 +17,11 @@ const authController = {
       }
 
       const newUser = await UserModel.create({
+        fullName,
         username,
         email,
+        phoneNumber,
+        role,
         password
       });
 
@@ -41,7 +44,10 @@ const authController = {
           accessToken: accessToken,
           user: {
             id: newUser.id,
-            email: newUser.email
+            fullName: newUser.fullName,
+            email: newUser.email,
+            username: newUser.username,
+            phoneNumber: newUser.phoneNumber
           }
         })
       );
