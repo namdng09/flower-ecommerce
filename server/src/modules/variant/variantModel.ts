@@ -18,7 +18,7 @@ const VariantSchema = new Schema<IVariant>(
     listPrice: {
       type: Number,
       required: true,
-      min: 0
+      min: [0, 'List price must be ≥ 0']
     },
     salePrice: {
       type: Number,
