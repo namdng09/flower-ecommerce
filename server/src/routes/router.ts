@@ -2,6 +2,10 @@ import { Router } from 'express';
 import passport from 'passport';
 import quizRoutes from '~/modules/quiz/quizRoute';
 import authRoutes from '~/modules/auth/authRoute';
+import productRoute from '~/modules/product/productRoute';
+import categoryRoute from '~/modules/category/categoryRoute';
+import addressRoute from '~/modules/address/addressRoute';
+import variantRoute from '~/modules/variant/variantRoute';
 
 const router = Router();
 // Non-auth routes
@@ -12,5 +16,17 @@ router.use(
   passport.authenticate('jwt', { session: false }),
   quizRoutes
 );
+
+router.use('/products', productRoute);
+
+router.use('/categories', categoryRoute);
+
+router.use(
+  '/addresses',
+  passport.authenticate('jwt', { session: false }),
+  addressRoute
+);
+
+router.use('/variants', variantRoute);
 
 export default router;
