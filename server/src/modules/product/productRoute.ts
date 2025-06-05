@@ -5,11 +5,12 @@ import { productController } from './productController';
 const router: Router = express.Router();
 
 router.get('/', asyncHandler(productController.list));
+router.get('/:id', asyncHandler(productController.show));
 router.get('/category/:categoryId', asyncHandler(productController.getByCategory));
 router.get('/shop/:shopId', asyncHandler(productController.getByShop));
 
-router.post('/', asyncHandler(productController.show));
-router.get('/:id', asyncHandler(productController.show));
+router.post('/', asyncHandler(productController.create));
+router.put('/:id', asyncHandler(productController.update));
 
 router.delete('/:id', asyncHandler(productController.remove));
 

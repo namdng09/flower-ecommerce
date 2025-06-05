@@ -3,6 +3,7 @@ import { Types } from 'mongoose';
 import ProductModel from './productModel';
 import VariantModel from '../variant/variantModel';
 import { apiResponse } from '~/types/apiResponse';
+import UserModel from '../user/userModel';
 
 /**
  * productController.ts
@@ -78,6 +79,17 @@ export const productController = {
           .json(apiResponse.error('Missing required fields'));
       }
 
+      if (!Types.ObjectId.isValid(shop)) {
+        return res.status(400).json(apiResponse.error('Invalid shop id'));
+      }
+
+      const shopExists = await UserModel.findOne({ _id: shop, role: 'shop' });
+      if (!shopExists) {
+        return res
+          .status(404)
+          .json(apiResponse.error('Shop not found'));
+      }
+
       const duplicate = await ProductModel.findOne({ skuCode });
       if (duplicate) {
         return res
@@ -149,7 +161,6 @@ export const productController = {
       const { id } = req.params;
       const {
         title,
-        skuCode,
         category,
         status,
         thumbnailImage,
@@ -218,7 +229,6 @@ export const productController = {
       }
 
       if (title !== undefined) product.title = title;
-      if (skuCode !== undefined) product.skuCode = skuCode;
       if (category !== undefined) product.category = category;
       if (status !== undefined) product.status = status;
       if (thumbnailImage !== undefined) product.thumbnailImage = thumbnailImage;
@@ -256,6 +266,9 @@ export const productController = {
   getByShop: async (req: Request, res: Response) => {
     try {
       const { shopId } = req.params;
+      if (!Types.ObjectId.isValid(shopId))
+        return res.status(400).json(apiResponse.error('Invalid shop id'));
+
       const products = await ProductModel.find({ shop: shopId }).populate(
         'category'
       );
@@ -270,6 +283,10 @@ export const productController = {
   getByCategory: async (req: Request, res: Response) => {
     try {
       const { categoryId } = req.params;
+
+      if (!Types.ObjectId.isValid(categoryId))
+        return res.status(400).json(apiResponse.error('Invalid category id'));
+
       const products = await ProductModel.find({
         category: categoryId
       }).populate('shop');
