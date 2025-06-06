@@ -44,6 +44,10 @@ const router = createBrowserRouter([
         index: true,
         Component: lazy(() => import('../app/home/homepage/Homepage'))
       },
+      {
+        path: 'shop',
+        Component: lazy(() => import('../app/home/homepage/productList/ProductList'))
+      }
     ]
   },
 ]);
