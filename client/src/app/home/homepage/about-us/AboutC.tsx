@@ -6,7 +6,7 @@ const PhulerIntro = () => {
 
             <div className="md:w-1/2 space-y-6">
                 <h1 className="text-4xl font-bold">
-                    Welcome To <span className="text-red-600">Phuler</span> Store<span className="text-black">!</span>
+                    Welcome To <span className="text-red-600">Flora</span> Store<span className="text-black">!</span>
                 </h1>
                 <div className="w-16 h-1 bg-red-600"></div>
                 <p className="font-semibold">
