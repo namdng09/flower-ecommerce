@@ -47,6 +47,14 @@ const router = createBrowserRouter([
       {
         path: 'shop',
         Component: lazy(() => import('../app/home/homepage/productList/ProductList'))
+      },
+      {
+        path: 'products',
+        Component: lazy(() => import('../app/home/homepage/productList/ProductPage'))
+      },
+      {
+        path: 'about',
+        Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
       }
     ]
   },

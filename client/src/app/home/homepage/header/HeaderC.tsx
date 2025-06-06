@@ -5,10 +5,9 @@ import { FiShoppingBag } from "react-icons/fi";
 const navItems = [
     { label: "Trang Chủ", path: "/home" },
     { label: "Cửa Hàng", path: "/home/shop" },
-    { label: "Sản Phẩm", path: "/products" },
-    { label: "BLOG", path: "/blog" },
-    { label: "Về Chúng Tôi", path: "/about" },
-    { label: "Liên Hệ", path: "/contact" },
+    { label: "Sản Phẩm", path: "/home/products" },
+    { label: "Về Chúng Tôi", path: "/home/about" },
+    { label: "Liên Hệ", path: "/home/contact" },
 ];
 
 function HeaderC() {
