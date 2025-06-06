@@ -1,31 +1,41 @@
 import { useState } from "react";
-import hoa from "../../../../assets/hoa1.webp"
-import hoa1 from "../../../../assets/hoa2.webp"
-import hoa2 from "../../../../assets/hoa3.webp"
-import banner from "../../../../assets/banner1.webp"
+import hoa from "../../../../assets/hoa1.webp";
+import hoa1 from "../../../../assets/hoa2.webp";
+import hoa2 from "../../../../assets/hoa3.webp";
+import banner from "../../../../assets/banner1.webp";
 
 const products = [
-    { id: 1, name: "Affiliate Link Product", price: 80, image: hoa1},
+    { id: 1, name: "Affiliate Link Product", price: 80, image: hoa1 },
     { id: 2, name: "Dutchman's Breeches", price: 80, oldPrice: 110, image: hoa2 },
     { id: 3, name: "Dutchman's Breeches", price: 50, image: hoa },
-    { id: 3, name: "Dutchman's Breeches", price: 50, image: hoa },
-    { id: 3, name: "Dutchman's Breeches", price: 50, image: hoa },
-    { id: 3, name: "Dutchman's Breeches", price: 50, image: hoa },
-    { id: 3, name: "Dutchman's Breeches", price: 50, image: hoa },
-    { id: 3, name: "Dutchman's Breeches", price: 50, image: hoa },
-    { id: 3, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 4, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 5, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 6, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 7, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 8, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 9, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 9, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 9, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 9, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 9, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 9, name: "Dutchman's Breeches", price: 50, image: hoa },
+    { id: 9, name: "Dutchman's Breeches", price: 50, image: hoa },
 ];
 
 function ProductList() {
     const [sortBy, setSortBy] = useState("A-Z");
 
     return (
-        <div className="flex gap-8 p-8 pt-50">
-            <div className="w-1/5 space-y-6 text-black">
+        <div className="flex flex-col lg:flex-row gap-8 p-4 pt-[200px]">
+            <div className="lg:w-1/5 space-y-6 text-black">
                 <div>
                     <h3 className="font-semibold mb-2">Availability</h3>
-                    <label className="block"><input type="checkbox" /> In stock (41)</label>
-                    <label className="block"><input type="checkbox" /> Out of stock (5)</label>
+                    <label className="block">
+                        <input type="checkbox" /> In stock (41)
+                    </label>
+                    <label className="block">
+                        <input type="checkbox" /> Out of stock (5)
+                    </label>
                 </div>
 
                 <div>
@@ -49,8 +59,8 @@ function ProductList() {
                     <img src={banner} alt="New Collection" className="w-full rounded" />
                 </div>
 
-                <div className="flex items-center justify-between mb-4 text-black">
-                    <p>Showing 1-3 of {products.length} item(s)</p>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 text-black gap-4">
+                    <p>Showing 1-9 of {products.length} item(s)</p>
                     <div>
                         <label className="mr-2">Sort by</label>
                         <select
@@ -65,13 +75,19 @@ function ProductList() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {products.map((product) => (
                         <div key={product.id} className="border rounded p-4 text-center">
-                            <img src={product.image} alt={product.name} className="mx-auto mb-3 h-80 object-contain" />
+                            <img
+                                src={product.image}
+                                alt={product.name}
+                                className="mx-auto mb-3 h-100 object-contain"
+                            />
                             <h4 className="font-medium mb-1 text-black">{product.name}</h4>
                             {product.oldPrice && (
-                                <p className="line-through text-gray-400 text-sm mb-1">${product.oldPrice}</p>
+                                <p className="line-through text-gray-400 text-sm mb-1">
+                                    ${product.oldPrice}
+                                </p>
                             )}
                             <p className="text-pink-600 font-semibold">${product.price}</p>
                         </div>
