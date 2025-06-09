@@ -47,9 +47,10 @@ const userSchema = new Schema<IUser>(
     role: {
       type: String,
       required: true,
-      enum: ['admin', 'customer', 'shop'],
-      immutable: true
+      enum: ['admin', 'customer', 'shop']
     },
+    avatarUrl: { type: String, default: '' },
+    coverUrl: { type: String, default: '' },
     addresses: [{ type: Schema.Types.ObjectId, ref: 'Address' }]
   },
   { timestamps: true }
