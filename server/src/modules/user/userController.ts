@@ -19,11 +19,14 @@ export const userController = {
    */
   list: async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { role = 'all' } = req.query;
-
+      const { role } = req.query as { role?: string };
       const validRoles = ['admin', 'customer', 'shop'];
-      const filter =
-        role !== 'all' && validRoles.includes(String(role)) ? { role } : {};
+
+      if (role && !validRoles.includes(role)) {
+        return res.status(400).json(apiResponse.error('Invalid role value'));
+      }
+
+      const filter = role ? { role } : {};
 
       const users = await UserModel.find(filter).select('-password');
       return res
@@ -116,9 +119,11 @@ export const userController = {
       /* ---- TODO: gửi email/notify password cho user ---- */
       // await sendMail({ ... })
 
+      const { password: _pw, ...resUser } = newUser.toObject();
+
       return res
         .status(201)
-        .json(apiResponse.success('User created successfully', newUser));
+        .json(apiResponse.success('User created successfully', resUser));
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Unknown error';
       return res.status(500).json(apiResponse.error(msg));
@@ -195,9 +200,11 @@ export const userController = {
         return res.status(400).json(apiResponse.error('User creation failed'));
       }
 
+      const { password: _pw, ...resUser } = updatedUser.toObject();
+
       return res
         .status(200)
-        .json(apiResponse.success('Profile updated successfully', updatedUser));
+        .json(apiResponse.success('Profile updated successfully', resUser));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return res.status(500).json(apiResponse.error(message));
@@ -223,18 +230,20 @@ export const userController = {
         return res.status(400).json(apiResponse.error('Invalid user id'));
       }
 
-      const user = await UserModel.findByIdAndUpdate(
+      const existingUser = await UserModel.findByIdAndUpdate(
         id,
         { avatarUrl },
         { new: true }
       );
-      if (!user) {
+      if (!existingUser) {
         return res.status(404).json(apiResponse.error('User not found'));
       }
 
+      const { password: _pw, ...resUser } = existingUser.toObject();
+
       return res
         .status(200)
-        .json(apiResponse.success('Avatar updated successfully', user));
+        .json(apiResponse.success('Avatar updated successfully', resUser));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return res.status(500).json(apiResponse.error(message));
@@ -260,18 +269,20 @@ export const userController = {
         return res.status(400).json(apiResponse.error('Invalid user id'));
       }
 
-      const user = await UserModel.findByIdAndUpdate(
+      const existingUser = await UserModel.findByIdAndUpdate(
         id,
         { coverUrl },
         { new: true }
       );
-      if (!user) {
+      if (!existingUser) {
         return res.status(404).json(apiResponse.error('User not found'));
       }
 
+      const { password: _pw, ...resUser } = existingUser.toObject();
+
       return res
         .status(200)
-        .json(apiResponse.success('Cover photo updated successfully', user));
+        .json(apiResponse.success('Cover photo updated successfully', resUser));
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return res.status(500).json(apiResponse.error(message));
