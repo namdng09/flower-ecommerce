@@ -18,7 +18,7 @@ export const productController = {
   list: async (req: Request, res: Response) => {
     try {
       const products = await ProductModel.find().populate(
-        'category shop variants address'
+        'category shop variants'
       );
       return res
         .status(200)
@@ -40,7 +40,7 @@ export const productController = {
         return res.status(400).json(apiResponse.error('Invalid product id'));
 
       const product = await ProductModel.findById(id).populate(
-        'category shop variants address'
+        'category shop variants'
       );
       if (!product)
         return res.status(404).json(apiResponse.error('Product not found'));
@@ -69,8 +69,7 @@ export const productController = {
         thumbnailImage,
         description,
         image,
-        address,
-        variants
+        variants = []
       } = req.body;
 
       if (!title || !shop || !skuCode || !category) {
@@ -85,9 +84,7 @@ export const productController = {
 
       const shopExists = await UserModel.findOne({ _id: shop, role: 'shop' });
       if (!shopExists) {
-        return res
-          .status(404)
-          .json(apiResponse.error('Shop not found'));
+        return res.status(404).json(apiResponse.error('Shop not found'));
       }
 
       const duplicate = await ProductModel.findOne({ skuCode });
@@ -97,7 +94,7 @@ export const productController = {
           .json(apiResponse.error('SKU Code already exists'));
       }
 
-      const createdVariants = [];
+      const createdVariants: Types.ObjectId[] = [];
       for (const variant of variants) {
         const {
           variantCode,
@@ -144,7 +141,6 @@ export const productController = {
         thumbnailImage,
         description,
         image,
-        address,
         variants: createdVariants
       });
 
@@ -156,6 +152,10 @@ export const productController = {
     }
   },
 
+  /**
+   * PUT /products/:id
+   * productController.update()
+   */
   update: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -166,7 +166,6 @@ export const productController = {
         thumbnailImage,
         description,
         image,
-        address,
         variants
       } = req.body;
 
@@ -180,7 +179,7 @@ export const productController = {
       }
 
       if (variants && Array.isArray(variants)) {
-        const createdVariants = [];
+        const createdVariants: Types.ObjectId[] = [];
 
         for (const variant of variants) {
           const {
@@ -222,7 +221,7 @@ export const productController = {
         }
 
         product.variants.push(...createdVariants);
-      } else {
+      } else if (variants !== undefined) {
         return res
           .status(400)
           .json(apiResponse.error('Variants must be an array'));
@@ -234,7 +233,6 @@ export const productController = {
       if (thumbnailImage !== undefined) product.thumbnailImage = thumbnailImage;
       if (description !== undefined) product.description = description;
       if (image !== undefined) product.image = image;
-      if (address !== undefined) product.address = address;
 
       const updated = await product.save();
       return res
@@ -245,6 +243,10 @@ export const productController = {
     }
   },
 
+  /**
+   * DELETE /products/:id
+   * productController.remove()
+   */
   remove: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -263,6 +265,7 @@ export const productController = {
     }
   },
 
+  /** GET /products/shop/:shopId */
   getByShop: async (req: Request, res: Response) => {
     try {
       const { shopId } = req.params;
@@ -280,6 +283,7 @@ export const productController = {
     }
   },
 
+  /** GET /products/category/:categoryId */
   getByCategory: async (req: Request, res: Response) => {
     try {
       const { categoryId } = req.params;
