@@ -14,7 +14,6 @@ export interface IAddress extends Document {
   };
   addressType: 'home' | 'office' | 'other';
   isDefault: boolean;
-  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

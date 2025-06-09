@@ -6,9 +6,9 @@ export interface IUser extends Document {
   username: string;
   email: string;
   phoneNumber: string;
+  password: string;
   avatarUrl?: string;
   coverUrl?: string;
-  password: string;
   role: 'admin' | 'customer' | 'shop';
   addresses?: mongoose.Types.ObjectId[];
   createdAt: Date;
