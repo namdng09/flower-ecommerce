@@ -6,6 +6,7 @@ import productRoute from '~/modules/product/productRoute';
 import categoryRoute from '~/modules/category/categoryRoute';
 import addressRoute from '~/modules/address/addressRoute';
 import variantRoute from '~/modules/variant/variantRoute';
+import userRoute from '~/modules/user/userRoute';
 
 const router = Router();
 // Non-auth routes
@@ -26,6 +27,8 @@ router.use(
   passport.authenticate('jwt', { session: false }),
   addressRoute
 );
+
+router.use('/users', userRoute);
 
 router.use('/variants', variantRoute);
 
