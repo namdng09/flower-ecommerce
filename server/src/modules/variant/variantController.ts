@@ -1,7 +1,9 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import VariantModel from './variantModel';
 import { apiResponse } from '~/types/apiResponse';
+import createHttpError from 'http-errors';
+import { generateSKU } from '~/utils/generateSKU';
 
 /**
  * variantController.ts
@@ -13,7 +15,7 @@ export const variantController = {
    * GET /variants
    * variantController.list()
    */
-  list: async (req: Request, res: Response): Promise<Response> => {
+  list: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const variants = await VariantModel.find();
 
@@ -21,8 +23,7 @@ export const variantController = {
         .status(200)
         .json(apiResponse.success('Variants listed successfully', variants));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -30,23 +31,23 @@ export const variantController = {
    * GET /variants/:id
    * variantController.show()
    */
-  show: async (req: Request, res: Response) => {
+  show: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid variant id'));
+        throw createHttpError(400, 'Invalid variant id');
       }
 
       const variant = await VariantModel.findById(id);
       if (!variant) {
-        return res.status(404).json(apiResponse.error('Variant not found'));
+        throw createHttpError(404, 'Variant not found');
       }
 
       return res
         .status(200)
         .json(apiResponse.success('Variant fetched successfully', variant));
     } catch (error) {
-      return res.status(500).json(apiResponse.error((error as Error).message));
+      next(error);
     }
   },
 
@@ -54,14 +55,12 @@ export const variantController = {
    * GET /variants/code/:variantCode
    * variantController.getByCode()
    */
-  getByCode: async (req: Request, res: Response): Promise<Response> => {
+  getByCode: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { variantCode } = req.params;
 
       if (!variantCode || variantCode.trim() === '') {
-        return res
-          .status(400)
-          .json(apiResponse.error('Variant Code is required'));
+        throw createHttpError(400, 'Variant Code is required');
       }
 
       const variant = await VariantModel.findOne({
@@ -69,15 +68,14 @@ export const variantController = {
       });
 
       if (!variant) {
-        return res.status(404).json(apiResponse.error('Variant not found'));
+        throw createHttpError(404, 'Variant not found');
       }
 
       return res
         .status(200)
         .json(apiResponse.success('Variant fetched successfully', variant));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -85,7 +83,7 @@ export const variantController = {
    * POST /variants
    * variantController.create()
    */
-  create: async (req: Request, res: Response) => {
+  create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
         variantCode,
@@ -96,39 +94,27 @@ export const variantController = {
         inventory = 0
       } = req.body;
 
-      // Create generate SKU code function later
-
-      if (!variantCode?.trim()) {
-        return res
-          .status(400)
-          .json(apiResponse.error('variantCode is required'));
-      }
+      const skuCode = variantCode?.trim() || generateSKU();
 
       if (
         !attributes ||
         typeof attributes !== 'object' ||
         Object.keys(attributes).length === 0
       ) {
-        return res
-          .status(400)
-          .json(apiResponse.error('Attributes map is required'));
+        throw createHttpError(400, 'Attributes map is required');
       }
 
       if (salePrice > listPrice) {
-        return res
-          .status(400)
-          .json(apiResponse.error('Sale Price cannot exceed List Price'));
+        throw createHttpError(400, 'Sale Price cannot exceed List Price');
       }
 
       const existing = await VariantModel.findOne({ variantCode });
       if (existing) {
-        return res
-          .status(409)
-          .json(apiResponse.error('Variant Code already exists'));
+        throw createHttpError(409, 'Variant Code already exists');
       }
 
       const variant = await VariantModel.create({
-        variantCode,
+        variantCode: skuCode,
         attributes,
         listPrice,
         salePrice,
@@ -140,7 +126,7 @@ export const variantController = {
         .status(201)
         .json(apiResponse.success('Variant created successfully', variant));
     } catch (error) {
-      return res.status(500).json(apiResponse.error((error as Error).message));
+      next(error);
     }
   },
 
@@ -148,18 +134,18 @@ export const variantController = {
    * PUT /variants/:id
    * variantController.update()
    */
-  update: async (req: Request, res: Response) => {
+  update: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const { attributes, listPrice, salePrice, image, inventory } = req.body;
 
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid variant id'));
+        throw createHttpError(400, 'Invalid variant id');
       }
 
       const variant = await VariantModel.findById(id);
       if (!variant) {
-        return res.status(404).json(apiResponse.error('Variant not found'));
+        throw createHttpError(404, 'Variant not found');
       }
 
       if (
@@ -167,9 +153,7 @@ export const variantController = {
         listPrice !== undefined &&
         salePrice > listPrice
       ) {
-        return res
-          .status(400)
-          .json(apiResponse.error('Sale Price cannot exceed List Price'));
+        throw createHttpError(400, 'Sale Price cannot exceed List Price');
       }
 
       if (attributes !== undefined) variant.attributes = attributes;
@@ -185,7 +169,7 @@ export const variantController = {
           apiResponse.success('Variant updated successfully', updatedVariant)
         );
     } catch (error) {
-      return res.status(500).json(apiResponse.error((error as Error).message));
+      next(error);
     }
   },
 
@@ -193,23 +177,23 @@ export const variantController = {
    * DELETE /variants/:id
    * variantController.remove()
    */
-  remove: async (req: Request, res: Response) => {
+  remove: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid variant id'));
+        throw createHttpError(400, 'Invalid variant id');
       }
 
       const deleted = await VariantModel.findByIdAndDelete(id);
       if (!deleted) {
-        return res.status(404).json(apiResponse.error('Variant not found'));
+        throw createHttpError(404, 'Variant not found');
       }
 
       return res
         .status(200)
         .json(apiResponse.success('Variant removed successfully'));
     } catch (error) {
-      return res.status(500).json(apiResponse.error((error as Error).message));
+      next(error);
     }
   }
 };
