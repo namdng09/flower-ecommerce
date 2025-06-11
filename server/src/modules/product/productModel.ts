@@ -6,9 +6,15 @@ export interface IProduct extends Document {
   shop: mongoose.Types.ObjectId;
   skuCode: string;
   status: 'active' | 'inactive' | 'discontinued';
-  thumbnailImage?: string;
-  image?: string[];
-  description?: string;
+  thumbnailImage: string;
+  image: string[];
+  description: string;
+  weight: number;
+  dimension: {
+    length: number;
+    width: number;
+    height: number;
+  };
   category: mongoose.Types.ObjectId;
   variants: mongoose.Types.ObjectId[];
   createdAt: Date;
@@ -31,11 +37,23 @@ const ProductSchema = new Schema<IProduct>(
       enum: ['active', 'inactive', 'discontinued'],
       default: 'active'
     },
-    thumbnailImage: { type: String },
-    image: [{ type: String }],
-    description: { type: String },
+    thumbnailImage: { type: String, required: true },
+    image: {
+      type: [String],
+      validate: [
+        (val: string[]) => val.length > 0,
+        'At least one image is required'
+      ]
+    },
+    description: { type: String, required: true },
+    weight: { type: Number, required: true },
+    dimension: {
+      length: { type: Number, required: true },
+      width: { type: Number, required: true },
+      height: { type: Number, required: true }
+    },
     category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
-    variants: [{ type: Schema.Types.ObjectId, ref: 'Variant' }]
+    variants: [{ type: Schema.Types.ObjectId, ref: 'Variant', required: true }]
   },
   { timestamps: true }
 );
