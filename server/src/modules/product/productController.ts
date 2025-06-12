@@ -61,8 +61,8 @@ export const productController = {
    * productController.create()
    */
   create: async (req: Request, res: Response, next: NextFunction) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // const session = await mongoose.startSession();
+    // session.startTransaction();
 
     try {
       const {
@@ -164,13 +164,12 @@ export const productController = {
                 image,
                 inventory
               }
-            ],
-            { session }
+            ]
           );
           createdVariants.push(newVariant[0]._id);
         } catch (error) {
-          await session.abortTransaction();
-          session.endSession();
+          // await session.abortTransaction();
+          // session.endSession();
           next(error);
         }
       }
@@ -203,8 +202,8 @@ export const productController = {
         .status(201)
         .json(apiResponse.success('Product created with variants', product));
     } catch (error) {
-      await session.abortTransaction();
-      session.endSession();
+      // await session.abortTransaction();
+      // session.endSession();
       next(error);
     }
   },
