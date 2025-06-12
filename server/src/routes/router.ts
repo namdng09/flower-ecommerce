@@ -7,7 +7,7 @@ import categoryRoute from '~/modules/category/categoryRoute';
 import addressRoute from '~/modules/address/addressRoute';
 import variantRoute from '~/modules/variant/variantRoute';
 import userRoute from '~/modules/user/userRoute';
-
+import favouriteRoute from '~/modules/favourite/favouriteRoute';  
 const router = Router();
 // Non-auth routes
 router.use('/auth', authRoutes);
@@ -31,5 +31,13 @@ router.use(
 router.use('/users', userRoute);
 
 router.use('/variants', variantRoute);
+
+// router.use(
+//   '/favourites',
+//   passport.authenticate('jwt', { session: false }),
+//   favouriteRoute
+// );
+
+router.use('/favourites', favouriteRoute);
 
 export default router;
