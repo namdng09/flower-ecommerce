@@ -86,15 +86,12 @@ export const variantController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
-        variantCode,
         attributes,
         listPrice,
         salePrice,
         image,
         inventory = 0
       } = req.body;
-
-      const skuCode = variantCode?.trim() || generateSKU();
 
       if (
         !attributes ||
@@ -108,13 +105,16 @@ export const variantController = {
         throw createHttpError(400, 'Sale Price cannot exceed List Price');
       }
 
-      const existing = await VariantModel.findOne({ variantCode });
-      if (existing) {
-        throw createHttpError(409, 'Variant Code already exists');
+      let variantCode = generateSKU();
+
+      let existing = await VariantModel.findOne({ variantCode });
+      while (existing) {
+        variantCode = generateSKU();
+        existing = await VariantModel.findOne({ variantCode });
       }
 
       const variant = await VariantModel.create({
-        variantCode: skuCode,
+        variantCode,
         attributes,
         listPrice,
         salePrice,

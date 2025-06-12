@@ -1,10 +1,12 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import mongoose, { Types } from 'mongoose';
 import ProductModel from './productModel';
 import VariantModel from '../variant/variantModel';
 import { apiResponse } from '~/types/apiResponse';
 import UserModel from '../user/userModel';
 import CategoryModel from '../category/categoryModel';
+import createHttpError from 'http-errors';
+import { generateSKU } from '~/utils/generateSKU';
 
 /**
  * productController.ts
@@ -16,7 +18,7 @@ export const productController = {
    * GET /products
    * productController.list()
    */
-  list: async (req: Request, res: Response) => {
+  list: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const products = await ProductModel.find().populate(
         'category shop variants'
@@ -34,7 +36,7 @@ export const productController = {
    * GET /products
    * productController.show()
    */
-  show: async (req: Request, res: Response) => {
+  show: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id))
@@ -50,8 +52,7 @@ export const productController = {
         .status(200)
         .json(apiResponse.success('Product detail', product));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -59,8 +60,7 @@ export const productController = {
    * POST /products
    * productController.create()
    */
-  create: async (req: Request, res: Response) => {
-    // Start session
+  create: async (req: Request, res: Response, next: NextFunction) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -68,7 +68,6 @@ export const productController = {
       const {
         title,
         shop,
-        skuCode,
         category,
         status,
         thumbnailImage,
@@ -82,11 +81,11 @@ export const productController = {
       if (
         !title ||
         !shop ||
-        !skuCode ||
         !category ||
         !thumbnailImage ||
         !image ||
         !weight ||
+        typeof dimension !== 'object' ||
         !dimension.length ||
         !dimension.width ||
         !dimension.height
@@ -96,8 +95,9 @@ export const productController = {
           .json(apiResponse.error('Missing required fields'));
       }
 
+      // Validate attributes
       if (!Types.ObjectId.isValid(shop)) {
-        return res.status(400).json(apiResponse.error('Invalid shop id'));
+        throw createHttpError(400, 'Invalid shop id');
       }
 
       const shopExists = await UserModel.findOne({ _id: shop, role: 'shop' });
@@ -106,19 +106,13 @@ export const productController = {
       }
 
       if (!Types.ObjectId.isValid(category)) {
-        return res.status(400).json(apiResponse.error('Invalid category id'));
+        throw createHttpError(400, 'Invalid category id');
       }
 
       const categoryExists = await CategoryModel.findById(category);
-      
+
       if (!categoryExists) {
         return res.status(404).json(apiResponse.error('Category not found'));
-      }
-
-      if (await ProductModel.findOne({ skuCode })) {
-        return res
-          .status(409)
-          .json(apiResponse.error(`SKU Code '${skuCode}' already exists`));
       }
 
       if (weight <= 0) {
@@ -134,10 +128,10 @@ export const productController = {
           .json(apiResponse.error('Dimension values must be > 0'));
       }
 
+      // Create Variants
       const createdVariants: Types.ObjectId[] = [];
       for (const variant of variants) {
         const {
-          variantCode,
           attributes,
           listPrice,
           salePrice,
@@ -145,37 +139,56 @@ export const productController = {
           inventory = 0
         } = variant;
 
-        if (!variantCode?.trim() || !attributes || salePrice > listPrice) {
+        if (!attributes || salePrice > listPrice) {
           return res
             .status(400)
             .json(apiResponse.error('Invalid variant input'));
         }
 
-        const exists = await VariantModel.findOne({ variantCode });
-        if (exists) {
-          return res
-            .status(409)
-            .json(
-              apiResponse.error(`Variant code '${variantCode}' already exists`)
-            );
+        let variantCode = generateSKU();
+
+        let existing = await VariantModel.findOne({ variantCode });
+        while (existing) {
+          variantCode = generateSKU();
+          existing = await VariantModel.findOne({ variantCode });
         }
 
-        const newVariant = await VariantModel.create({
-          variantCode,
-          attributes,
-          listPrice,
-          salePrice,
-          image,
-          inventory
-        });
-
-        createdVariants.push(newVariant._id);
+        try {
+          const newVariant = await VariantModel.create(
+            [
+              {
+                variantCode: variantCode,
+                attributes,
+                listPrice,
+                salePrice,
+                image,
+                inventory
+              }
+            ],
+            { session }
+          );
+          createdVariants.push(newVariant[0]._id);
+        } catch (error) {
+          await session.abortTransaction();
+          session.endSession();
+          next(error);
+        }
       }
+
+      let productCode = generateSKU();
+
+      let existing = await ProductModel.findOne({ skuCode: productCode });
+      while (existing) {
+        productCode = generateSKU();
+        existing = await ProductModel.findOne({ skuCode: productCode });
+      }
+      console.log('code product', productCode);
+      console.log('create V', createdVariants);
 
       const product = await ProductModel.create({
         title,
         shop,
-        skuCode,
+        skuCode: productCode,
         category,
         status,
         thumbnailImage,
@@ -190,10 +203,9 @@ export const productController = {
         .status(201)
         .json(apiResponse.success('Product created with variants', product));
     } catch (error) {
-      await session.abortTransaction(); // rollback!
+      await session.abortTransaction();
       session.endSession();
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -201,7 +213,7 @@ export const productController = {
    * PUT /products/:id
    * productController.update()
    */
-  update: async (req: Request, res: Response) => {
+  update: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const {
@@ -335,8 +347,7 @@ export const productController = {
         .status(200)
         .json(apiResponse.success('Product updated', updated));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -344,7 +355,7 @@ export const productController = {
    * DELETE /products/:id
    * productController.remove()
    */
-  remove: async (req: Request, res: Response) => {
+  remove: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id))
@@ -358,12 +369,12 @@ export const productController = {
         .status(200)
         .json(apiResponse.success('Product deleted successfully'));
     } catch (error) {
-      return res.status(500).json(apiResponse.error((error as Error).message));
+      next(error);
     }
   },
 
   /** GET /products/shop/:shopId */
-  getByShop: async (req: Request, res: Response) => {
+  getByShop: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { shopId } = req.params;
       if (!Types.ObjectId.isValid(shopId))
@@ -381,7 +392,7 @@ export const productController = {
   },
 
   /** GET /products/category/:categoryId */
-  getByCategory: async (req: Request, res: Response) => {
+  getByCategory: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { categoryId } = req.params;
 
@@ -395,8 +406,7 @@ export const productController = {
         .status(200)
         .json(apiResponse.success('Category products', products));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      return res.status(500).json(apiResponse.error((error as Error).message));
     }
   }
 };
