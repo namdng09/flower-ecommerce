@@ -1,8 +1,9 @@
 import { Types } from 'mongoose';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import AddressModel from './addressModel';
 import { apiResponse } from '~/types/apiResponse';
 import UserModel from '../user/userModel';
+import createHttpError from 'http-errors';
 
 /**
  * addressController.ts
@@ -14,12 +15,13 @@ export const addressController = {
    * GET /addresses?userId=?
    * addressController.list()
    */
-  list: async (req: Request, res: Response): Promise<Response> => {
+  list: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const { userId } = req.query;
 
-      if (!userId || !Types.ObjectId.isValid(userId as string))
-        return res.status(400).json(apiResponse.error('Invalid user id'));
+      if (!userId || !Types.ObjectId.isValid(userId as string)) {
+        throw createHttpError(400, 'Invalid user id');
+      }
 
       const addresses = await AddressModel.find({ userId });
 
@@ -27,8 +29,7 @@ export const addressController = {
         .status(200)
         .json(apiResponse.success('Addresses listed successfully', addresses));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -36,26 +37,25 @@ export const addressController = {
    * GET /addresses/:id
    * addressController.show()
    */
-  show: async (req: Request, res: Response): Promise<Response> => {
+  show: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const { id } = req.params;
 
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid category id'));
+        throw createHttpError(400, 'Invalid category id');
       }
 
       const address = await AddressModel.findById(id);
 
       if (!address) {
-        return res.status(404).json(apiResponse.error('Address not found'));
+        throw createHttpError(404, 'Address not found');
       }
 
       return res
         .status(200)
         .json(apiResponse.success('Address fetched successfully', address));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -63,7 +63,7 @@ export const addressController = {
    * POST /addresses
    * addressController.create()
    */
-  create: async (req: Request, res: Response): Promise<Response> => {
+  create: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const {
         userId,
@@ -79,20 +79,16 @@ export const addressController = {
       } = req.body;
 
       if (!userId || !Types.ObjectId.isValid(userId)) {
-        return res
-          .status(400)
-          .json(apiResponse.error('Invalid or missing userId'));
+        throw createHttpError(400, 'Invalid or missing userId');
       }
 
       const userExists = await UserModel.exists({ _id: userId });
       if (!userExists) {
-        return res.status(404).json(apiResponse.error('User not found'));
+        throw createHttpError(404, 'User not found');
       }
 
       if (!fullName || !phone || !province || !district || !ward || !street) {
-        return res
-          .status(400)
-          .json(apiResponse.error('Missing required fields'));
+        throw createHttpError(400, 'Missing required fields');
       }
 
       if (isDefault) {
@@ -119,7 +115,7 @@ export const addressController = {
         .status(201)
         .json(apiResponse.success('Address created successfully', newAddress));
     } catch (error) {
-      return res.status(500).json(apiResponse.error((error as Error).message));
+      next(error);
     }
   },
 
@@ -127,7 +123,7 @@ export const addressController = {
    * PUT /addresses/:id
    * addressController.update()
    */
-  update: async (req: Request, res: Response): Promise<Response> => {
+  update: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const { id } = req.params;
       const {
@@ -144,23 +140,21 @@ export const addressController = {
       } = req.body;
 
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid address id'));
+        throw createHttpError(400, 'Invalid address id');
       }
 
       const address = await AddressModel.findById(id);
       if (!address) {
-        return res.status(404).json(apiResponse.error('Address not found'));
+        throw createHttpError(404, 'Address not found');
       }
 
       if (!userId || !Types.ObjectId.isValid(userId)) {
-        return res
-          .status(400)
-          .json(apiResponse.error('Invalid or missing userId'));
+        throw createHttpError(400, 'Invalid or missing userId');
       }
 
       const userExists = await UserModel.exists({ _id: userId });
       if (!userExists) {
-        return res.status(404).json(apiResponse.error('User does not exist'));
+        throw createHttpError(404, 'User does not exist');
       }
 
       if (userId !== undefined) address.userId = userId;
@@ -189,8 +183,7 @@ export const addressController = {
           apiResponse.success('Address updated successfully', updatedAddress)
         );
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -198,26 +191,25 @@ export const addressController = {
    * DELETE /addresses/:id
    * addressController.remove()
    */
-  remove: async (req: Request, res: Response): Promise<Response> => {
+  remove: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
       const { id } = req.params;
 
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid address id'));
+        throw createHttpError(400, 'Invalid address id');
       }
 
       const deletedAddress = await AddressModel.findByIdAndDelete(id);
 
       if (!deletedAddress) {
-        return res.status(404).json(apiResponse.error('Address not found'));
+        throw createHttpError(404, 'Address not found');
       }
 
       return res
         .status(200)
         .json(apiResponse.success('Address removed successfully'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   }
 };
