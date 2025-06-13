@@ -1,20 +1,22 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import UserModel from '../user/userModel';
 import { generateToken, verifyToken } from '~/utils/jwt';
 import { comparePassword } from '~/utils/bcrypt';
 import { apiResponse } from '~/types/apiResponse';
+import createHttpError from 'http-errors';
 
 const authController = {
-  async register(req: Request, res: Response) {
-    const { fullName, username, email, phoneNumber, role, password } = req.body;
-
+  async register(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
-      const existingUser = await UserModel.findOne({
-        email: email
-      });
-      if (existingUser) {
-        return res.status(400).json(apiResponse.failed('User already exists'));
-      }
+      const { fullName, username, email, phoneNumber, role, password } =
+        req.body;
+
+      const existingUser = await UserModel.findOne({ email });
+      if (existingUser) throw createHttpError(400, 'User already exists');
 
       const newUser = await UserModel.create({
         fullName,
@@ -24,10 +26,7 @@ const authController = {
         role,
         password
       });
-
-      if (!newUser) {
-        return res.status(400).json(apiResponse.failed('User creation failed'));
-      }
+      if (!newUser) throw createHttpError(400, 'User creation failed');
 
       const { accessToken, refreshToken } = generateToken(
         newUser.id.toString()
@@ -41,7 +40,7 @@ const authController = {
 
       return res.status(201).json(
         apiResponse.success('User created successfully', {
-          accessToken: accessToken,
+          accessToken,
           user: {
             id: newUser.id,
             fullName: newUser.fullName,
@@ -52,30 +51,25 @@ const authController = {
         })
       );
     } catch (error) {
-      console.error('Error registering user:', error);
-      return res.status(500).json(apiResponse.error('Internal server error'));
+      next(error);
     }
   },
 
-  async login(req: Request, res: Response) {
-    const { email, password } = req.body;
-
+  /** POST /auth/login */
+  async login(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
-      const user = await UserModel.findOne({
-        email: email
-      });
-      if (!user) {
-        return res
-          .status(400)
-          .json(apiResponse.failed('Invalid email or password'));
-      }
+      const { email, password } = req.body;
+
+      const user = await UserModel.findOne({ email });
+      if (!user) throw createHttpError(400, 'Invalid email or password');
 
       const isPasswordValid = await comparePassword(password, user.password);
-      if (!isPasswordValid) {
-        return res
-          .status(400)
-          .json(apiResponse.failed('Invalid email or password'));
-      }
+      if (!isPasswordValid)
+        throw createHttpError(400, 'Invalid email or password');
 
       const { accessToken, refreshToken } = generateToken(user.id.toString());
 
@@ -87,7 +81,7 @@ const authController = {
 
       return res.status(200).json(
         apiResponse.success('Login successful', {
-          accessToken: accessToken,
+          accessToken,
           user: {
             id: user.id,
             email: user.email
@@ -95,11 +89,16 @@ const authController = {
         })
       );
     } catch (error) {
-      console.error('Error logging in:', error);
-      return res.status(500).json(apiResponse.error('Internal server error'));
+      next(error);
     }
   },
-  async logout(req: Request, res: Response) {
+
+  /** POST /auth/logout */
+  async logout(
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
       res.clearCookie('refreshToken', {
         httpOnly: true,
@@ -108,20 +107,21 @@ const authController = {
       });
       return res.status(200).json(apiResponse.success('Logout successful'));
     } catch (error) {
-      console.error('Error logging out:', error);
-      return res.status(500).json(apiResponse.error('Internal server error'));
+      next(error);
     }
   },
-  async refreshToken(req: Request, res: Response) {
-    const { refreshToken } = req.cookies;
 
-    if (!refreshToken) {
-      return res
-        .status(401)
-        .json(apiResponse.failed('No refresh token provided'));
-    }
-
+  /** POST /auth/refresh-token */
+  async refreshToken(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
+      const { refreshToken } = req.cookies;
+      if (!refreshToken)
+        throw createHttpError(401, 'No refresh token provided');
+
       const decoded = verifyToken(refreshToken);
       const userId = (decoded as { userId: string }).userId;
 
@@ -133,8 +133,7 @@ const authController = {
         })
       );
     } catch (error) {
-      console.error('Error refreshing token:', error);
-      return res.status(401).json(apiResponse.failed('Invalid refresh token'));
+      next(error);
     }
   }
 };

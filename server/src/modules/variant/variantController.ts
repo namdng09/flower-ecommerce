@@ -15,7 +15,11 @@ export const variantController = {
    * GET /variants
    * variantController.list()
    */
-  list: async (req: Request, res: Response, next: NextFunction) => {
+  list: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const variants = await VariantModel.find();
 
@@ -31,7 +35,11 @@ export const variantController = {
    * GET /variants/:id
    * variantController.show()
    */
-  show: async (req: Request, res: Response, next: NextFunction) => {
+  show: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id)) {
@@ -55,7 +63,11 @@ export const variantController = {
    * GET /variants/code/:variantCode
    * variantController.getByCode()
    */
-  getByCode: async (req: Request, res: Response, next: NextFunction) => {
+  getByCode: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { variantCode } = req.params;
 
@@ -83,7 +95,11 @@ export const variantController = {
    * POST /variants
    * variantController.create()
    */
-  create: async (req: Request, res: Response, next: NextFunction) => {
+  create: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const {
         attributes,
@@ -134,7 +150,11 @@ export const variantController = {
    * PUT /variants/:id
    * variantController.update()
    */
-  update: async (req: Request, res: Response, next: NextFunction) => {
+  update: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
       const { attributes, listPrice, salePrice, image, inventory } = req.body;
@@ -177,7 +197,11 @@ export const variantController = {
    * DELETE /variants/:id
    * variantController.remove()
    */
-  remove: async (req: Request, res: Response, next: NextFunction) => {
+  remove: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id)) {

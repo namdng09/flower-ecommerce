@@ -15,7 +15,11 @@ export const addressController = {
    * GET /addresses?userId=?
    * addressController.list()
    */
-  list: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  list: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { userId } = req.query;
 
@@ -37,7 +41,11 @@ export const addressController = {
    * GET /addresses/:id
    * addressController.show()
    */
-  show: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  show: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
 
@@ -63,7 +71,11 @@ export const addressController = {
    * POST /addresses
    * addressController.create()
    */
-  create: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  create: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const {
         userId,
@@ -123,7 +135,11 @@ export const addressController = {
    * PUT /addresses/:id
    * addressController.update()
    */
-  update: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  update: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
       const {
@@ -191,7 +207,11 @@ export const addressController = {
    * DELETE /addresses/:id
    * addressController.remove()
    */
-  remove: async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+  remove: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
 
