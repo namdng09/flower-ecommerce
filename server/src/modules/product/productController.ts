@@ -124,15 +124,24 @@ export const productController = {
 
       for (const variant of variants) {
         const {
-          attributes,
+          title,
           listPrice,
           salePrice,
           image,
           inventory = 0
         } = variant;
 
-        if (!attributes || salePrice > listPrice)
-          throw createHttpError(400, 'Invalid variant input');
+        if (
+          !title ||
+          typeof title !== 'string' ||
+          title.trim() === ''
+        ) {
+          throw createHttpError(400, 'Variant title is required');
+        }
+
+        if (salePrice > listPrice) {
+          throw createHttpError(400, 'Sale Price cannot exceed List Price');
+        }
 
         let variantCode = generateSKU();
         while (await VariantModel.findOne({ variantCode })) {
@@ -142,8 +151,8 @@ export const productController = {
         try {
           const newVariant = await VariantModel.create([
             {
-              variantCode: variantCode,
-              attributes,
+              variantCode,
+              title,
               listPrice,
               salePrice,
               image,
@@ -242,15 +251,23 @@ export const productController = {
 
         for (const variant of variants) {
           const {
-            attributes,
+            title,
             listPrice,
             salePrice,
             image,
             inventory = 0
           } = variant;
 
-          if (!attributes || salePrice > listPrice)
-            throw createHttpError(400, 'Invalid variant input');
+          if (
+            !title ||
+            typeof title !== 'string' ||
+            title.trim() === ''
+          ) {
+            throw createHttpError(400, 'Variant title is required');
+          }
+
+          if (salePrice > listPrice)
+            throw createHttpError(400, 'Sale Price cannot exceed List Price');
 
           let variantCode = generateSKU();
           while (await VariantModel.findOne({ variantCode })) {
@@ -259,7 +276,7 @@ export const productController = {
 
           const newVariant = await VariantModel.create({
             variantCode,
-            attributes,
+            title,
             listPrice,
             salePrice,
             image,

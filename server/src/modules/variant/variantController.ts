@@ -102,19 +102,15 @@ export const variantController = {
   ): Promise<Response | void> => {
     try {
       const {
-        attributes,
+        title,
         listPrice,
         salePrice,
         image,
         inventory = 0
       } = req.body;
 
-      if (
-        !attributes ||
-        typeof attributes !== 'object' ||
-        Object.keys(attributes).length === 0
-      ) {
-        throw createHttpError(400, 'Attributes map is required');
+      if (!title || typeof title !== 'string' || title.trim() === '') {
+        throw createHttpError(400, 'Title is required');
       }
 
       if (salePrice > listPrice) {
@@ -131,7 +127,7 @@ export const variantController = {
 
       const variant = await VariantModel.create({
         variantCode,
-        attributes,
+        title,
         listPrice,
         salePrice,
         image,
@@ -157,7 +153,7 @@ export const variantController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const { attributes, listPrice, salePrice, image, inventory } = req.body;
+      const { title, listPrice, salePrice, image, inventory } = req.body;
 
       if (!Types.ObjectId.isValid(id)) {
         throw createHttpError(400, 'Invalid variant id');
@@ -176,7 +172,7 @@ export const variantController = {
         throw createHttpError(400, 'Sale Price cannot exceed List Price');
       }
 
-      if (attributes !== undefined) variant.attributes = attributes;
+      if (title !== undefined) variant.title = title;
       if (listPrice !== undefined) variant.listPrice = listPrice;
       if (salePrice !== undefined) variant.salePrice = salePrice;
       if (image !== undefined) variant.image = image;
