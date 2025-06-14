@@ -1,15 +1,15 @@
 #!/bin/bash
 set -e
 case "$(uname)" in
-_CYGWIN_|_MINGW_|_MSYS_)
+*CYGWIN*|*MINGW*|*MSYS*)
 echo "Running lint-staged on Windows"
 npx.cmd lint-staged
 ;;
-_Linux_)
+*Linux*)
 echo "Running lint-staged on Linux"
 npx lint-staged
 ;;
-_Darwin_)
+*Darwin*)
 echo "Running lint-staged on macOS"
 npx lint-staged
 ;;

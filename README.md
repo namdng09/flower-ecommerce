@@ -46,7 +46,7 @@ npm run dev
 Chạy server
 
 ```
-cd client
+cd server
 npm i
 npm run dev
 ```
