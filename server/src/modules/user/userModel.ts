@@ -2,37 +2,58 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { hashPassword } from '~/utils/bcrypt';
 
 export interface IUser extends Document {
+  fullName: string;
   username: string;
   email: string;
+  phoneNumber: string;
   password: string;
-  role: string;
+  avatarUrl?: string;
+  coverUrl?: string;
+  role: 'admin' | 'customer' | 'shop';
+  addresses?: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-const userSchema = new Schema(
+const userSchema = new Schema<IUser>(
   {
+    fullName: { type: String, required: true },
     username: {
       type: String,
-      unique: true
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 30
     },
     email: {
       type: String,
-      unique: true
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      match: [/\S+@\S+\.\S+/, 'Please use a valid email address']
+    },
+    phoneNumber: {
+      type: String,
+      required: true,
+      match: [/^\d{10,11}$/, 'Please enter a valid phone number']
     },
     password: {
       type: String,
-      required: true
+      required: true,
+      minlength: [6, 'Password must be more than 6 characters long']
     },
     role: {
       type: String,
-      enum: ['admin', 'user'],
-      default: 'user'
-    }
+      required: true,
+      enum: ['admin', 'customer', 'shop']
+    },
+    avatarUrl: { type: String, default: '' },
+    coverUrl: { type: String, default: '' },
+    addresses: [{ type: Schema.Types.ObjectId, ref: 'Address' }]
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
 userSchema.pre<IUser>('save', async function (next) {
