@@ -7,17 +7,29 @@ const HomepageLayout = () => {
   const [cartItems, setCartItems] = useState([]);
   const [openCart, setOpenCart] = useState(false);
 
-  const handleAddToCart = product => {
+  const handleAddToCart = (product) => {
+    console.log('Add:', product.id, product.name);
+
     setCartItems(prev => {
-      const exist = prev.find(item => item.id === product.id);
+      const exist = prev.find(item =>
+        item.id === product.id &&
+        item.name === product.name &&
+        item.price === product.price
+      );
+
       if (exist) {
         return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id &&
+            item.name === product.name &&
+            item.price === product.price
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
         );
       } else {
         return [...prev, { ...product, quantity: 1 }];
       }
     });
+
     setOpenCart(true);
   };
 

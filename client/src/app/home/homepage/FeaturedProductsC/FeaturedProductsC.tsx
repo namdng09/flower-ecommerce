@@ -15,7 +15,7 @@ function FeaturedProductsC() {
     { id: 1, name: 'Evergreen Candytuft', price: 50, image: hoa1 },
     { id: 2, name: 'Flowers Bouquet Pink', price: 100, image: hoa2 },
     { id: 3, name: 'Pearly Everlasting', price: 100, oldPrice: 120, image: hoa3 },
-    { id: 4, name: 'Flowers Bouquet Pink', price: 150, image: hoa4 }
+    { id: 4, name: 'Flowers', price: 150, image: hoa4 }
   ];
 
   return (
