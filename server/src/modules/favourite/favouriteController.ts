@@ -1,9 +1,9 @@
-import { NextFunction, Request, Response } from "express";
-import { Types } from "mongoose";
-import FavouriteModel, { IFavourite } from "./favouriteModel";
-import { apiResponse } from "~/types/apiResponse";
-import createHttpError from "http-errors";
-import { generateSKU } from "~/utils/generateSKU";
+import { NextFunction, Request, Response } from 'express';
+import { Types } from 'mongoose';
+import FavouriteModel, { IFavourite } from './favouriteModel';
+import { apiResponse } from '~/types/apiResponse';
+import createHttpError from 'http-errors';
+import { generateSKU } from '~/utils/generateSKU';
 
 /**
  * favouriteController.ts
@@ -13,91 +13,57 @@ import { generateSKU } from "~/utils/generateSKU";
 export const favouriteController = {
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { userId, products } = req.body;      
-      const favourite = await FavouriteModel.create({ userId, products });
+      const { userId, products } = req.body;
+
+      if (!userId) {
+        throw createHttpError(400, 'userId is required');
+      }
+      if (!Array.isArray(products) || products.length === 0) {
+        throw createHttpError(400, 'products must be a non-empty array');
+      }
+
+   
+      let favourite = await FavouriteModel.findOne({ userId });
+
+      if (favourite) {
+     
+        const newProducts = products.filter(
+          (p: string) => !favourite!.products.includes(p)
+        );
+        if (newProducts.length > 0) {
+          favourite.products.push(...newProducts);
+          await favourite.save();
+        }
+      } else {
+        
+        favourite = await FavouriteModel.create({ userId, products });
+      }
+
       return res
         .status(201)
-        .json(apiResponse.success('Favourite created successfully', favourite));
-    } catch (error) {
-      return res.status(500).json(apiResponse.error((error as Error).message));
-    }
-  },    
-
-  list: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-    //   const { userId } = req.query;
-      const favourites = await FavouriteModel.find();
-      return res
-        .status(200)
-        .json(apiResponse.success('Favourites listed successfully', favourites));
+        .json(apiResponse.success('Favourite updated successfully', favourite));
     } catch (error) {
       return res.status(500).json(apiResponse.error((error as Error).message));
     }
   },
-    show: async (req: Request, res: Response, next: NextFunction) => {
-        try {
-        const { id } = req.params;
-        if (!Types.ObjectId.isValid(id)) {
-            throw createHttpError(400, 'Invalid favourite id');
-        }
-    
-        const favourite = await FavouriteModel.findById(id);
-        if (!favourite) {
-            throw createHttpError(404, 'Favourite not found');
-        }
-    
-        return res
-            .status(200)
-            .json(apiResponse.success('Favourite fetched successfully', favourite));
-        } catch (error) {
-        return res.status(500).json(apiResponse.error((error as Error).message));
-        }
-    },
-    
-    remove: async (req: Request, res: Response, next: NextFunction) => {
-        try {
-        const { id } = req.params;
-        if (!Types.ObjectId.isValid(id)) {
-            throw createHttpError(400, 'Invalid favourite id');
-        }
-    
-        const deleted = await FavouriteModel.findByIdAndDelete(id);
-        if (!deleted) {
-            throw createHttpError(404, 'Favourite not found');
-        }
-    
-        return res
-            .status(200)
-            .json(apiResponse.success('Favourite removed successfully'));
-        } catch (error) {
-        return res.status(500).json(apiResponse.error((error as Error).message));
-        }
-    },
-    update: async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { id } = req.params;
-            const { userId, products } = req.body;
 
-            if (!Types.ObjectId.isValid(id)) {
-                throw createHttpError(400, 'Invalid favourite id');
-            }
+  remove: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      if (!Types.ObjectId.isValid(id)) {
+        throw createHttpError(400, 'Invalid favourite id');
+      }
 
-            const updatedFavourite = await FavouriteModel.findByIdAndUpdate(
-                id,
-                { userId, products },
-                { new: true }
-            );
+      const deleted = await FavouriteModel.findByIdAndDelete(id);
+      if (!deleted) {
+        throw createHttpError(404, 'Favourite not found');
+      }
 
-            if (!updatedFavourite) {
-                throw createHttpError(404, 'Favourite not found');
-            }
-
-            return res
-                .status(200)
-                .json(apiResponse.success('Favourite updated successfully', updatedFavourite));
-        } catch (error) {
-            return res.status(500).json(apiResponse.error((error as Error).message));
-        }
+      return res
+        .status(200)
+        .json(apiResponse.success('Favourite removed successfully'));
+    } catch (error) {
+      return res.status(500).json(apiResponse.error((error as Error).message));
     }
-
+  }
 };
