@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+case "$(uname)" in
+  *CYGWIN*|*MINGW*|*MSYS*)
+    echo "Running commitlint on Windows"
+    npx.cmd --no -- commitlint --edit "$1"
+    ;;
+  *Linux*|*Darwin*|*)
+    echo "Running commitlint on Unix-like OS"
+    npx --no -- commitlint --edit "$1"
+    ;;
+esac
+
+echo "Commit-msg hook completed successfully"
