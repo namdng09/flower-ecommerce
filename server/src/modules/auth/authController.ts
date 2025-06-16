@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import UserModel from '../user/userModel';
-import { generateToken, verifyToken } from '~/utils/jwt';
+import { generateToken, verifyRefreshToken } from '~/utils/jwt';
 import { comparePassword } from '~/utils/bcrypt';
 import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
@@ -122,14 +122,14 @@ const authController = {
       if (!refreshToken)
         throw createHttpError(401, 'No refresh token provided');
 
-      const decoded = verifyToken(refreshToken);
+      const decoded = verifyRefreshToken(refreshToken);
       const userId = (decoded as { userId: string }).userId;
 
       const newAccessToken = generateToken(userId);
 
       return res.status(200).json(
         apiResponse.success('Token refreshed successfully', {
-          accessToken: newAccessToken
+          accessToken: newAccessToken.accessToken
         })
       );
     } catch (error) {
