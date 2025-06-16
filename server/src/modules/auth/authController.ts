@@ -127,10 +127,10 @@ const authController = {
         throw createHttpError(401, 'No refresh token provided');
 
       const decoded = verifyRefreshToken(refreshToken);
-      const userId = (decoded as { userId: string }).userId;
+      const id = typeof decoded === 'string' ? decoded : decoded.id;
 
       const { accessToken } = generateToken({
-        id: userId,
+        id: id,
         role: (decoded as { role: string }).role
       });
 
