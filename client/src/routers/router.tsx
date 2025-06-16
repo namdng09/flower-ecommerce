@@ -9,7 +9,7 @@ const router = createBrowserRouter([
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: '/',
+        path: '',
         Component: lazy(() => import('../app/page'))
       }
     ]
@@ -41,6 +41,32 @@ const router = createBrowserRouter([
       {
         path: '',
         Component: lazy(() => import('../app/quizzes/page'))
+      }
+    ]
+  },
+  {
+    path: '/home',
+    Component: lazy(() => import('../layouts/homepageLayout')),
+    children: [
+      {
+        index: true,
+        Component: lazy(() => import('../app/home/homepage/Homepage'))
+      },
+      {
+        path: 'shop',
+        Component: lazy(
+          () => import('../app/home/homepage/productList/ProductList')
+        )
+      },
+      {
+        path: 'products',
+        Component: lazy(
+          () => import('../app/home/homepage/productList/ProductPage')
+        )
+      },
+      {
+        path: 'about',
+        Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
       }
     ]
   }
