@@ -2,7 +2,7 @@ import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface IVariant {
   variantCode: string;
-  attributes: Record<string, string>;
+  title: string;
   listPrice: number;
   salePrice: number;
   image?: string;
@@ -14,7 +14,7 @@ export interface IVariant {
 const VariantSchema = new Schema<IVariant>(
   {
     variantCode: { type: String, required: true, trim: true, immutable: true },
-    attributes: { type: Map, of: String, required: true },
+    title: { type: String, required: true, trim: true },
     listPrice: {
       type: Number,
       required: true,
