@@ -50,7 +50,7 @@ export const addressController = {
       const { id } = req.params;
 
       if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid category id');
+        throw createHttpError(400, 'Invalid address id');
       }
 
       const address = await AddressModel.findById(id);
