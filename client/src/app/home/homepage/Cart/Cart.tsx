@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-interface CartItem {
+export interface CartItem {
     id: number;
     name: string;
     price: number;
@@ -12,9 +12,10 @@ interface MiniCartModalProps {
     isOpen: boolean;
     onClose: () => void;
     items: CartItem[];
+    onRemoveItem?: (id: number) => void;
 }
 
-export default function MiniCartModal({ isOpen, onClose, items }: MiniCartModalProps) {
+export default function MiniCartModal({ isOpen, onClose, items, onRemoveItem }: MiniCartModalProps) {
     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -30,18 +31,27 @@ export default function MiniCartModal({ isOpen, onClose, items }: MiniCartModalP
 
     return (
         <div className='absolute top-[60px] right-4 w-[350px] bg-white rounded-xl shadow-lg z-50 border border-gray-200 p-4'>
-            <div className='flex justify-between items-start'>
-                <div>
-                    <p className='font-semibold text-black'>{items[0].name}</p>
-                    <p className='text-pink-600 font-semibold text-lg'>
-                        {items[0].price.toLocaleString()} VNĐ
-                    </p>
-                    <p className='text-gray-400 text-sm'>SỐ LƯỢNG: x{items[0].quantity}</p>
-                </div>
-                <img src={items[0].image} alt={items[0].name} className='w-16 h-16 object-cover rounded-md' />
-                <button onClick={onClose} className='text-gray-500 hover:text-black text-xl font-bold ml-2'>
-                    &times;
-                </button>
+            <div className='space-y-4 max-h-[400px] overflow-y-auto'>
+                {items.map((item, index) => (
+                    <div key={`${item.id}-${index}`} className='flex justify-between items-start'>
+                        <div className='flex gap-2'>
+                            <img src={item.image} alt={item.name} className='w-16 h-16 object-cover rounded-md' />
+                            <div>
+                                <p className='font-semibold text-black leading-5'>{item.name}</p>
+                                <p className='text-pink-600 font-semibold text-sm'>
+                                    {item.price.toLocaleString()} VNĐ
+                                </p>
+                                <p className='text-gray-400 text-xs'>SỐ LƯỢNG: x{item.quantity}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => onRemoveItem?.(item.id)}
+                            className='text-gray-500 hover:text-black text-xl font-bold'
+                        >
+                            &times;
+                        </button>
+                    </div>
+                ))}
             </div>
 
             <hr className='my-3' />
