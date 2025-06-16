@@ -1,4 +1,4 @@
-import { useOutletContext } from 'react-router';
+import { useOutletContext, useNavigate } from 'react-router';
 import hoa1 from '../../../../assets/hoa1.webp';
 import hoa2 from '../../../../assets/hoa2.webp';
 import hoa3 from '../../../../assets/hoa3.webp';
@@ -10,6 +10,7 @@ interface OutletContextType {
 
 function FeaturedProductsC() {
   const { onAddToCart } = useOutletContext<OutletContextType>();
+  const navigate = useNavigate();
 
   const products = [
     { id: 1, name: 'Evergreen Candytuft', price: 50, image: hoa1 },
@@ -17,6 +18,11 @@ function FeaturedProductsC() {
     { id: 3, name: 'Pearly Everlasting', price: 100, oldPrice: 120, image: hoa3 },
     { id: 4, name: 'Flowers', price: 150, image: hoa4 }
   ];
+
+  const handleBuyNow = (product: any) => {
+    onAddToCart(product);        
+    navigate('/home/checkout');  
+  };
 
   return (
     <div className='max-w-screen-xl mx-auto py-12 px-4 pt-40'>
@@ -34,7 +40,10 @@ function FeaturedProductsC() {
             </div>
 
             <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
-              <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
+              <button
+                onClick={() => handleBuyNow(product)}
+                className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'
+              >
                 Mua ngay
               </button>
               <button
