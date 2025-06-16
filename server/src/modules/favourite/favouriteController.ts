@@ -4,16 +4,15 @@ import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
 
 export const favouriteController = {
-  // Thêm sản phẩm vào mục yêu thích
   create: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId, productId } = req.body;
 
       if (!userId) {
-        throw createHttpError(400, 'userId is required');
+        throw createHttpError(400, 'User not found');
       }
       if (!productId) {
-        throw createHttpError(400, 'productId is required');
+        throw createHttpError(400, 'Product not found');
       }
 
       let favourite = await FavouriteModel.findOne({ userId });
@@ -34,7 +33,7 @@ export const favouriteController = {
         .status(201)
         .json(
           apiResponse.success(
-            'add product to favourite successfully',
+            'Add product to favourite successfully',
             favourite
           )
         );
@@ -43,13 +42,27 @@ export const favouriteController = {
     }
   },
 
-  list: async (req: Request, res: Response, next: NextFunction) => {
+  listByUser: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const favourites = await FavouriteModel.find().populate('products');
+      const { userId } = req.params;
+      if (!userId) {
+        throw createHttpError(400, 'User not found');
+      }
+      const favourite = await FavouriteModel.findOne({ userId }).populate(
+        'products'
+      );
+      if (!favourite) {
+        return res
+          .status(200)
+          .json(apiResponse.success('No favourite found for this user', []));
+      }
       return res
         .status(200)
         .json(
-          apiResponse.success('All favourites fetched successfully', favourites)
+          apiResponse.success(
+            'Favourite fetched successfully',
+            favourite.products
+          )
         );
     } catch (error) {
       return res.status(500).json(apiResponse.error((error as Error).message));
@@ -58,14 +71,37 @@ export const favouriteController = {
 
   remove: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { id } = req.params;
-      const deleted = await FavouriteModel.findByIdAndDelete(id);
-      if (!deleted) {
+      const { userId, productId } = req.body;
+      if (!userId || !productId) {
+        throw createHttpError(400, 'userId and productId are required');
+      }
+
+      const favourite = await FavouriteModel.findOne({ userId });
+      if (!favourite) {
         throw createHttpError(404, 'Favourite not found');
       }
+
+      const initialLength = favourite.products.length;
+      favourite.products = favourite.products.filter(
+        id => !id.equals(productId)
+      );
+
+      if (favourite.products.length === initialLength) {
+        return res
+          .status(404)
+          .json(apiResponse.error('Product not found in favourite'));
+      }
+
+      await favourite.save();
+
       return res
         .status(200)
-        .json(apiResponse.success('Favourite removed successfully'));
+        .json(
+          apiResponse.success(
+            'Product removed from favourite successfully',
+            favourite
+          )
+        );
     } catch (error) {
       return res.status(500).json(apiResponse.error((error as Error).message));
     }
