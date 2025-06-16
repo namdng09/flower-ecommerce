@@ -28,9 +28,10 @@ const authController = {
       });
       if (!newUser) throw createHttpError(400, 'User creation failed');
 
-      const { accessToken, refreshToken } = generateToken(
-        newUser.id.toString()
-      );
+      const { accessToken, refreshToken } = generateToken({
+        id: newUser.id,
+        role: newUser.role
+      });
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -71,7 +72,10 @@ const authController = {
       if (!isPasswordValid)
         throw createHttpError(400, 'Invalid email or password');
 
-      const { accessToken, refreshToken } = generateToken(user.id.toString());
+      const { accessToken, refreshToken } = generateToken({
+        id: user.id,
+        role: user.role
+      });
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -125,11 +129,14 @@ const authController = {
       const decoded = verifyRefreshToken(refreshToken);
       const userId = (decoded as { userId: string }).userId;
 
-      const newAccessToken = generateToken(userId);
+      const { accessToken } = generateToken({
+        id: userId,
+        role: (decoded as { role: string }).role
+      });
 
       return res.status(200).json(
         apiResponse.success('Token refreshed successfully', {
-          accessToken: newAccessToken.accessToken
+          accessToken: accessToken
         })
       );
     } catch (error) {
