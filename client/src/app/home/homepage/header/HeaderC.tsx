@@ -1,9 +1,10 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import MiniCartModal from '../Cart/Cart';
 import logo1 from '../../../../assets/logo1.svg';
 
 function HeaderC({ cartItems, openCart, setOpenCart }) {
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const navigate = useNavigate();
 
   return (
     <div>
@@ -21,17 +22,24 @@ function HeaderC({ cartItems, openCart, setOpenCart }) {
             <li><Link to='/home/contact'>Liên Hệ</Link></li>
           </ul>
 
-          <div className='flex items-center space-x-6'>
-            <div className='cursor-pointer'>
-              <button onClick={() => setOpenCart(true)} className='text-black'>
-                🛒 Giỏ hàng <span className='text-pink-600'>({totalQuantity} sản phẩm)</span>
-              </button>
-              <MiniCartModal
-                isOpen={openCart}
-                onClose={() => setOpenCart(false)}
-                items={cartItems}
-              />
-            </div>
+          <div className='flex items-center space-x-6 md:order-2 relative'>
+            <button
+              onClick={() => setOpenCart(true)}
+              className='text-black relative'
+            >
+              🛒 Giỏ hàng <span className='text-pink-600'>({totalQuantity} sản phẩm)</span>
+            </button>
+
+            <MiniCartModal
+              isOpen={openCart}
+              onClose={() => setOpenCart(false)}
+              items={cartItems}
+              onNavigateCart={() => {
+                setOpenCart(false);
+                navigate('/home/cart');
+              }}
+            />
+
             <button className='text-white bg-[#B9205A] hover:bg-[#F8C8D2] text-lg px-4 py-2 rounded-lg'>
               Bắt đầu mua sắm
             </button>

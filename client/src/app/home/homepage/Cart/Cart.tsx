@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router';
 
 export interface CartItem {
     id: number;
@@ -15,7 +16,12 @@ interface MiniCartModalProps {
     onRemoveItem?: (id: number) => void;
 }
 
-export default function MiniCartModal({ isOpen, onClose, items, onRemoveItem }: MiniCartModalProps) {
+export default function MiniCartModal({
+    isOpen,
+    onClose,
+    items,
+    onRemoveItem
+}: MiniCartModalProps) {
     const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -31,11 +37,25 @@ export default function MiniCartModal({ isOpen, onClose, items, onRemoveItem }: 
 
     return (
         <div className='absolute top-[60px] right-4 w-[350px] bg-white rounded-xl shadow-lg z-50 border border-gray-200 p-4'>
+            <div className='flex justify-end'>
+                <button
+                    onClick={onClose}
+                    className='text-gray-400 hover:text-black text-xl font-bold'
+                    aria-label='Đóng giỏ hàng'
+                >
+                    &times;
+                </button>
+            </div>
+
             <div className='space-y-4 max-h-[400px] overflow-y-auto'>
-                {items.map((item, index) => (
-                    <div key={`${item.id}-${index}`} className='flex justify-between items-start'>
+                {items.map((item) => (
+                    <div key={item.id} className='flex justify-between items-start'>
                         <div className='flex gap-2'>
-                            <img src={item.image} alt={item.name} className='w-16 h-16 object-cover rounded-md' />
+                            <img
+                                src={item.image}
+                                alt={item.name}
+                                className='w-16 h-16 object-cover rounded-md'
+                            />
                             <div>
                                 <p className='font-semibold text-black leading-5'>{item.name}</p>
                                 <p className='text-pink-600 font-semibold text-sm'>
@@ -44,11 +64,13 @@ export default function MiniCartModal({ isOpen, onClose, items, onRemoveItem }: 
                                 <p className='text-gray-400 text-xs'>SỐ LƯỢNG: x{item.quantity}</p>
                             </div>
                         </div>
+
                         <button
                             onClick={() => onRemoveItem?.(item.id)}
-                            className='text-gray-500 hover:text-black text-xl font-bold'
+                            className='text-gray-400 hover:text-red-500 text-lg'
+                            aria-label='Xoá sản phẩm'
                         >
-                            &times;
+                            🗑️
                         </button>
                     </div>
                 ))}
@@ -63,13 +85,15 @@ export default function MiniCartModal({ isOpen, onClose, items, onRemoveItem }: 
                 </div>
                 <div className='flex justify-between'>
                     <span>Tổng tiền:</span>
-                    <span className='text-pink-600 font-semibold'>{totalPrice.toLocaleString()} VNĐ</span>
+                    <span className='text-pink-600 font-semibold'>
+                        {totalPrice.toLocaleString()} VNĐ
+                    </span>
                 </div>
             </div>
 
             <div className='flex gap-2 mt-4'>
                 <button className='flex-1 py-2 border border-pink-500 text-pink-600 rounded-lg text-sm font-medium hover:bg-pink-50'>
-                    Xem giỏ hàng
+                    <Link to={`cart`}> Xem giỏ hàng</Link>
                 </button>
                 <button className='flex-1 py-2 bg-pink-500 text-white rounded-lg text-sm font-medium hover:bg-pink-600'>
                     Thanh toán

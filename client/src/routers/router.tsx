@@ -67,6 +67,10 @@ const router = createBrowserRouter([
       {
         path: 'about',
         Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
+      },
+      {
+        path: 'cart',
+        Component: lazy(() => import('../app/home/homepage/Cart/CartDetails'))
       }
     ]
   }

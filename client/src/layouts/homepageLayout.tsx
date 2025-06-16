@@ -2,34 +2,23 @@ import { Outlet } from 'react-router';
 import { useState } from 'react';
 import HeaderC from '../app/home/homepage/header/HeaderC';
 import FooterC from '../app/home/homepage/footer/FooterC';
+import type { CartItem } from '../../src/app/home/homepage/Cart/Cart';
 
-const HomepageLayout = () => {
-  const [cartItems, setCartItems] = useState([]);
+export default function HomepageLayout() {
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [openCart, setOpenCart] = useState(false);
 
-  const handleAddToCart = (product) => {
-    console.log('Add:', product.id, product.name);
-
+  const handleAddToCart = (product: CartItem) => {
     setCartItems(prev => {
-      const exist = prev.find(item =>
-        item.id === product.id &&
-        item.name === product.name &&
-        item.price === product.price
-      );
-
+      const exist = prev.find(item => item.id === product.id);
       if (exist) {
         return prev.map(item =>
-          item.id === product.id &&
-            item.name === product.name &&
-            item.price === product.price
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
         return [...prev, { ...product, quantity: 1 }];
       }
     });
-
     setOpenCart(true);
   };
 
@@ -40,12 +29,11 @@ const HomepageLayout = () => {
         openCart={openCart}
         setOpenCart={setOpenCart}
       />
-      <main className='flex justify-center items-center flex-1 w-full'>
-        <Outlet context={{ onAddToCart: handleAddToCart }} />
+      <main className='flex-1'>
+        {/* ✅ Truyền context đầy đủ */}
+        <Outlet context={{ cartItems, setCartItems, onAddToCart: handleAddToCart }} />
       </main>
       <FooterC />
     </div>
   );
-};
-
-export default HomepageLayout;
+}
