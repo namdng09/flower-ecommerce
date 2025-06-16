@@ -32,12 +32,12 @@ router.use('/users', userRoute);
 
 router.use('/variants', variantRoute);
 
-// router.use(
-//   '/favourites',
-//   passport.authenticate('jwt', { session: false }),
-//   favouriteRoute
-// );
+router.use(
+  '/favourites',
+  passport.authenticate('jwt', { session: false }),
+  favouriteRoute
+);
 
-router.use('/favourites', favouriteRoute);
+// router.use('/favourites', favouriteRoute);
 
 export default router;
