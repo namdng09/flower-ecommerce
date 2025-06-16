@@ -30,7 +30,6 @@ export default function HomepageLayout() {
         setOpenCart={setOpenCart}
       />
       <main className='flex-1'>
-        {/* ✅ Truyền context đầy đủ */}
         <Outlet context={{ cartItems, setCartItems, onAddToCart: handleAddToCart }} />
       </main>
       <FooterC />
