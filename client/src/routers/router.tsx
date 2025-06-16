@@ -16,6 +16,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/auth',
+    Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
         path: 'register',
