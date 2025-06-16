@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const refreshToken = async () => {
     try {
-      const response = await axiosInstance.post('/auth/refresh-token');
+      const response = await axiosInstance.post('/api/auth/refresh-token');
       const newToken = response.data.accessToken;
 
       if (localStorage.getItem('accessToken')) {
@@ -128,7 +128,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('accessToken');
     sessionStorage.removeItem('accessToken');
     try {
-      await axiosInstance.post('/auth/logout', {}, { withCredentials: true });
+      await axiosInstance.post(
+        '/api/auth/logout',
+        {},
+        { withCredentials: true }
+      );
     } catch (error) {
       console.error('Error during logout:', error);
     }
