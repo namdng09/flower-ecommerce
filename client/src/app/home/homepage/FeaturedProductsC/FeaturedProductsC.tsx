@@ -66,13 +66,14 @@ function FeaturedProductsC() {
         {products.map(product => (
           <div
             key={product.id}
-            className='bg-[#f9f9f9] rounded-lg p-4 flex flex-col items-center'
+            className='bg-[#f9f9f9] rounded-lg p-4 flex flex-col items-center relative group overflow-hidden'
           >
             <img
               src={product.image}
               alt={product.name}
               className='w-80 h-80 object-contain mb-4 text-black'
             />
+
             <h3 className='text-center text-sm font-medium mb-1 text-black'>
               {product.name}
             </h3>
@@ -85,6 +86,15 @@ function FeaturedProductsC() {
                   ${product.oldPrice.toFixed(2)}
                 </span>
               )}
+            </div>
+
+            <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+              <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
+                Mua ngay
+              </button>
+              <button className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'>
+                Thêm vào giỏ hàng
+              </button>
             </div>
           </div>
         ))}

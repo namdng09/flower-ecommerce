@@ -15,13 +15,13 @@ function CarouselC() {
   }, []);
 
   return (
-    <div className='w-screen h-screen mt-40'>
+    <div className='w-screen h-[90vh] relative z-10'>
       <div
         id='custom-carousel'
         className='relative w-full h-full'
         data-carousel='static'
       >
-        <div className='relative w-full h-full overflow-hidden rounded-none bg-black'>
+        <div className='relative w-full h-full overflow-hidden bg-black'>
           {images.map((imgSrc, index) => (
             <div
               key={index}
@@ -31,13 +31,12 @@ function CarouselC() {
               <img
                 src={imgSrc}
                 alt={`Slide ${index + 1}`}
-                className='w-full h-full object-cover block'
+                className='w-full h-full object-cover'
               />
             </div>
           ))}
         </div>
 
-        {/* Prev button */}
         <button
           type='button'
           className='absolute top-1/2 left-4 z-30 flex items-center justify-center -translate-y-1/2 h-12 w-12 cursor-pointer group focus:outline-none'
@@ -51,16 +50,11 @@ function CarouselC() {
               strokeWidth='2'
               viewBox='0 0 24 24'
             >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M15 19l-7-7 7-7'
-              />
+              <path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7' />
             </svg>
           </span>
         </button>
 
-        {/* Next button */}
         <button
           type='button'
           className='absolute top-1/2 right-4 z-30 flex items-center justify-center -translate-y-1/2 h-12 w-12 cursor-pointer group focus:outline-none'
@@ -74,11 +68,7 @@ function CarouselC() {
               strokeWidth='2'
               viewBox='0 0 24 24'
             >
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                d='M9 5l7 7-7 7'
-              />
+              <path strokeLinecap='round' strokeLinejoin='round' d='M9 5l7 7-7 7' />
             </svg>
           </span>
         </button>
@@ -86,5 +76,6 @@ function CarouselC() {
     </div>
   );
 }
+
 
 export default CarouselC;

@@ -1,6 +1,8 @@
 import { Link } from 'react-router';
 import logo1 from '../../../../assets/logo1.svg';
-import { FiShoppingBag } from 'react-icons/fi';
+import hoa from '../../../../assets/hoa2.webp';
+import { useState } from 'react';
+import MiniCartModal from '../Cart/Cart';
 
 const navItems = [
   { label: 'Trang Chủ', path: '/home' },
@@ -10,7 +12,19 @@ const navItems = [
   { label: 'Liên Hệ', path: '/home/contact' }
 ];
 
+const mockCart = [
+  {
+    id: 1,
+    name: 'Bó dáng bay mix ngẫu nhiên',
+    price: 350000,
+    quantity: 1,
+    image: hoa
+  }
+];
+
 function HeaderC() {
+  const [openCart, setOpenCart] = useState(false);
+
   return (
     <div>
       <nav className='bg-[#FFFDFA] fixed w-full z-20 top-0 start-0 border-b border-[#F8F5F2]'>
@@ -42,16 +56,15 @@ function HeaderC() {
 
           <div className='flex items-center space-x-6 md:order-2'>
             <div className='flex items-center space-x-2 cursor-pointer'>
-              <FiShoppingBag className='text-2xl text-gray-800' />
-              <div className='relative'>
-                <span className='absolute -top-3 -right-3 bg-red-500 text-white text-xs rounded-full px-1'>
-                  0
-                </span>
-              </div>
-              <div className='flex flex-col text-sm text-gray-800'>
-                <span>My Cart</span>
-                <span>$0.00</span>
-              </div>
+              <button onClick={() => setOpenCart(true)} className='text-black relative'>
+                🛒 Giỏ hàng <span className='text-pink-600'>(1 sản phẩm)</span>
+              </button>
+
+              <MiniCartModal
+                isOpen={openCart}
+                onClose={() => setOpenCart(false)}
+                items={mockCart} 
+              />
             </div>
             <button
               type='button'

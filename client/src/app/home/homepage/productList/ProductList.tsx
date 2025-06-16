@@ -81,7 +81,7 @@ function ProductList() {
 
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
           {products.map(product => (
-            <div key={product.id} className='border rounded p-4 text-center'>
+            <div key={product.id} className='border rounded p-4 text-center relative group overflow-hidden bg-white'>
               <img
                 src={product.image}
                 alt={product.name}
@@ -94,7 +94,17 @@ function ProductList() {
                 </p>
               )}
               <p className='text-pink-600 font-semibold'>${product.price}</p>
+
+              <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
+                  Mua ngay
+                </button>
+                <button className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'>
+                  Thêm vào giỏ hàng
+                </button>
+              </div>
             </div>
+
           ))}
         </div>
       </div>
