@@ -1,5 +1,5 @@
 {
-  "name": "sdn-assignment",
+  "name": "flower-ecommerce",
   "version": "1.0.0",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx,.js,.mjs",
@@ -11,7 +11,7 @@
     "*.ts": [
       "npm run lint",
       "npm run format",
-      "git add ."
+      "git add"
     ]
   },
   "keywords": [],
