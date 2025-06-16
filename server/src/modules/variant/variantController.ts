@@ -101,13 +101,7 @@ export const variantController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const {
-        title,
-        listPrice,
-        salePrice,
-        image,
-        inventory = 0
-      } = req.body;
+      const { title, listPrice, salePrice, image, inventory = 0 } = req.body;
 
       if (!title || typeof title !== 'string' || title.trim() === '') {
         throw createHttpError(400, 'Title is required');
