@@ -14,7 +14,7 @@ const jwtAuth = (req: Request, res: Response, next: NextFunction) => {
       if (err) return next(err);
 
       if (!user) {
-        throw createHttpError(401, info?.message || 'Unauthorized')
+        return next(createHttpError(401, info?.message || 'Unauthorized'));
       }
 
       req.user = user;
