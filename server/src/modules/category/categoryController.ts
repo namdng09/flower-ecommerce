@@ -68,10 +68,18 @@ export const categoryController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { title, image = '', description = '' } = req.body;
+      const { title, image = '', description = '', parentId } = req.body;
 
       if (!title?.trim()) {
         throw createHttpError(400, 'Title field is required');
+      }
+
+      if (parentId !== undefined && parentId !== null) {
+        if (!Types.ObjectId.isValid(parentId))
+          throw createHttpError(400, 'Invalid parentId');
+        const parent = await CategoryModel.findById(parentId);
+        if (!parent || parent.parentId)
+          throw createHttpError(404, 'Parent category not found');
       }
 
       const duplicate = await CategoryModel.findOne({ title });
@@ -82,7 +90,8 @@ export const categoryController = {
       const category = await CategoryModel.create({
         title,
         image,
-        description
+        description,
+        parentId: parentId ?? null
       });
 
       return res
@@ -104,7 +113,7 @@ export const categoryController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const { title, image, description, status } = req.body;
+      const { title, image, description, status, parentId } = req.body;
 
       if (!Types.ObjectId.isValid(id)) {
         throw createHttpError(400, 'Invalid category id');
@@ -120,6 +129,19 @@ export const categoryController = {
         if (dup) {
           throw createHttpError(409, 'Category title already exists');
         }
+      }
+
+      if (parentId !== undefined) {
+        if (parentId !== null && !Types.ObjectId.isValid(parentId))
+          throw createHttpError(400, 'Invalid parentId');
+        if (parentId === id)
+          throw createHttpError(400, 'Category cannot be its own parent');
+        if (parentId !== null) {
+          const parent = await CategoryModel.findById(parentId);
+          if (!parent || parent.parentId)
+            throw createHttpError(404, 'Parent category not found');
+        }
+        savedCategory.parentId = parentId;
       }
 
       if (title !== undefined) savedCategory.title = title;
@@ -161,6 +183,40 @@ export const categoryController = {
       return res
         .status(200)
         .json(apiResponse.success('Category removed successfully'));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  parents: async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const parents = await CategoryModel.find({ parentId: null });
+      return res
+        .status(200)
+        .json(apiResponse.success('Parent categories listed successfully', parents));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  children: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { parentId } = req.params;
+      if (!Types.ObjectId.isValid(parentId))
+        throw createHttpError(400, 'Invalid parentId');
+
+      const children = await CategoryModel.find({ parentId });
+      return res
+        .status(200)
+        .json(apiResponse.success('Subcategories listed successfully', children));
     } catch (error) {
       next(error);
     }
