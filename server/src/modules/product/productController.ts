@@ -123,19 +123,9 @@ export const productController = {
       const createdVariants: Types.ObjectId[] = [];
 
       for (const variant of variants) {
-        const {
-          title,
-          listPrice,
-          salePrice,
-          image,
-          inventory = 0
-        } = variant;
+        const { title, listPrice, salePrice, image, inventory = 0 } = variant;
 
-        if (
-          !title ||
-          typeof title !== 'string' ||
-          title.trim() === ''
-        ) {
+        if (!title || typeof title !== 'string' || title.trim() === '') {
           throw createHttpError(400, 'Variant title is required');
         }
 
@@ -250,19 +240,9 @@ export const productController = {
         const createdVariants: Types.ObjectId[] = [];
 
         for (const variant of variants) {
-          const {
-            title,
-            listPrice,
-            salePrice,
-            image,
-            inventory = 0
-          } = variant;
+          const { title, listPrice, salePrice, image, inventory = 0 } = variant;
 
-          if (
-            !title ||
-            typeof title !== 'string' ||
-            title.trim() === ''
-          ) {
+          if (!title || typeof title !== 'string' || title.trim() === '') {
             throw createHttpError(400, 'Variant title is required');
           }
 

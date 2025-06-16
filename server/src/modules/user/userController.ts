@@ -314,10 +314,16 @@ export const userController = {
         throw createHttpError(400, 'Invalid user id');
       }
       if (!oldPassword || !newPassword) {
-        throw createHttpError(400, 'Old Password and New Password are required');
+        throw createHttpError(
+          400,
+          'Old Password and New Password are required'
+        );
       }
       if (newPassword.length < 6) {
-        throw createHttpError(400, 'New Password must be at least 6 characters');
+        throw createHttpError(
+          400,
+          'New Password must be at least 6 characters'
+        );
       }
 
       const user = await UserModel.findById(id);
