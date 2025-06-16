@@ -23,7 +23,7 @@ const AddressSchema = new Schema<IAddress>(
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: true
       // index: true,
     },
     fullName: { type: String, required: true, trim: true },
@@ -70,7 +70,7 @@ const AddressSchema = new Schema<IAddress>(
       enum: ['home', 'office', 'other'],
       default: 'home'
     },
-    isDefault: { type: Boolean, default: false },
+    isDefault: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

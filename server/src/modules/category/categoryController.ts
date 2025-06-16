@@ -23,7 +23,9 @@ export const categoryController = {
       const categories = await CategoryModel.find();
       return res
         .status(200)
-        .json(apiResponse.success('Categories listed successfully', categories));
+        .json(
+          apiResponse.success('Categories listed successfully', categories)
+        );
     } catch (error) {
       next(error);
     }
@@ -153,7 +155,9 @@ export const categoryController = {
 
       return res
         .status(200)
-        .json(apiResponse.success('Category updated successfully', updatedCategory));
+        .json(
+          apiResponse.success('Category updated successfully', updatedCategory)
+        );
     } catch (error) {
       next(error);
     }
@@ -197,7 +201,9 @@ export const categoryController = {
       const parents = await CategoryModel.find({ parentId: null });
       return res
         .status(200)
-        .json(apiResponse.success('Parent categories listed successfully', parents));
+        .json(
+          apiResponse.success('Parent categories listed successfully', parents)
+        );
     } catch (error) {
       next(error);
     }
@@ -216,7 +222,9 @@ export const categoryController = {
       const children = await CategoryModel.find({ parentId });
       return res
         .status(200)
-        .json(apiResponse.success('Subcategories listed successfully', children));
+        .json(
+          apiResponse.success('Subcategories listed successfully', children)
+        );
     } catch (error) {
       next(error);
     }
