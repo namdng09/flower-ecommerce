@@ -1,23 +1,27 @@
-import { defineConfig } from 'eslint/config';
-import globals from 'globals';
 import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 
-export default defineConfig([
-  { files: ['**/*.{js,mjs,cjs,ts}'] },
-  { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
+export default tseslint.config(
+  // Global ignores
   {
-    files: ['**/*.{js,mjs,cjs,ts}'],
-    languageOptions: { globals: globals.browser }
+    ignores: ['**/node_modules/', '**/dist/', '**/build/']
   },
+
+  // Base configuration for all files
   {
-    files: ['**/*.{js,mjs,cjs,ts}'],
-    plugins: { js },
-    extends: ['js/recommended']
-  },
-  ...tseslint.configs.recommended,
-  {
+    files: ['**/*.{js,mjs,cjs,ts,tsx}'],
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: {
+        ...globals.node,
+        ...globals.browser
+      }
+    },
     plugins: {
       prettier: eslintPluginPrettier
     },
@@ -31,7 +35,6 @@ export default defineConfig([
           bracketSameLine: false,
           bracketSpacing: true,
           embeddedLanguageFormatting: 'auto',
-          endOfLine: 'lf',
           experimentalTernaries: false,
           htmlWhitespaceSensitivity: 'css',
           insertPragma: false,
@@ -48,7 +51,34 @@ export default defineConfig([
           useTabs: false
         }
       ]
+    }
+  },
+
+  // Server-specific configuration
+  {
+    files: ['server/**/*.{js,ts}'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: globals.node
+    }
+  },
+
+  // Client-specific React configuration
+  {
+    files: ['client/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: globals.browser
     },
-    ignores: ['**/node_modules/', '**/dist/']
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true }
+      ]
+    }
   }
-]);
+);
