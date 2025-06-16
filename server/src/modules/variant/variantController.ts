@@ -15,7 +15,11 @@ export const variantController = {
    * GET /variants
    * variantController.list()
    */
-  list: async (req: Request, res: Response, next: NextFunction) => {
+  list: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const variants = await VariantModel.find();
 
@@ -31,7 +35,11 @@ export const variantController = {
    * GET /variants/:id
    * variantController.show()
    */
-  show: async (req: Request, res: Response, next: NextFunction) => {
+  show: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id)) {
@@ -55,7 +63,11 @@ export const variantController = {
    * GET /variants/code/:variantCode
    * variantController.getByCode()
    */
-  getByCode: async (req: Request, res: Response, next: NextFunction) => {
+  getByCode: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { variantCode } = req.params;
 
@@ -83,22 +95,16 @@ export const variantController = {
    * POST /variants
    * variantController.create()
    */
-  create: async (req: Request, res: Response, next: NextFunction) => {
+  create: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
-      const {
-        attributes,
-        listPrice,
-        salePrice,
-        image,
-        inventory = 0
-      } = req.body;
+      const { title, listPrice, salePrice, image, inventory = 0 } = req.body;
 
-      if (
-        !attributes ||
-        typeof attributes !== 'object' ||
-        Object.keys(attributes).length === 0
-      ) {
-        throw createHttpError(400, 'Attributes map is required');
+      if (!title || typeof title !== 'string' || title.trim() === '') {
+        throw createHttpError(400, 'Title is required');
       }
 
       if (salePrice > listPrice) {
@@ -115,7 +121,7 @@ export const variantController = {
 
       const variant = await VariantModel.create({
         variantCode,
-        attributes,
+        title,
         listPrice,
         salePrice,
         image,
@@ -134,10 +140,14 @@ export const variantController = {
    * PUT /variants/:id
    * variantController.update()
    */
-  update: async (req: Request, res: Response, next: NextFunction) => {
+  update: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const { attributes, listPrice, salePrice, image, inventory } = req.body;
+      const { title, listPrice, salePrice, image, inventory } = req.body;
 
       if (!Types.ObjectId.isValid(id)) {
         throw createHttpError(400, 'Invalid variant id');
@@ -156,7 +166,7 @@ export const variantController = {
         throw createHttpError(400, 'Sale Price cannot exceed List Price');
       }
 
-      if (attributes !== undefined) variant.attributes = attributes;
+      if (title !== undefined) variant.title = title;
       if (listPrice !== undefined) variant.listPrice = listPrice;
       if (salePrice !== undefined) variant.salePrice = salePrice;
       if (image !== undefined) variant.image = image;
@@ -177,7 +187,11 @@ export const variantController = {
    * DELETE /variants/:id
    * variantController.remove()
    */
-  remove: async (req: Request, res: Response, next: NextFunction) => {
+  remove: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
       if (!Types.ObjectId.isValid(id)) {

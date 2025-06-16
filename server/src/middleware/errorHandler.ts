@@ -16,9 +16,9 @@ export const errorHandler: ErrorRequestHandler = (
   }
 
   const message =
-    process.env.NODE_ENV === 'development' && err instanceof Error
-      ? err.message
-      : 'Internal Server Error';
+    process.env.NODE_ENV === 'production' && err instanceof Error
+      ? 'Internal Server Error'
+      : err.message;
 
   res.status(500).json(apiResponse.error(message));
 };

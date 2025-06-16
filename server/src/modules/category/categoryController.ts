@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import CategoryModel from './categoryModel';
 import { apiResponse } from '~/types/apiResponse';
+import createHttpError from 'http-errors';
 
 /**
  * categoryController.ts
@@ -13,7 +14,11 @@ export const categoryController = {
    * GET /categories
    * categoryController.list()
    */
-  list: async (req: Request, res: Response): Promise<Response> => {
+  list: async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const categories = await CategoryModel.find();
       return res
@@ -22,8 +27,7 @@ export const categoryController = {
           apiResponse.success('Categories listed successfully', categories)
         );
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -31,25 +35,28 @@ export const categoryController = {
    * GET /categories/:id
    * categoryController.show()
    */
-  show: async (req: Request, res: Response): Promise<Response> => {
+  show: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
 
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid category id'));
+        throw createHttpError(400, 'Invalid category id');
       }
 
       const category = await CategoryModel.findById(id);
       if (!category) {
-        return res.status(404).json(apiResponse.error('Category not found'));
+        throw createHttpError(404, 'Category not found');
       }
 
       return res
         .status(200)
         .json(apiResponse.success('Category fetched successfully', category));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -57,35 +64,43 @@ export const categoryController = {
    * POST /categories
    * categoryController.create()
    */
-  create: async (req: Request, res: Response): Promise<Response> => {
+  create: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
-      const { title, image = '', description = '' } = req.body;
+      const { title, image = '', description = '', parentId } = req.body;
 
       if (!title?.trim()) {
-        return res
-          .status(400)
-          .json(apiResponse.error('Title field is required'));
+        throw createHttpError(400, 'Title field is required');
+      }
+
+      if (parentId !== undefined && parentId !== null) {
+        if (!Types.ObjectId.isValid(parentId))
+          throw createHttpError(400, 'Invalid parentId');
+        const parent = await CategoryModel.findById(parentId);
+        if (!parent || parent.parentId)
+          throw createHttpError(404, 'Parent category not found');
       }
 
       const duplicate = await CategoryModel.findOne({ title });
       if (duplicate) {
-        return res
-          .status(409)
-          .json(apiResponse.error('Category title already exists'));
+        throw createHttpError(409, 'Category title already exists');
       }
 
       const category = await CategoryModel.create({
         title,
         image,
-        description
+        description,
+        parentId: parentId ?? null
       });
 
       return res
         .status(201)
         .json(apiResponse.success('Category created successfully', category));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -93,29 +108,42 @@ export const categoryController = {
    * PUT /categories/:id
    * categoryController.update()
    */
-  update: async (req: Request, res: Response): Promise<Response> => {
+  update: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const { title, image, description, status } = req.body;
+      const { title, image, description, status, parentId } = req.body;
 
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid category id'));
+        throw createHttpError(400, 'Invalid category id');
       }
 
       const savedCategory = await CategoryModel.findById(id);
       if (!savedCategory) {
-        return res.status(404).json(apiResponse.error('Category not found'));
+        throw createHttpError(404, 'Category not found');
       }
 
       if (title && title !== savedCategory.title) {
         const dup = await CategoryModel.findOne({ title });
         if (dup) {
-          return res
-            .status(409)
-            .json(
-              apiResponse.error('Category title already exists')
-            );
+          throw createHttpError(409, 'Category title already exists');
         }
+      }
+
+      if (parentId !== undefined) {
+        if (parentId !== null && !Types.ObjectId.isValid(parentId))
+          throw createHttpError(400, 'Invalid parentId');
+        if (parentId === id)
+          throw createHttpError(400, 'Category cannot be its own parent');
+        if (parentId !== null) {
+          const parent = await CategoryModel.findById(parentId);
+          if (!parent || parent.parentId)
+            throw createHttpError(404, 'Parent category not found');
+        }
+        savedCategory.parentId = parentId;
       }
 
       if (title !== undefined) savedCategory.title = title;
@@ -131,8 +159,7 @@ export const categoryController = {
           apiResponse.success('Category updated successfully', updatedCategory)
         );
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
     }
   },
 
@@ -140,25 +167,66 @@ export const categoryController = {
    * DELETE /categories/:id
    * categoryController.remove()
    */
-  remove: async (req: Request, res: Response): Promise<Response> => {
+  remove: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
     try {
       const { id } = req.params;
 
       if (!Types.ObjectId.isValid(id)) {
-        return res.status(400).json(apiResponse.error('Invalid category id'));
+        throw createHttpError(400, 'Invalid category id');
       }
 
       const deleted = await CategoryModel.findByIdAndDelete(id);
       if (!deleted) {
-        return res.status(404).json(apiResponse.error('Category not found'));
+        throw createHttpError(404, 'Category not found');
       }
 
       return res
         .status(200)
         .json(apiResponse.success('Category removed successfully'));
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      return res.status(500).json(apiResponse.error(message));
+      next(error);
+    }
+  },
+
+  parents: async (
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const parents = await CategoryModel.find({ parentId: null });
+      return res
+        .status(200)
+        .json(
+          apiResponse.success('Parent categories listed successfully', parents)
+        );
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  children: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { parentId } = req.params;
+      if (!Types.ObjectId.isValid(parentId))
+        throw createHttpError(400, 'Invalid parentId');
+
+      const children = await CategoryModel.find({ parentId });
+      return res
+        .status(200)
+        .json(
+          apiResponse.success('Subcategories listed successfully', children)
+        );
+    } catch (error) {
+      next(error);
     }
   }
 };

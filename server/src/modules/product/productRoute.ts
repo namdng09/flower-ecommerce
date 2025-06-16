@@ -6,7 +6,10 @@ const router: Router = express.Router();
 
 router.get('/', asyncHandler(productController.list));
 router.get('/:id', asyncHandler(productController.show));
-router.get('/category/:categoryId', asyncHandler(productController.getByCategory));
+router.get(
+  '/category/:categoryId',
+  asyncHandler(productController.getByCategory)
+);
 router.get('/shop/:shopId', asyncHandler(productController.getByShop));
 
 router.post('/', asyncHandler(productController.create));

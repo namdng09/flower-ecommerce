@@ -1,4 +1,9 @@
-import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import express, {
+  Request,
+  Response,
+  NextFunction,
+  ErrorRequestHandler
+} from 'express';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import dotenv from 'dotenv';
@@ -35,9 +40,9 @@ app.use('/api', router);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const message = `API route [${req.method}] ${req.originalUrl} not found`;
-  res.status(404).json(apiResponse.error(message));
+  res.status(404).json(apiResponse.failed(message));
 });
 
-app.use(errorHandler)
+app.use(errorHandler);
 
 export default app;

@@ -1,0 +1,22 @@
+#!/bin/bash
+set -e
+case "$(uname)" in
+*CYGWIN*|*MINGW*|*MSYS*)
+echo "Running lint-staged on Windows"
+npx.cmd lint-staged
+;;
+*Linux*)
+echo "Running lint-staged on Linux"
+npx lint-staged
+;;
+*Darwin*)
+echo "Running lint-staged on macOS"
+npx lint-staged
+;;
+\*)
+echo "Unknown OS, running default lint-staged"
+npx lint-staged
+;;
+esac
+
+echo "Pre-commit hooks completed successfully"
