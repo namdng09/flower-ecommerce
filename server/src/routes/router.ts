@@ -25,4 +25,10 @@ router.use('/users', jwtAuth, authorize('admin'), userRoute);
 
 router.use('/variants', variantRoute);
 
+router.use(
+  '/favourites',
+  passport.authenticate('jwt', { session: false }),
+  favouriteRoute
+);
+
 export default router;
