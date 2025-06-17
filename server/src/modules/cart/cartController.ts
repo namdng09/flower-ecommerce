@@ -93,14 +93,9 @@ export const cartController = {
         } as ICartItem);
       }
 
-      cart.totalQuantity = cart.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
-      cart.totalPrice = cart.items.reduce(
-        (sum, item) => sum + item.quantity * item.price,
-        0
-      );
+      const { totalQuantity, totalPrice } = calculateCartTotals(cart.items);
+      cart.totalQuantity = totalQuantity;
+      cart.totalPrice = totalPrice;
 
       const savedCart = await cart.save();
 
@@ -165,7 +160,7 @@ export const cartController = {
 
       return res
         .status(200)
-        .json(apiResponse.success('Item added to cart', savedCart));
+        .json(apiResponse.success('Cart item updated successfully', savedCart));
     } catch (error) {
       next(error);
     }

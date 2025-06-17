@@ -30,10 +30,10 @@ const authController = {
         $or: [{ email }, { username }]
       });
       if (existingUser) {
-        if (!existingUser || existingUser?.email === email) {
+        if (existingUser.email === email) {
           throw createHttpError(400, 'Email already exists');
         }
-        if (!existingUser || existingUser?.username === username) {
+        if (existingUser.username === username) {
           throw createHttpError(400, 'Username already exists');
         }
       }

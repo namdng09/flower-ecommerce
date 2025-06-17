@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document, CallbackWithoutResult } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 import { hashPassword } from '~/utils/bcrypt';
 import CartModel from '../cart/cartModel';
-import { NextFunction } from 'express';
+// Line removed as it is unused.
 
 export interface IUser extends Document {
   fullName: string;
