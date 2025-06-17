@@ -21,7 +21,12 @@ export const variantController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const variants = await VariantModel.find();
+      const variants = await VariantModel.find()
+        .populate({
+          path: 'product',
+          select: 'title skuCode thumbnailImage'
+        })
+        .lean();
 
       return res
         .status(200)

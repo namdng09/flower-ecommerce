@@ -34,8 +34,15 @@ const VariantSchema = new Schema<IVariant>(
     inventory: { type: Number, default: 0, min: 0 },
     image: { type: String }
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+VariantSchema.virtual('product', {
+  ref: 'Product',
+  localField: '_id',
+  foreignField: 'variants',
+  justOne: false
+});
 
 // VariantSchema.index({ variantCode: 1 }, { unique: false });
 
