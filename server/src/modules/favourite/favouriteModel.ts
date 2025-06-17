@@ -1,17 +1,16 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IFavourite {
-  _id: string;
+  userId: mongoose.Types.ObjectId;
+  products: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
-  userId: string;
-  products: mongoose.Types.ObjectId[];
 }
 
 const FavouriteSchema = new Schema<IFavourite>(
   {
-    userId: { type: String, required: true, trim: true },
-    products: [{ type: Schema.Types.Array, ref: 'Product', required: true }]
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    products: [{ type: Schema.Types.ObjectId, ref: 'Product' }]
   },
   { timestamps: true }
 );
