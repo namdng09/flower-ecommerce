@@ -14,7 +14,7 @@ function HeaderC({ cartItems, openCart, setOpenCart }) {
             <img src={logo1} alt='Ribbon Box Logo' className='h-35' />
           </Link>
 
-          <ul className='hidden md:flex space-x-8 text-black font-medium'>
+          <ul className='hidden md:flex space-x-10 text-black font-medium'>
             <li><Link to='/home'>Trang Chủ</Link></li>
             <li><Link to='/home/shop'>Cửa Hàng</Link></li>
             <li><Link to='/home/products'>Sản Phẩm</Link></li>
@@ -22,7 +22,7 @@ function HeaderC({ cartItems, openCart, setOpenCart }) {
             <li><Link to='/home/contact'>Liên Hệ</Link></li>
           </ul>
 
-          <div className='flex items-center space-x-6 md:order-2 relative'>
+          <div className='flex items-center space-x-8 md:order-2 relative'>
             <button
               onClick={() => setOpenCart(true)}
               className='text-black relative'
