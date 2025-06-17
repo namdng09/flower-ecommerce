@@ -23,11 +23,11 @@ router.use('/categories', categoryRoute);
 
 router.use('/addresses', jwtAuth, addressRoute);
 
-router.use('/users', jwtAuth, authorize('admin'), userRoute);
+router.use('/users', userRoute);
 
 router.use('/variants', variantRoute);
 
-router.use('/favourites', jwtAuth, authorize('customer'), favouriteRoute);
+router.use('/favourites', favouriteRoute);
 
 router.use('/carts', cartRoute);
 
