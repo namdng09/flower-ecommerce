@@ -15,7 +15,7 @@ export interface IProduct extends Document {
     width: number;
     height: number;
   };
-  category: mongoose.Types.ObjectId;
+  categories: mongoose.Types.ObjectId[];
   variants: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
@@ -52,7 +52,9 @@ const ProductSchema = new Schema<IProduct>(
       width: { type: Number, required: true },
       height: { type: Number, required: true }
     },
-    category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
+    categories: [
+      { type: Schema.Types.ObjectId, ref: 'Category', required: true }
+    ],
     variants: [{ type: Schema.Types.ObjectId, ref: 'Variant', required: true }]
   },
   { timestamps: true }

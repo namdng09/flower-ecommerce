@@ -15,8 +15,28 @@ const authController = {
       const { fullName, username, email, phoneNumber, role, password } =
         req.body;
 
-      const existingUser = await UserModel.findOne({ email });
-      if (existingUser) throw createHttpError(400, 'User already exists');
+      if (
+        !fullName ||
+        !username ||
+        !email ||
+        !phoneNumber ||
+        !role ||
+        !password
+      ) {
+        throw createHttpError(400, 'Missing required fields');
+      }
+
+      const existingUser = await UserModel.findOne({
+        $or: [{ email }, { username }]
+      });
+      if (existingUser) {
+        if (existingUser.email === email) {
+          throw createHttpError(400, 'Email already exists');
+        }
+        if (existingUser.username === username) {
+          throw createHttpError(400, 'Username already exists');
+        }
+      }
 
       const newUser = await UserModel.create({
         fullName,
