@@ -50,7 +50,11 @@ function CarouselC() {
               strokeWidth='2'
               viewBox='0 0 24 24'
             >
-              <path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7' />
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M15 19l-7-7 7-7'
+              />
             </svg>
           </span>
         </button>
@@ -68,7 +72,11 @@ function CarouselC() {
               strokeWidth='2'
               viewBox='0 0 24 24'
             >
-              <path strokeLinecap='round' strokeLinejoin='round' d='M9 5l7 7-7 7' />
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                d='M9 5l7 7-7 7'
+              />
             </svg>
           </span>
         </button>
@@ -76,6 +84,5 @@ function CarouselC() {
     </div>
   );
 }
-
 
 export default CarouselC;

@@ -74,7 +74,9 @@ const router = createBrowserRouter([
       },
       {
         path: 'checkout',
-        Component: lazy(() => import('../app/home/homepage/check-out/CheckoutPage'))
+        Component: lazy(
+          () => import('../app/home/homepage/check-out/CheckoutPage')
+        )
       }
     ]
   }

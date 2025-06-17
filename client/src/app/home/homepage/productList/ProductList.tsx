@@ -81,7 +81,10 @@ function ProductList() {
 
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
           {products.map(product => (
-            <div key={product.id} className='border rounded p-4 text-center relative group overflow-hidden bg-white'>
+            <div
+              key={product.id}
+              className='border rounded p-4 text-center relative group overflow-hidden bg-white'
+            >
               <img
                 src={product.image}
                 alt={product.name}
@@ -104,7 +107,6 @@ function ProductList() {
                 </button>
               </div>
             </div>
-
           ))}
         </div>
       </div>
