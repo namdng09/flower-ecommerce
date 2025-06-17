@@ -67,6 +67,7 @@ export const reviewController = {
   ): Promise<Response | void> => {
     try {
       const {
+        userId,
         productId,
         targetType,
         rating,
@@ -74,19 +75,26 @@ export const reviewController = {
         status = 'active',
         images = []
       } = req.body;
-      if (!productId || !targetType || !rating) {
-        throw createHttpError(400, 'Missing required fields');
-      }
       if (!Types.ObjectId.isValid(productId)) {
         throw createHttpError(400, 'Invalid product id');
       }
+      if (!Types.ObjectId.isValid(userId)) {
+        throw createHttpError(400, 'Invalid user id');
+      }
+      if (!productId || !targetType || !rating) {
+        throw createHttpError(400, 'Missing required fields');
+      }
 
-      const existingReview = await ReviewModel.findOne({ productId });
+      const existingReview = await ReviewModel.findOne({
+        userId: userId,
+        productId: productId
+      });
       if (existingReview) {
         throw createHttpError(400, 'Review for this product already exists');
       }
 
       const newReview = await ReviewModel.create({
+        userId,
         productId,
         targetType,
         rating,
@@ -117,13 +125,26 @@ export const reviewController = {
       }
 
       const {
+        userId,
         productId,
         targetType,
         rating,
         description,
         images = []
       } = req.body;
+
+      if (!Types.ObjectId.isValid(userId)) {
+        throw createHttpError(400, 'Invalid user id');
+      }
+      if (!Types.ObjectId.isValid(productId)) {
+        throw createHttpError(400, 'Invalid product id');
+      }
+      if (!userId || !productId || !targetType || !rating) {
+        throw createHttpError(400, 'Missing required fields');
+      }
+
       const review = await ReviewModel.findByIdAndUpdate(reviewId, {
+        userId,
         productId,
         targetType,
         rating,
@@ -132,9 +153,6 @@ export const reviewController = {
       });
       if (!review) {
         throw createHttpError(404, 'Review not found');
-      }
-      if (!Types.ObjectId.isValid(productId)) {
-        throw createHttpError(400, 'Invalid product id');
       }
 
       return res
