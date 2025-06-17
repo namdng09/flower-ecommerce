@@ -3,6 +3,8 @@ import type { Auth } from '../types/auth';
 import type { User } from '../types/user';
 import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../config/axiosConfig';
+import type { RegisterFormFields } from '~/types/register';
+import type { LoginFormFields } from '~/types/login';
 
 const initialAuthToken: Auth = {
   accessToken: '',
@@ -17,7 +19,7 @@ const initialAuthToken: Auth = {
   refreshToken: async () => null,
   logout: async () => {},
   login: async () => {},
-  register: async () => {}
+  signUp: async () => {}
 };
 
 export const AuthContext = createContext<Auth>(initialAuthToken);
@@ -68,15 +70,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (data: LoginFormFields) => {
     try {
-      const response = await axiosInstance.post('/api/auth/login', {
-        email,
-        password
-      });
+      const response = await axiosInstance.post('/api/auth/login', data);
       const { accessToken } = response.data.data;
 
-      if (localStorage.getItem('accessToken')) {
+      if (data.rememberMe) {
         localStorage.setItem('accessToken', accessToken);
       } else {
         sessionStorage.setItem('accessToken', accessToken);
@@ -92,17 +91,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const register = async (
-    username: string,
-    email: string,
-    password: string
-  ) => {
+  const signUp = async (data: RegisterFormFields) => {
     try {
-      const response = await axiosInstance.post('/api/auth/register', {
-        username,
-        email,
-        password
-      });
+      const response = await axiosInstance.post('/api/auth/register', data);
       const { accessToken } = response.data.data;
 
       if (localStorage.getItem('accessToken')) {
@@ -186,7 +177,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         refreshToken,
         logout,
         login,
-        register
+        signUp
       }}
     >
       {children}
