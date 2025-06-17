@@ -4,6 +4,7 @@ import CartModel, { ICartItem } from './cartModel';
 import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
 import VariantModel from '../variant/variantModel';
+import { calculateCartTotals } from '~/utils/calculateCartTotals';
 
 /**
  * categoryController.ts
@@ -147,14 +148,9 @@ export const cartController = {
 
       existingCart.quantity = quantity;
 
-      cart.totalQuantity = cart.items.reduce(
-        (sum, item) => sum + item.quantity,
-        0
-      );
-      cart.totalPrice = cart.items.reduce(
-        (sum, item) => sum + item.quantity * item.price,
-        0
-      );
+      const { totalQuantity, totalPrice } = calculateCartTotals(cart.items);
+      cart.totalQuantity = totalQuantity;
+      cart.totalPrice = totalPrice;
 
       const savedCart = await cart.save();
 
