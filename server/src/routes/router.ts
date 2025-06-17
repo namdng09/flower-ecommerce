@@ -6,6 +6,8 @@ import categoryRoute from '~/modules/category/categoryRoute';
 import addressRoute from '~/modules/address/addressRoute';
 import variantRoute from '~/modules/variant/variantRoute';
 import userRoute from '~/modules/user/userRoute';
+import favouriteRoute from '~/modules/favourite/favouriteRoute';
+import reviewRoute from '~/modules/review/reviewRoute';
 import { authorize } from '~/middleware/authorize';
 import jwtAuth from '~/middleware/jwtAuth';
 
@@ -24,6 +26,8 @@ router.use('/addresses', jwtAuth, addressRoute);
 router.use('/users', jwtAuth, authorize('admin'), userRoute);
 
 router.use('/variants', variantRoute);
+
+router.use('/reviews', reviewRoute);
 
 router.use(
   '/favourites',
