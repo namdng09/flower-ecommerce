@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import backgroundlogin1 from '../../../assets/backgroundlogin1.jpg';
 import googlelogo from '../../../assets/Googlelogo.svg.webp';
 const Login: React.FC = () => {
-  // const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div
@@ -49,7 +48,7 @@ const Login: React.FC = () => {
             </label>
             <input
               className='w-full content-center text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500'
-              type={showPassword ? 'text' : 'password'}
+              type='password'
               placeholder='Enter your password'
               defaultValue=''
               autoComplete='current-password'

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import backgroundlogin1 from '../../../assets/backgroundlogin1.jpg';
 import googlelogo from '../../../assets/Googlelogo.svg.webp';
 
@@ -85,7 +85,7 @@ const Register: React.FC = () => {
                 </label>
                 <input
                   className='w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500'
-                  type={showPassword ? 'text' : 'password'}
+                  type='password'
                   placeholder='Nhập mật khẩu'
                   autoComplete='new-password'
                 />
@@ -96,7 +96,7 @@ const Register: React.FC = () => {
                 </label>
                 <input
                   className='w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500'
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type='password'
                   placeholder='Nhập lại mật khẩu'
                   autoComplete='new-password'
                 />
