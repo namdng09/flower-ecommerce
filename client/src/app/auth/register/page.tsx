@@ -3,8 +3,8 @@ import backgroundlogin1 from '../../../assets/backgroundlogin1.jpg';
 import googlelogo from '../../../assets/Googlelogo.svg.webp';
 
 const Register: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false);
+  // const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <div

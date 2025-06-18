@@ -50,7 +50,7 @@ export const productController = {
         throw createHttpError(400, 'Invalid product id');
 
       const product = await ProductModel.findById(id).populate(
-        'category shop variants'
+        'categories shop variants'
       );
       if (!product) throw createHttpError(404, 'Product not found');
 
@@ -75,20 +75,20 @@ export const productController = {
       const {
         title,
         shop,
-        category,
         status,
         thumbnailImage,
         description,
         image,
         weight,
         dimension = {},
+        categories = [],
         variants = []
       } = req.body;
 
       if (
         !title ||
         !shop ||
-        !category ||
+        !categories ||
         !thumbnailImage ||
         !image ||
         !weight ||
@@ -106,11 +106,11 @@ export const productController = {
       const shopExists = await UserModel.findOne({ _id: shop, role: 'shop' });
       if (!shopExists) throw createHttpError(404, 'Shop not found');
 
-      if (!Types.ObjectId.isValid(category))
-        throw createHttpError(400, 'Invalid category id');
-
-      const categoryExists = await CategoryModel.findById(category);
-      if (!categoryExists) throw createHttpError(404, 'Category not found');
+      // if (!Types.ObjectId.isValid(category))
+      //   throw createHttpError(400, 'Invalid category id');
+      //
+      // const categoryExists = await CategoryModel.findById(category);
+      // if (!categoryExists) throw createHttpError(404, 'Category not found');
 
       if (weight <= 0) throw createHttpError(400, 'Weight must be > 0');
       if (
@@ -164,7 +164,7 @@ export const productController = {
         title,
         shop,
         skuCode: productCode,
-        category,
+        categories,
         status,
         thumbnailImage,
         description,
@@ -195,7 +195,7 @@ export const productController = {
       const { id } = req.params;
       const {
         title,
-        category,
+        categories,
         status,
         thumbnailImage,
         description,
@@ -213,7 +213,7 @@ export const productController = {
 
       if (
         !title ||
-        !category ||
+        !categories ||
         !thumbnailImage ||
         !image ||
         !weight ||
@@ -269,7 +269,7 @@ export const productController = {
       }
 
       product.title = title;
-      product.category = category;
+      product.categories = categories;
       product.status = status;
       product.thumbnailImage = thumbnailImage;
       product.description = description;
@@ -323,7 +323,7 @@ export const productController = {
         throw createHttpError(400, 'Invalid shop id');
 
       const products = await ProductModel.find({ shop: shopId }).populate(
-        'category'
+        'categories'
       );
       return res
         .status(200)
@@ -346,7 +346,7 @@ export const productController = {
         throw createHttpError(400, 'Invalid category id');
 
       const products = await ProductModel.find({
-        category: categoryId
+        categories: categoryId
       }).populate('shop');
       return res
         .status(200)

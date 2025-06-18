@@ -6,6 +6,9 @@ import categoryRoute from '~/modules/category/categoryRoute';
 import addressRoute from '~/modules/address/addressRoute';
 import variantRoute from '~/modules/variant/variantRoute';
 import userRoute from '~/modules/user/userRoute';
+import reviewRoute from '~/modules/review/reviewRoute';
+import cartRoute from '~/modules/cart/cartRoute';
+import favouriteRoute from '~/modules/favourite/favouriteRoute';
 import { authorize } from '~/middleware/authorize';
 import jwtAuth from '~/middleware/jwtAuth';
 
@@ -21,14 +24,14 @@ router.use('/categories', categoryRoute);
 
 router.use('/addresses', jwtAuth, addressRoute);
 
-router.use('/users', jwtAuth, authorize('admin'), userRoute);
+router.use('/users', userRoute);
 
 router.use('/variants', variantRoute);
 
-router.use(
-  '/favourites',
-  passport.authenticate('jwt', { session: false }),
-  favouriteRoute
-);
+router.use('/reviews', reviewRoute);
+
+router.use('/favourites', favouriteRoute);
+
+router.use('/carts', cartRoute);
 
 export default router;

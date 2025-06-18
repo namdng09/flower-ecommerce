@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import backgroundlogin1 from '../../../assets/backgroundlogin1.jpg';
 import googlelogo from '../../../assets/Googlelogo.svg.webp';
 const Login: React.FC = () => {
-  const [showPassword, setShowPassword] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div
