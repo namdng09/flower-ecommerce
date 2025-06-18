@@ -45,13 +45,13 @@ const LoginForm: React.FC = () => {
           <h2 className='mt-6 text-3xl font-bold text-gray-900'>Đăng nhập </h2>
         </div>
         <button
-            type='button'
-            className='flex items-center gap-2 px-4 py-2 rounded-full font-medium text-gray-700 bg-white border border-gray-200 shadow hover:bg-blue-50 transition-all duration-200 mt-3 mx-auto mb-4'
-            style={{ minWidth: 0, width: 'fit-content' }}
-          >
-            <img src={googlelogo} alt='Google' className='w-5 h-5' />
-            <span className='text-base'>Đăng nhập với Google</span>
-          </button>
+          type='button'
+          className='flex items-center gap-2 px-4 py-2 rounded-full font-medium text-gray-700 bg-white border border-gray-200 shadow hover:bg-blue-50 transition-all duration-200 mt-3 mx-auto mb-4'
+          style={{ minWidth: 0, width: 'fit-content' }}
+        >
+          <img src={googlelogo} alt='Google' className='w-5 h-5' />
+          <span className='text-base'>Đăng nhập với Google</span>
+        </button>
         <div className='flex items-center justify-center space-x-2'>
           <span className='h-px w-16 bg-gray-300'></span>
           <span className='text-gray-500 font-normal'>Hoặc</span>
@@ -70,7 +70,9 @@ const LoginForm: React.FC = () => {
               {...register('email')}
             />
             {errors.email && (
-              <span className='text-xs text-red-500'>{errors.email.message}</span>
+              <span className='text-xs text-red-500'>
+                {errors.email.message}
+              </span>
             )}
           </div>
           <div className='mt-8 content-center'>
@@ -85,7 +87,9 @@ const LoginForm: React.FC = () => {
               {...register('password')}
             />
             {errors.password && (
-              <span className='text-xs text-red-500'>{errors.password.message}</span>
+              <span className='text-xs text-red-500'>
+                {errors.password.message}
+              </span>
             )}
           </div>
           <div className='flex items-center justify-between'>
@@ -120,7 +124,6 @@ const LoginForm: React.FC = () => {
               disabled={isSubmitting}
             >
               {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
-             
             </button>
             {/* </NavLink> */}
           </div>
