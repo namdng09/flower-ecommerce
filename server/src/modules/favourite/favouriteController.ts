@@ -9,10 +9,10 @@ export const favouriteController = {
       const { userId, productId } = req.body;
 
       if (!userId) {
-        throw createHttpError(400, 'User not found');
+        throw createHttpError(400, 'User is required');
       }
       if (!productId) {
-        throw createHttpError(400, 'Product not found');
+        throw createHttpError(400, 'Product is required');
       }
 
       let favourite = await FavouriteModel.findOne({ userId });
@@ -46,7 +46,7 @@ export const favouriteController = {
     try {
       const { userId } = req.params;
       if (!userId) {
-        throw createHttpError(400, 'User not found');
+        throw createHttpError(400, 'User is required');
       }
       const favourite = await FavouriteModel.findOne({ userId }).populate(
         'products'
