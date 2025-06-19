@@ -307,12 +307,9 @@ export const userController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
+      const { email } = req.params;
       const { oldPassword, newPassword } = req.body;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
       if (!oldPassword || !newPassword) {
         throw createHttpError(
           400,
@@ -326,7 +323,7 @@ export const userController = {
         );
       }
 
-      const user = await UserModel.findById(id);
+      const user = await UserModel.findOne({ email });
       if (!user) throw createHttpError(404, 'User not found');
 
       const isMatch = await comparePassword(oldPassword, user.password);

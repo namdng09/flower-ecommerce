@@ -11,7 +11,10 @@ router.post('/', asyncHandler(userController.create));
 
 router.put('/:id', asyncHandler(userController.update));
 
-router.patch('/password/:id', asyncHandler(userController.updatePassword));
+router.patch(
+  '/reset-password/:email',
+  asyncHandler(userController.updatePassword)
+);
 
 router.patch('/avatar/:id', asyncHandler(userController.updateAvatarUrl));
 router.patch('/cover/:id', asyncHandler(userController.updateCoverUrl));
