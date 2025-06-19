@@ -90,7 +90,7 @@ const EditProfile: React.FC = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-auto mt-24 p-6 border bg-white rounded-lg shadow text-black">
+        <div className="max-w-4xl mx-auto p-6 pt-28 border bg-white rounded-lg shadow text-black mt-50 mb-4">
             <h2 className="text-xl font-bold mb-6 text-center">Cập nhật thông tin</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="text-center">
