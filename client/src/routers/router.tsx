@@ -1,8 +1,6 @@
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
-import PrivateRoutes from '../components/privateRoutes';
-
-const QuizLayout = lazy(() => import('../layouts/quizLayout'));
+// import PrivateRoutes from '../components/privateRoutes';
 
 const router = createBrowserRouter([
   {
@@ -25,22 +23,6 @@ const router = createBrowserRouter([
       {
         path: 'login',
         Component: lazy(() => import('../app/auth/login/page'))
-      }
-    ]
-  },
-  {
-    path: '/quizzes',
-    Component: () => (
-      <PrivateRoutes allowedRoles={['customer']}>
-        <Suspense fallback={<div>Loading layout...</div>}>
-          <QuizLayout />
-        </Suspense>
-      </PrivateRoutes>
-    ),
-    children: [
-      {
-        path: '',
-        Component: lazy(() => import('../app/quizzes/page'))
       }
     ]
   },

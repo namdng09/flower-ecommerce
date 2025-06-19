@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import { hashPassword } from '~/utils/bcrypt';
 import CartModel from '../cart/cartModel';
-// Line removed as it is unused.
+import FavouriteModel from '../favourite/favouriteModel';
 
 export interface IUser extends Document {
   fullName: string;
@@ -71,6 +71,12 @@ userSchema.post('save', async (doc: IUser, next) => {
       await CartModel.updateOne(
         { userId: doc._id },
         { $setOnInsert: { userId: doc._id, items: [] } },
+        { upsert: true }
+      );
+
+      await FavouriteModel.updateOne(
+        { userId: doc._id },
+        { $setOnInsert: { userId: doc._id, products: [] } },
         { upsert: true }
       );
     }

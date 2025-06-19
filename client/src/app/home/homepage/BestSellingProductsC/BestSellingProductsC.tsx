@@ -2,9 +2,21 @@ import { useEffect, useState } from 'react';
 import hoa1 from '../../../../assets/hoa2.webp';
 
 function BestSellingProductsC() {
-  const calculateTimeLeft = () => {
+  type TimeLeft = {
+    Days: number;
+    Hours: number;
+    Minutes: number;
+    Seconds: number;
+  };
+
+  const calculateTimeLeft = (): TimeLeft => {
     const difference = +new Date('2025-12-31') - +new Date();
-    let timeLeft = {};
+    let timeLeft: TimeLeft = {
+      Days: 0,
+      Hours: 0,
+      Minutes: 0,
+      Seconds: 0
+    };
 
     if (difference > 0) {
       timeLeft = {
@@ -17,7 +29,7 @@ function BestSellingProductsC() {
     return timeLeft;
   };
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
 
   useEffect(() => {
     const timer = setInterval(() => {
