@@ -31,7 +31,7 @@ const router = createBrowserRouter([
   {
     path: '/quizzes',
     Component: () => (
-      <PrivateRoutes role='customer'>
+      <PrivateRoutes allowedRoles={['customer']}>
         <Suspense fallback={<div>Loading layout...</div>}>
           <QuizLayout />
         </Suspense>
