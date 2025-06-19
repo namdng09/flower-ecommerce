@@ -10,8 +10,11 @@ export const favouriteController = {
       const { userId } = req.params;
       const { productId } = req.body;
 
-      if (!userId || !productId) {
-        throw createHttpError(400, 'Missing required fields');
+      if (!userId) {
+        throw createHttpError(400, 'User is required');
+      }
+      if (!productId) {
+        throw createHttpError(400, 'Product is required');
       }
 
       let favourite = await FavouriteModel.findOne({ userId });

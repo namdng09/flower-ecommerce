@@ -4,10 +4,10 @@ import { Navigate } from 'react-router';
 
 type PrivateRoutesProps = {
   children: React.ReactNode | React.ReactElement;
-  role?: string;
+  allowedRoles?: string[];
 };
 
-const PrivateRoutes = ({ children, role }: PrivateRoutesProps) => {
+const PrivateRoutes = ({ children, allowedRoles }: PrivateRoutesProps) => {
   const { user, loading } = useContext(AuthContext);
 
   if (loading) {
@@ -18,7 +18,9 @@ const PrivateRoutes = ({ children, role }: PrivateRoutesProps) => {
     return <Navigate to='/auth/login' replace />;
   }
 
-  if (role && user.role !== role) {
+  const isAuthorized = allowedRoles ? allowedRoles.includes(user.role) : true;
+
+  if (!isAuthorized) {
     return <Navigate to='/auth/login' replace />;
   }
 

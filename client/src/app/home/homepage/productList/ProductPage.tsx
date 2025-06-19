@@ -33,7 +33,7 @@ const ProductPage = () => {
               (img, index) => (
                 <img
                   key={index}
-                  src={hoa1}
+                  src={img}
                   alt=''
                   className={`w-16 h-16 rounded ${index === 0 ? 'border-2 border-red-500' : ''}`}
                 />

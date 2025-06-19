@@ -49,9 +49,9 @@ function FooterC() {
                   <ul className='text-[#AD3542] font-medium space-y-2'>
                     {section.links.map(item =>
                       section.type === 'internal' ? (
-                        <li key={item?.to}>
+                        <li key={item?.href}>
                           <Link
-                            to={item?.to}
+                            to={item?.href}
                             className='hover:text-[#C25C61] transition'
                           >
                             {item.label}
