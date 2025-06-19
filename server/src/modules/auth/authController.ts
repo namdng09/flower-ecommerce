@@ -27,7 +27,7 @@ const authController = {
       }
 
       const existingUser = await UserModel.findOne({
-        $or: [{ email }, { username }]
+        $or: [{ email }, { username }, { phoneNumber }]
       });
       if (existingUser) {
         if (existingUser.email === email) {
@@ -35,6 +35,9 @@ const authController = {
         }
         if (existingUser.username === username) {
           throw createHttpError(400, 'Username already exists');
+        }
+        if (existingUser.phoneNumber === phoneNumber) {
+          throw createHttpError(400, 'Phone number already exists');
         }
       }
 
