@@ -41,9 +41,8 @@ const router = createBrowserRouter([
         )
       },
       {
-        path: 'products',
-        Component: lazy(
-          () => import('../app/home/homepage/productList/ProductPage')
+        path: 'products/:id',
+        Component: lazy(() => import('../app/home/homepage/productList/ProductPage')
         )
       },
       {
@@ -62,9 +61,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'profile/:id',
-        Component: lazy(
-          () => import('../app/home/homepage/profile/ProfileC')
-        )
+        Component: lazy(() => import('../app/home/homepage/profile/ProfileC'))
       }
     ]
   }

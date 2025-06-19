@@ -28,11 +28,21 @@ function HeaderC({ cartItems, openCart, setOpenCart }) {
           </Link>
 
           <ul className='hidden md:flex space-x-10 text-black font-medium'>
-            <li><Link to='/home'>Trang Chủ</Link></li>
-            <li><Link to='/home/shop'>Cửa Hàng</Link></li>
-            <li><Link to='/home/products'>Sản Phẩm</Link></li>
-            <li><Link to='/home/about'>Về Chúng Tôi</Link></li>
-            <li><Link to='/home/contact'>Liên Hệ</Link></li>
+            <li>
+              <Link to='/home'>Trang Chủ</Link>
+            </li>
+            <li>
+              <Link to='/home/shop'>Cửa Hàng</Link>
+            </li>
+            <li>
+              <Link to='/home/products'>Sản Phẩm</Link>
+            </li>
+            <li>
+              <Link to='/home/about'>Về Chúng Tôi</Link>
+            </li>
+            <li>
+              <Link to='/home/contact'>Liên Hệ</Link>
+            </li>
           </ul>
 
           <div className='flex items-center space-x-8 md:order-2 relative'>
@@ -40,7 +50,8 @@ function HeaderC({ cartItems, openCart, setOpenCart }) {
               onClick={() => setOpenCart(true)}
               className='text-black relative'
             >
-              🛒 Giỏ hàng <span className='text-pink-600'>({totalQuantity} sản phẩm)</span>
+              🛒 Giỏ hàng{' '}
+              <span className='text-pink-600'>({totalQuantity} sản phẩm)</span>
             </button>
 
             <MiniCartModal

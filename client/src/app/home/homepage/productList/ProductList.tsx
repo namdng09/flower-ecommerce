@@ -103,7 +103,7 @@ const ProductList = () => {
                     </div>
                   </div>
 
-                  <Link to={`/products/${product._id}`}>
+                  <Link to={`/home/products/${product._id}`}>
                     <h4 className="font-medium mb-1 text-black mt-5 hover:text-pink-600 transition">
                       {product.title}
                     </h4>
