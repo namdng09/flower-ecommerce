@@ -18,10 +18,7 @@ const PrivateRoutes = ({ children, allowedRoles }: PrivateRoutesProps) => {
     return <Navigate to='/auth/login' replace />;
   }
 
-  const isAuthorized =
-    allowedRoles &&
-    allowedRoles.length > 0 &&
-    !allowedRoles.includes(user.role);
+  const isAuthorized = allowedRoles ? allowedRoles.includes(user.role) : true;
 
   if (!isAuthorized) {
     return <Navigate to='/auth/login' replace />;
