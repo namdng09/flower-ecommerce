@@ -1,40 +1,50 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
+import { useDispatch } from 'react-redux';
 import { getProductById } from '~/store/slices/productDetailSlice';
 import { useAppSelector } from '~/hooks/useAppSelector';
-import { useDispatch } from 'react-redux';
 
 const ProductPage = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { product, loading, error } = useAppSelector((state) => state?.productDetail);
 
+  const [mainImage, setMainImage] = useState<string>('');
   useEffect(() => {
     if (id) {
       dispatch(getProductById(id));
     }
   }, [dispatch, id]);
 
+  useEffect(() => {
+    if (product) {
+      setMainImage(product.thumbnailImage); 
+    }
+  }, [product]);
+
   if (loading) return <p className="pt-[200px] text-center">Đang tải sản phẩm...</p>;
   if (error) return <p className="pt-[200px] text-center text-red-600">Lỗi: {error}</p>;
   if (!product) return null;
 
   return (
-    <div className="container mx-auto px-4 pt-[200px] text-black">
+    <div className="container mx-auto px-4 pt-[200px] text-black mb-30">
       <div className="flex flex-col lg:flex-row gap-10">
         <div className="lg:w-1/2">
           <img
-            src={product.thumbnailImage}
+            src={mainImage}
             alt={product.title}
-            className="w-full h-[420px] object-cover rounded-lg shadow mb-4"
+            className="w-full h-full object-cover rounded-lg shadow mb-4"
           />
+
           <div className="flex gap-4">
-            {product.variants.map((v) => (
+            {[product.thumbnailImage, ...product.variants.map(v => v.image)].map((img, index) => (
               <img
-                key={v._id}
-                src={v.image}
-                alt={v.title}
-                className="w-20 h-20 object-cover rounded-lg border border-gray-300"
+                key={index}
+                src={img}
+                alt={`variant-${index}`}
+                onClick={() => setMainImage(img)} // 👈 Click đổi ảnh
+                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${mainImage === img ? 'border-pink-600 border-2' : 'border-gray-300'
+                  }`}
               />
             ))}
           </div>
@@ -42,7 +52,6 @@ const ProductPage = () => {
 
         <div className="lg:w-1/2 space-y-4">
           <h1 className="text-2xl font-bold">{product.title}</h1>
-
           <p className="text-sm text-gray-600">{product.description.replace(/"/g, '')}</p>
 
           <div>
