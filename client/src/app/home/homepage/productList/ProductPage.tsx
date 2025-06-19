@@ -27,13 +27,13 @@ const ProductPage = () => {
   if (!product) return null;
 
   return (
-    <div className="container mx-auto px-4 pt-[200px] text-black mb-30">
+    <div className="container mx-auto px-4 pt-[200px] text-black mb-5">
       <div className="flex flex-col lg:flex-row gap-10">
-        <div className="lg:w-1/2">
+        <div className="lg:w-1/3">
           <img
             src={mainImage}
             alt={product.title}
-            className="w-full h-full object-cover rounded-lg shadow mb-4"
+            className="w-[650px] h-[650px] object-cover rounded-lg shadow mb-4"
           />
 
           <div className="flex gap-4">
