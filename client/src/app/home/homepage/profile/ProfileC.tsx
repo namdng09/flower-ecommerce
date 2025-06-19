@@ -9,6 +9,7 @@ interface UserProfile {
     phoneNumber: string;
     avatarUrl: string;
     role: string;
+    createdAt?: string;
 }
 
 const EditProfile: React.FC = () => {
@@ -44,6 +45,7 @@ const EditProfile: React.FC = () => {
                         phoneNumber: user.phoneNumber?.toString() || '',
                         avatarUrl: user.avatarUrl || '',
                         role: user.role || '',
+                        createdAt: user.createdAt || '',
                     });
                 }
             })
@@ -142,6 +144,19 @@ const EditProfile: React.FC = () => {
                         value={form.phoneNumber}
                         onChange={handleChange}
                         className="w-full border px-3 py-2 rounded mt-1"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium">Ngày tạo tài khoản</label>
+                    <input
+                        type="text"
+                        value={
+                            form.createdAt
+                                ? new Date(form.createdAt).toLocaleDateString('vi-VN')
+                                : ''
+                        }
+                        disabled
+                        className="w-full border px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500"
                     />
                 </div>
 
