@@ -22,7 +22,7 @@ const ProductList = () => {
   });
 
   return (
-    <div className="container mx-auto px-4 pt-[200px]">
+    <div className="container mx-auto px-4 pt-[200px] mb-5">
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="lg:w-1/5 lg:order-1 space-y-6 text-black">
           <div>
@@ -91,7 +91,7 @@ const ProductList = () => {
                     <img
                       src={product.thumbnailImage}
                       alt={product.title}
-                      className="w-full h-72 object-cover rounded transition-transform duration-300 group-hover:scale-105"
+                      className="w-[450px] h-[450px] object-cover rounded transition-transform duration-300 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <button className="bg-pink-500 text-white px-4 py-2 rounded-full font-semibold">
