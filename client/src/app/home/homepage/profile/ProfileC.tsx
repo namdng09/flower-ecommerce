@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
+import defaultAva from '../../../../assets/no-user.jpg';
 
 interface UserProfile {
     fullName: string;
@@ -92,19 +93,21 @@ const EditProfile: React.FC = () => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 pt-28 border bg-white rounded-lg shadow text-black mt-50 mb-4">
+        <div className="max-w-4xl mx-auto p-6 pt-auto border bg-white rounded-lg shadow text-black mt-50 mb-4">
             <h2 className="text-xl font-bold mb-6 text-center">Cập nhật thông tin</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="text-center">
-                    <img
-                        src={form.avatarUrl || 'https://via.placeholder.com/100'}
-                        alt="Avatar"
-                        className="w-24 h-24 rounded-full mx-auto mb-2 object-cover"
-                    />
-                </div>
+                <img
+                    src={
+                        form.avatarUrl && form.avatarUrl.trim() !== ''
+                            ? form.avatarUrl
+                            : defaultAva
+                    }
+                    alt="Avatar"
+                    className="w-24 h-24 rounded-full mx-auto mb-2 object-cover border border-lime-400"
+                />
 
                 <div>
-                    <label className="block text-sm font-medium">Họ tên</label>
+                    <label className="block text-sm font-medium">Họ và tên</label>
                     <input
                         type="text"
                         name="fullName"
