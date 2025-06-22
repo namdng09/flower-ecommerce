@@ -1,7 +1,6 @@
 import { Link } from 'react-router';
 import logo1 from '../../../../assets/logo1.svg';
 import { FiShoppingBag } from 'react-icons/fi';
-
 const navItems = [
   { label: 'Trang Chủ', path: '/home' },
   { label: 'Cửa Hàng', path: '/home/shop' },
