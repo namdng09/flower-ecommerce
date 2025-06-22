@@ -59,9 +59,7 @@ const LoginForm: React.FC = () => {
         </div>
         <form className='mt-8 space-y-6' onSubmit={handleSubmit(onSubmit)}>
           <div className='relative'>
-            <label className='text-sm font-bold text-gray-700 tracking-wide'>
-              Email
-            </label>
+            <label className='text-sm font-bold tracking-wide'>Email</label>
             <input
               className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.email ? 'border-red-500' : ''}`}
               type='email'
