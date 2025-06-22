@@ -52,6 +52,10 @@ const router = createBrowserRouter([
       }
     ]
   }
+  // {
+  //   path:'/profile',
+  //   Component: lazy(() => import('../components/profile/UserProfile')),
+  // }
 ]);
 
 export default router;
