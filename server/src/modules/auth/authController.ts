@@ -4,6 +4,9 @@ import { generateToken, verifyRefreshToken } from '~/utils/jwt';
 import { comparePassword } from '~/utils/bcrypt';
 import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import { sendMail } from '~/utils/mailer';
 
 const authController = {
   async register(
@@ -27,7 +30,7 @@ const authController = {
       }
 
       const existingUser = await UserModel.findOne({
-        $or: [{ email }, { username }]
+        $or: [{ email }, { username }, { phoneNumber }]
       });
       if (existingUser) {
         if (existingUser.email === email) {
@@ -35,6 +38,9 @@ const authController = {
         }
         if (existingUser.username === username) {
           throw createHttpError(400, 'Username already exists');
+        }
+        if (existingUser.phoneNumber === phoneNumber) {
+          throw createHttpError(400, 'Phone number already exists');
         }
       }
 
@@ -159,6 +165,48 @@ const authController = {
           accessToken: accessToken
         })
       );
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async resetPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
+    try {
+      const { email } = req.body as { email: string };
+
+      const user = await UserModel.findOne({ email });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const newPasswordPlain = crypto
+        .randomBytes(8)
+        .toString('base64')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .slice(0, 10);
+
+      user.password = newPasswordPlain;
+
+      await user.save();
+
+      await sendMail({
+        to: email,
+        subject: 'Mật khẩu mới cho tài khoản IMS',
+        html: `
+          <p>Xin chào ${user.fullName ?? ''},</p>
+          <p>Mật khẩu mới của bạn là: <strong>${newPasswordPlain}</strong></p>
+          <p>Hãy đăng nhập và đổi mật khẩu ngay.</p>
+        `,
+        text: `Mật khẩu mới: ${newPasswordPlain}`
+      });
+
+      return res.json({
+        message: 'New password has been generated and emailed to you.'
+      });
     } catch (error) {
       next(error);
     }
