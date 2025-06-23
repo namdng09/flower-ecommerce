@@ -41,14 +41,27 @@ const router = createBrowserRouter([
         )
       },
       {
-        path: 'products',
-        Component: lazy(
-          () => import('../app/home/homepage/productList/ProductPage')
+        path: 'products/:id',
+        Component: lazy(() => import('../app/home/homepage/productList/ProductPage')
         )
       },
       {
         path: 'about',
         Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
+      },
+      {
+        path: 'cart',
+        Component: lazy(() => import('../app/home/homepage/Cart/CartDetails'))
+      },
+      {
+        path: 'checkout',
+        Component: lazy(
+          () => import('../app/home/homepage/check-out/CheckoutPage')
+        )
+      },
+      {
+        path: 'profile/:id',
+        Component: lazy(() => import('../app/home/homepage/profile/ProfileC'))
       }
     ]
   }

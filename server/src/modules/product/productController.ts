@@ -25,7 +25,7 @@ export const productController = {
   ): Promise<Response | void> => {
     try {
       const products = await ProductModel.find().populate(
-        'category shop variants'
+        'categories shop variants'
       );
       return res
         .status(200)
