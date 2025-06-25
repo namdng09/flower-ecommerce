@@ -20,11 +20,36 @@ export const categoryController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const categories = await CategoryModel.find();
+      const allActiveCategories = await CategoryModel.find({
+        status: 'active'
+      }).lean();
+
+      const categoryMap = new Map<string, any>();
+
+      allActiveCategories.forEach(cat => {
+        categoryMap.set(cat._id.toString(), { ...cat, subCategory: [] });
+      });
+
+      const rootCategories: any[] = [];
+
+      allActiveCategories.forEach(cat => {
+        if (cat.parentId) {
+          const parent = categoryMap.get(cat.parentId.toString());
+          if (parent) {
+            parent.subCategory.push(categoryMap.get(cat._id.toString()));
+          }
+        } else {
+          rootCategories.push(categoryMap.get(cat._id.toString()));
+        }
+      });
+
       return res
         .status(200)
         .json(
-          apiResponse.success('Categories listed successfully', categories)
+          apiResponse.success(
+            'Active categories fetched successfully',
+            rootCategories
+          )
         );
     } catch (error) {
       next(error);
