@@ -59,11 +59,11 @@ const LoginForm: React.FC = () => {
         </div>
         <form className='mt-8 space-y-6' onSubmit={handleSubmit(onSubmit)}>
           <div className='relative'>
-            <label className='text-sm font-bold text-black tracking-wide'>
+            <label className='text-sm font-bold text-gray-700 tracking-wide'>
               Email
             </label>
             <input
-              className={`w-full text-base py-2 border-b border-black focus:outline-none focus:border-black ${errors.email ? 'border-black' : ''} text-black`}
+              className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.email ? 'border-red-500' : ''}`}
               type='email'
               placeholder='mail@gmail.com'
               autoComplete='email'
@@ -80,7 +80,7 @@ const LoginForm: React.FC = () => {
               Mật khẩu
             </label>
             <input
-              className={`w-full content-center text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.password ? 'border-red-500' : ''} text-gray-900`}
+              className={`w-full content-center text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.password ? 'border-red-500' : ''}`}
               type='password'
               placeholder='Enter your password'
               autoComplete='current-password'
