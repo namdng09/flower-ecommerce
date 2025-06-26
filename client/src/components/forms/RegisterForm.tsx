@@ -6,7 +6,6 @@ import { AuthContext } from '~/contexts/authContext';
 import backgroundlogin1 from '../../assets/backgroundlogin1.jpg';
 import googlelogo from '../../assets/Googlelogo.svg.webp';
 import { useNavigate } from 'react-router';
-
 const RegisterForm = () => {
   const { signUp } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -30,7 +29,8 @@ const RegisterForm = () => {
         'Registration successful! Please check your email to verify your account.'
       );
       reset();
-      navigate('/home'); // Redirect to home page after successful registration
+      navigate('/home'); // Redirect to login page after successful registration
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: Error | unknown) {
       alert('Registration failed. Please try again later.');
     }
@@ -70,7 +70,7 @@ const RegisterForm = () => {
                   Họ tên
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-gray-900 ${errors.fullName ? 'border-red-500' : ''}`}
+                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.fullName ? 'border-red-500' : ''}`}
                   type='text'
                   placeholder='Nhập họ tên'
                   autoComplete='name'
@@ -87,9 +87,9 @@ const RegisterForm = () => {
                   Tài khoản đăng nhập
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-gray-900 ${errors.username ? 'border-red-500' : ''}`}
+                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.username ? 'border-red-500' : ''}`}
                   type='text'
-                  placeholder='tài khoản đăng nhập'
+                  placeholder='username'
                   autoComplete='username'
                   {...register('username')}
                 />
@@ -104,7 +104,7 @@ const RegisterForm = () => {
                   Email
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-gray-900 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.email ? 'border-red-500' : ''}`}
                   type='email'
                   placeholder='mail@gmail.com'
                   autoComplete='email'
@@ -124,7 +124,7 @@ const RegisterForm = () => {
                   Số điện thoại
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-gray-900 ${errors.phoneNumber ? 'border-red-500' : ''}`}
+                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.phoneNumber ? 'border-red-500' : ''}`}
                   type='tel'
                   placeholder='Nhập số điện thoại'
                   autoComplete='tel'
@@ -141,7 +141,7 @@ const RegisterForm = () => {
                   Mật khẩu
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-gray-900 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.password ? 'border-red-500' : ''}`}
                   type='password'
                   placeholder='Nhập mật khẩu'
                   autoComplete='new-password'
@@ -158,7 +158,7 @@ const RegisterForm = () => {
                   Xác nhận mật khẩu
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 text-gray-900 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                   type='password'
                   placeholder='Nhập lại mật khẩu'
                   autoComplete='new-password'
