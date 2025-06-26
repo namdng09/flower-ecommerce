@@ -10,13 +10,7 @@
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
-    "*.ts": [
-      "npm run check",
-      "npm run lint",
-      "npm run format",
-      "git add"
-    ],
-    ".tsx": [
+    "*.{ts,tsx,js,mjs}": [
       "npm run check",
       "npm run lint",
       "npm run format",
