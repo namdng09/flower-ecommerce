@@ -15,6 +15,12 @@
       "npm run lint",
       "npm run format",
       "git add"
+    ],
+    ".tsx": [
+      "npm run check",
+      "npm run lint",
+      "npm run format",
+      "git add"
     ]
   },
   "keywords": [],
