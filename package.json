@@ -3,12 +3,15 @@
   "version": "1.0.0",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx,.js,.mjs",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.mjs --fix",
+    "check": "tsc --noEmit",
     "format": "prettier --write .",
     "prepare": "husky",
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
-    "*.ts": [
+    "*.{ts,tsx,js,mjs}": [
+      "npm run check",
       "npm run lint",
       "npm run format",
       "git add"

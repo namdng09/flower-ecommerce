@@ -42,8 +42,6 @@ const ProductPage = () => {
     dispatch(fetchVariants());
   }, [dispatch]);
 
-  console.log(variants);
-
   if (loading)
     return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
   if (error)
