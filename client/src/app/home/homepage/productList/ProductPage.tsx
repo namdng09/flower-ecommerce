@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { useDispatch } from 'react-redux';
 import { getProductById } from '~/store/slices/productDetailSlice';
 import { useAppSelector } from '~/hooks/useAppSelector';
+import { fetchVariants } from '~/store/slices/variantSlice';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -20,6 +21,10 @@ const ProductPage = () => {
 
   useEffect(() => {
     if (product) {
+      setMainImage(product.thumbnailImage);
+    }
+    if (product && product.variants.length > 0) {
+      setSelectedVariant(product.variants[0]);
       setMainImage(product.thumbnailImage);
     }
   }, [product]);
