@@ -1,11 +1,7 @@
-import RegisterForm from '~/components/forms/RegisterForm';
+import React from 'react';
 
 const Register = () => {
-  return (
-    <div>
-      <RegisterForm />
-    </div>
-  );
+  return <div className='text-black'>Register</div>;
 };
 
 export default Register;

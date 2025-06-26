@@ -25,8 +25,7 @@ COPY --from=build /code/nginx.conf /etc/nginx/nginx.conf
 
 # Copy the externalized entrypoint script
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-
-RUN sed -i 's/\r$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 80
 ENTRYPOINT ["/docker-entrypoint.sh"]

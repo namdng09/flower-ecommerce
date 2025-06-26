@@ -1,13 +1,13 @@
 import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
-// import PrivateRoutes from '../components/privateRoutes';
 
 const router = createBrowserRouter([
   {
+    path: '/',
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: '',
+        path: '/',
         Component: lazy(() => import('../app/page'))
       }
     ]
@@ -17,55 +17,22 @@ const router = createBrowserRouter([
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: 'register',
-        Component: lazy(() => import('../app/auth/register/page'))
-      },
-      {
-        path: 'login',
+        path: '/login',
         Component: lazy(() => import('../app/auth/login/page'))
       },
       {
-        path: 'reset-password',
-        Component: lazy(() => import('../app/auth/reset-password/page'))
+        path: '/register',
+        Component: lazy(() => import('../app/auth/register/page'))
       }
     ]
   },
   {
-    path: '/home',
-    Component: lazy(() => import('../layouts/homepageLayout')),
+    path: '/quizzes',
+    Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        index: true,
-        Component: lazy(() => import('../app/home/homepage/Homepage'))
-      },
-      {
-        path: 'shop',
-        Component: lazy(
-          () => import('../app/home/homepage/productList/ProductList')
-        )
-      },
-      {
-        path: 'products/:id',
-        Component: lazy(() => import('../app/home/homepage/productList/ProductPage')
-        )
-      },
-      {
-        path: 'about',
-        Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
-      },
-      {
-        path: 'cart',
-        Component: lazy(() => import('../app/home/homepage/Cart/CartDetails'))
-      },
-      {
-        path: 'checkout',
-        Component: lazy(
-          () => import('../app/home/homepage/check-out/CheckoutPage')
-        )
-      },
-      {
-        path: 'profile/:id',
-        Component: lazy(() => import('../app/home/homepage/profile/ProfileC'))
+        path: '/',
+        Component: lazy(() => import('../app/quizzes/page'))
       }
     ]
   }

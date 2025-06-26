@@ -1,7 +1,5 @@
 import { NavLink } from 'react-router';
 
-import Chunked from '~/components/chunked';
-
 const LandingPage = () => {
   return (
     <>
@@ -11,7 +9,6 @@ const LandingPage = () => {
       <NavLink to='/auth/register'>
         <button className='btn btn-active'>Register</button>
       </NavLink>
-      <Chunked />
     </>
   );
 };

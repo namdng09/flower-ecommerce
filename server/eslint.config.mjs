@@ -31,6 +31,7 @@ export default defineConfig([
           bracketSameLine: false,
           bracketSpacing: true,
           embeddedLanguageFormatting: 'auto',
+          endOfLine: 'lf',
           experimentalTernaries: false,
           htmlWhitespaceSensitivity: 'css',
           insertPragma: false,

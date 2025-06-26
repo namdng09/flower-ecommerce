@@ -11,9 +11,7 @@ const configurePassport = () => {
   passport.use(
     new JwtStrategy(options, async (jwtPayload, done) => {
       try {
-        const user = await UserModel.findById(jwtPayload.userId).select(
-          '-password'
-        );
+        const user = await UserModel.findById(jwtPayload.id);
         if (!user) {
           return done(null, false);
         }

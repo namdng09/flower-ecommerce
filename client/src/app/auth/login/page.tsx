@@ -1,7 +1,7 @@
-import LoginForm from '~/components/forms/LoginForm';
+import React from 'react';
 
 const Login = () => {
-  return <LoginForm />;
+  return <div className='text-black'>Login</div>;
 };
 
 export default Login;
