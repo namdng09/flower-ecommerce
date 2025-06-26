@@ -11,15 +11,6 @@ const ProductPage = () => {
   const { product, loading, error } = useAppSelector(
     state => state?.productDetail
   );
-  const {
-    items: variants,
-    loading: variantsLoading,
-    error: variantsError
-  } = useAppSelector(state => state?.variants);
-
-  const [selectedVariant, setSelectedVariant] = useState(
-    product?.variants[0] || null
-  );
 
   const [mainImage, setMainImage] = useState<string>('');
   useEffect(() => {
@@ -38,12 +29,6 @@ const ProductPage = () => {
     }
   }, [product]);
 
-  useEffect(() => {
-    dispatch(fetchVariants());
-  }, [dispatch]);
-
-  console.log(variants);
-
   if (loading)
     return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
   if (error)
@@ -61,33 +46,17 @@ const ProductPage = () => {
           />
 
           <div className='flex gap-4'>
-            {/* Ảnh chính */}
-            <img
-              src={product.thumbnailImage}
-              alt='main-thumbnail'
-              onClick={() => {
-                setMainImage(product.thumbnailImage);
-                setSelectedVariant(null);
-              }}
-              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
-                mainImage === product.thumbnailImage && !selectedVariant
-                  ? 'border-pink-600 border-2'
-                  : 'border-gray-300'
-              }`}
-            />
-
-            {/* Ảnh variants */}
-            {product.variants.map(variant => (
+            {[
+              product.thumbnailImage,
+              ...product.variants.map(v => v.image)
+            ].map((img, index) => (
               <img
-                key={variant._id}
-                src={variant.image}
-                alt={variant.title}
-                onClick={() => {
-                  setMainImage(variant.image);
-                  setSelectedVariant(variant);
-                }}
+                key={index}
+                src={img}
+                alt={`variant-${index}`}
+                onClick={() => setMainImage(img)} // 👈 Click đổi ảnh
                 className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
-                  selectedVariant?._id === variant._id
+                  mainImage === img
                     ? 'border-pink-600 border-2'
                     : 'border-gray-300'
                 }`}
@@ -104,35 +73,24 @@ const ProductPage = () => {
 
           <div>
             {product.variants.map(v => (
-              <div
-                key={v._id}
-                className={`border p-4 rounded mb-3 shadow-sm cursor-pointer ${selectedVariant?._id === v._id ? 'border-pink-600 border-2' : ''}`}
-                onClick={() => setSelectedVariant(v)}
-              >
+              <div key={v._id} className='border p-4 rounded mb-3 shadow-sm'>
                 <p className='text-md font-medium'>{v.title}</p>
-                <p className='text-sm text-gray-500'>(Kho: {v.inventory})</p>
+                <div className='flex gap-4 items-center'>
+                  {v.listPrice > v.salePrice && (
+                    <p className='line-through text-gray-400 text-sm'>
+                      {v.listPrice.toLocaleString()}đ
+                    </p>
+                  )}
+                  <p className='text-pink-600 text-lg font-semibold'>
+                    {v.salePrice.toLocaleString()}đ
+                  </p>
+                  <p className='text-sm text-gray-500'>(Kho: {v.inventory})</p>
+                </div>
               </div>
             ))}
           </div>
 
-          <div className='mt-4'>
-            {selectedVariant && (
-              <div>
-                <span>Thành tiền: </span>
-                {selectedVariant.listPrice > selectedVariant.salePrice && (
-                  <span className='line-through text-gray-400 text-sm mr-2'>
-                    {selectedVariant.listPrice.toLocaleString()}đ
-                  </span>
-                )}
-                <span className='text-pink-600 text-2xl font-bold'>
-                  {selectedVariant.salePrice.toLocaleString()}đ
-                </span>
-              </div>
-            )}
-          </div>
-
           <div className='flex gap-4 mt-4'>
-            <span>Số lượng: </span>
             <input
               type='number'
               min='1'
