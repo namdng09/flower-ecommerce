@@ -1,34 +1,63 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import UserModel from '../user/userModel';
-import { generateToken, verifyToken } from '~/utils/jwt';
+import { generateToken, verifyRefreshToken } from '~/utils/jwt';
 import { comparePassword } from '~/utils/bcrypt';
 import { apiResponse } from '~/types/apiResponse';
+import createHttpError from 'http-errors';
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import { sendMail } from '~/utils/mailer';
 
 const authController = {
-  async register(req: Request, res: Response) {
-    const { username, email, password } = req.body;
-
+  async register(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
+      const { fullName, username, email, phoneNumber, role, password } =
+        req.body;
+
+      if (
+        !fullName ||
+        !username ||
+        !email ||
+        !phoneNumber ||
+        !role ||
+        !password
+      ) {
+        throw createHttpError(400, 'Missing required fields');
+      }
+
       const existingUser = await UserModel.findOne({
-        email: email
+        $or: [{ email }, { username }, { phoneNumber }]
       });
       if (existingUser) {
-        return res.status(400).json(apiResponse.failed('User already exists'));
+        if (existingUser.email === email) {
+          throw createHttpError(400, 'Email already exists');
+        }
+        if (existingUser.username === username) {
+          throw createHttpError(400, 'Username already exists');
+        }
+        if (existingUser.phoneNumber === phoneNumber) {
+          throw createHttpError(400, 'Phone number already exists');
+        }
       }
 
       const newUser = await UserModel.create({
+        fullName,
         username,
         email,
+        phoneNumber,
+        role,
         password
       });
+      if (!newUser) throw createHttpError(400, 'User creation failed');
 
-      if (!newUser) {
-        return res.status(400).json(apiResponse.failed('User creation failed'));
-      }
-
-      const { accessToken, refreshToken } = generateToken(
-        newUser.id.toString()
-      );
+      const { accessToken, refreshToken } = generateToken({
+        id: newUser.id,
+        role: newUser.role
+      });
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -38,40 +67,41 @@ const authController = {
 
       return res.status(201).json(
         apiResponse.success('User created successfully', {
-          accessToken: accessToken,
+          accessToken,
           user: {
             id: newUser.id,
-            email: newUser.email
+            fullName: newUser.fullName,
+            email: newUser.email,
+            username: newUser.username,
+            phoneNumber: newUser.phoneNumber
           }
         })
       );
     } catch (error) {
-      console.error('Error registering user:', error);
-      return res.status(500).json(apiResponse.error('Internal server error'));
+      next(error);
     }
   },
 
-  async login(req: Request, res: Response) {
-    const { email, password } = req.body;
-
+  /** POST /auth/login */
+  async login(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
-      const user = await UserModel.findOne({
-        email: email
-      });
-      if (!user) {
-        return res
-          .status(400)
-          .json(apiResponse.failed('Invalid email or password'));
-      }
+      const { email, password } = req.body;
+
+      const user = await UserModel.findOne({ email });
+      if (!user) throw createHttpError(400, 'Invalid email or password');
 
       const isPasswordValid = await comparePassword(password, user.password);
-      if (!isPasswordValid) {
-        return res
-          .status(400)
-          .json(apiResponse.failed('Invalid email or password'));
-      }
+      if (!isPasswordValid)
+        throw createHttpError(400, 'Invalid email or password');
 
-      const { accessToken, refreshToken } = generateToken(user.id.toString());
+      const { accessToken, refreshToken } = generateToken({
+        id: user.id,
+        role: user.role
+      });
 
       res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
@@ -81,7 +111,7 @@ const authController = {
 
       return res.status(200).json(
         apiResponse.success('Login successful', {
-          accessToken: accessToken,
+          accessToken,
           user: {
             id: user.id,
             email: user.email
@@ -89,11 +119,16 @@ const authController = {
         })
       );
     } catch (error) {
-      console.error('Error logging in:', error);
-      return res.status(500).json(apiResponse.error('Internal server error'));
+      next(error);
     }
   },
-  async logout(req: Request, res: Response) {
+
+  /** POST /auth/logout */
+  async logout(
+    _req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
       res.clearCookie('refreshToken', {
         httpOnly: true,
@@ -102,33 +137,78 @@ const authController = {
       });
       return res.status(200).json(apiResponse.success('Logout successful'));
     } catch (error) {
-      console.error('Error logging out:', error);
-      return res.status(500).json(apiResponse.error('Internal server error'));
+      next(error);
     }
   },
-  async refreshToken(req: Request, res: Response) {
-    const { refreshToken } = req.cookies;
 
-    if (!refreshToken) {
-      return res
-        .status(401)
-        .json(apiResponse.failed('No refresh token provided'));
-    }
-
+  /** POST /auth/refresh-token */
+  async refreshToken(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
     try {
-      const decoded = verifyToken(refreshToken);
-      const userId = (decoded as { userId: string }).userId;
+      const { refreshToken } = req.cookies;
+      if (!refreshToken)
+        throw createHttpError(401, 'No refresh token provided');
 
-      const newAccessToken = generateToken(userId);
+      const decoded = verifyRefreshToken(refreshToken);
+      const id = typeof decoded === 'string' ? decoded : decoded.id;
+
+      const { accessToken } = generateToken({
+        id: id,
+        role: (decoded as { role: string }).role
+      });
 
       return res.status(200).json(
         apiResponse.success('Token refreshed successfully', {
-          accessToken: newAccessToken
+          accessToken: accessToken
         })
       );
     } catch (error) {
-      console.error('Error refreshing token:', error);
-      return res.status(401).json(apiResponse.failed('Invalid refresh token'));
+      next(error);
+    }
+  },
+
+  async resetPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
+    try {
+      const { email } = req.body as { email: string };
+
+      const user = await UserModel.findOne({ email });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const newPasswordPlain = crypto
+        .randomBytes(8)
+        .toString('base64')
+        .replace(/[^a-zA-Z0-9]/g, '')
+        .slice(0, 10);
+
+      user.password = newPasswordPlain;
+
+      await user.save();
+
+      await sendMail({
+        to: email,
+        subject: 'Mật khẩu mới cho tài khoản IMS',
+        html: `
+          <p>Xin chào ${user.fullName ?? ''},</p>
+          <p>Mật khẩu mới của bạn là: <strong>${newPasswordPlain}</strong></p>
+          <p>Hãy đăng nhập và đổi mật khẩu ngay.</p>
+        `,
+        text: `Mật khẩu mới: ${newPasswordPlain}`
+      });
+
+      return res.json({
+        message: 'New password has been generated and emailed to you.'
+      });
+    } catch (error) {
+      next(error);
     }
   }
 };
