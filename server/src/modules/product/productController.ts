@@ -25,11 +25,71 @@ export const productController = {
   ): Promise<Response | void> => {
     try {
       const products = await ProductModel.find().populate(
-        'category shop variants'
+        'categories shop variants'
       );
       return res
         .status(200)
         .json(apiResponse.success('Product listed successfully', products));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  filterProducts: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const {
+        page = '1',
+        limit = '10',
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+        title,
+        category,
+        minPrice,
+        maxPrice
+      } = req.query;
+
+      const query: any = {};
+
+      if (title) {
+        query.title = { $regex: title, $options: 'i' };
+      }
+
+      if (category) {
+        query.categories = category;
+      }
+
+      const options = {
+        page: parseInt(page as string) || 1,
+        limit: parseInt(limit as string) || 10,
+        populate: ['shop', 'variants'],
+        sort: { [sortBy as string]: sortOrder === 'asc' ? 1 : -1 }
+      };
+
+      const rawResult = await ProductModel.paginate(query, options);
+
+      const min = minPrice ? parseFloat(minPrice as string) : null;
+      const max = maxPrice ? parseFloat(maxPrice as string) : null;
+
+      const filteredDocs = rawResult.docs.filter((product: any) => {
+        const firstVariant = product.variants?.[0];
+        if (!firstVariant || firstVariant.salePrice == null) return false;
+        const price = firstVariant.salePrice;
+        if (min != null && price < min) return false;
+        if (max != null && price > max) return false;
+        return true;
+      });
+
+      return res.status(200).json(
+        apiResponse.success('Product listed successfully', {
+          ...rawResult,
+          docs: filteredDocs,
+          totalDocs: filteredDocs.length
+        })
+      );
     } catch (error) {
       next(error);
     }
