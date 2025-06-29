@@ -52,42 +52,85 @@ export const productController = {
         maxPrice
       } = req.query;
 
-      const query: any = {};
+      const matchStage: any = {};
 
       if (title) {
-        query.title = { $regex: title, $options: 'i' };
+        matchStage.title = { $regex: title, $options: 'i' };
       }
 
       if (category) {
-        query.categories = category;
+        const categoryIds = (category as string)
+          .split(',')
+          .map(id => new mongoose.Types.ObjectId(id));
+        matchStage.categories = { $all: categoryIds };
       }
-
-      const options = {
-        page: parseInt(page as string) || 1,
-        limit: parseInt(limit as string) || 10,
-        populate: ['shop', 'variants'],
-        sort: { [sortBy as string]: sortOrder === 'asc' ? 1 : -1 }
-      };
-
-      const rawResult = await ProductModel.paginate(query, options);
 
       const min = minPrice ? parseFloat(minPrice as string) : null;
       const max = maxPrice ? parseFloat(maxPrice as string) : null;
 
-      const filteredDocs = rawResult.docs.filter((product: any) => {
-        const firstVariant = product.variants?.[0];
-        if (!firstVariant || firstVariant.salePrice == null) return false;
-        const price = firstVariant.salePrice;
-        if (min != null && price < min) return false;
-        if (max != null && price > max) return false;
-        return true;
-      });
+      if (min != null || max != null) {
+        matchStage.$expr = {
+          $and: []
+        };
+        if (min != null) {
+          matchStage.$expr.$and.push({
+            $gte: [{ $arrayElemAt: ['$variants.salePrice', 0] }, min]
+          });
+        }
+        if (max != null) {
+          matchStage.$expr.$and.push({
+            $lte: [{ $arrayElemAt: ['$variants.salePrice', 0] }, max]
+          });
+        }
+      }
+
+      const aggregate = ProductModel.aggregate([
+        { $match: matchStage },
+        {
+          $sort: {
+            [sortBy as string]: sortOrder === 'asc' ? 1 : -1
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            let: { shopId: '$shop' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$_id', '$$shopId'] },
+                      { $eq: ['$role', 'shop'] }
+                    ]
+                  }
+                }
+              },
+              {
+                $project: {
+                  password: 0
+                }
+              }
+            ],
+            as: 'shop'
+          }
+        },
+        { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } }
+      ]);
+
+      const options = {
+        page: parseInt(page as string) || 1,
+        limit: parseInt(limit as string) || 10
+      };
+
+      const result = await (ProductModel as any).aggregatePaginate(
+        aggregate,
+        options
+      );
 
       return res.status(200).json(
         apiResponse.success('Product listed successfully', {
-          ...rawResult,
-          docs: filteredDocs,
-          totalDocs: filteredDocs.length
+          result
         })
       );
     } catch (error) {

@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
 import paginate from 'mongoose-paginate-v2';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { PaginateModel, PaginateOptions, PaginateResult } from 'mongoose';
 
 export interface IProduct extends Document {
@@ -61,7 +62,7 @@ const ProductSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
-ProductSchema.plugin(paginate);
+ProductSchema.plugin(aggregatePaginate);
 
 export interface ProductDocument extends mongoose.Document, IProduct {}
 export type ProductPaginateModel = mongoose.PaginateModel<ProductDocument>;
