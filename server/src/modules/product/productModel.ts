@@ -1,5 +1,7 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
-import { IVariant } from '../variant/variantModel';
+import paginate from 'mongoose-paginate-v2';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import { PaginateModel, PaginateOptions, PaginateResult } from 'mongoose';
 
 export interface IProduct extends Document {
   title: string;
@@ -60,9 +62,14 @@ const ProductSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
-const ProductModel: Model<IProduct> = mongoose.model<IProduct>(
-  'Product',
-  ProductSchema
-);
+ProductSchema.plugin(aggregatePaginate);
+
+export interface ProductDocument extends mongoose.Document, IProduct {}
+export type ProductPaginateModel = mongoose.PaginateModel<ProductDocument>;
+
+const ProductModel = mongoose.model<
+  ProductDocument,
+  PaginateModel<ProductDocument>
+>('Product', ProductSchema);
 
 export default ProductModel;
