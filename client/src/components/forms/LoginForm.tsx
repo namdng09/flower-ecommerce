@@ -109,7 +109,7 @@ const LoginForm: React.FC = () => {
             </div>
             <div className='text-sm'>
               <a
-                href='#'
+                href='reset-password'
                 className='font-medium text-indigo-500 hover:text-indigo-500'
               >
                 Quên mật khẩu?

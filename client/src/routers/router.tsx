@@ -23,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: 'login',
         Component: lazy(() => import('../app/auth/login/page'))
+      },
+      {
+        path: 'reset-password',
+        Component: lazy(() => import('../app/auth/reset-password/page'))
       }
     ]
   },
@@ -41,7 +45,7 @@ const router = createBrowserRouter([
         )
       },
       {
-        path: 'products',
+        path: 'products/:id',
         Component: lazy(
           () => import('../app/home/homepage/productList/ProductPage')
         )
@@ -49,6 +53,20 @@ const router = createBrowserRouter([
       {
         path: 'about',
         Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
+      },
+      {
+        path: 'cart',
+        Component: lazy(() => import('../app/home/homepage/Cart/CartDetails'))
+      },
+      {
+        path: 'checkout',
+        Component: lazy(
+          () => import('../app/home/homepage/check-out/CheckoutPage')
+        )
+      },
+      {
+        path: 'profile/:id',
+        Component: lazy(() => import('../app/home/homepage/profile/ProfileC'))
       }
     ]
   }

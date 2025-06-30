@@ -1,157 +1,164 @@
-import { FaTwitter, FaFacebookF, FaGoogle, FaPinterestP } from 'react-icons/fa';
-import hoa from '../../../../assets/hoa1.webp';
-import hoa1 from '../../../../assets/hoa2.webp';
-
-const socialButtons = [
-  { name: 'Twitter', icon: <FaTwitter />, class: 'bg-blue-400' },
-  { name: 'Facebook', icon: <FaFacebookF />, class: 'bg-blue-600' },
-  { name: 'Google', icon: <FaGoogle />, class: 'bg-red-500' },
-  { name: 'Pinterest', icon: <FaPinterestP />, class: 'bg-red-600' }
-];
-
-const sizes = ['XL', 'ML', 'XS'];
-const colors = ['bg-orange-500', 'bg-yellow-500', 'bg-purple-700'];
-const materials = ['PARTEK', 'WOOD', 'GLASS'];
-const relatedProducts = [
-  { id: 1, price: 80 },
-  { id: 2, price: 100, oldPrice: 120 },
-  { id: 3, price: 30 }
-];
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router';
+import { useDispatch } from 'react-redux';
+import { getProductById } from '~/store/slices/productDetailSlice';
+import { useAppSelector } from '~/hooks/useAppSelector';
+import { fetchVariants } from '~/store/slices/variantSlice';
 
 const ProductPage = () => {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const { product, loading, error } = useAppSelector(
+    state => state?.productDetail
+  );
+  const {
+    items: variants,
+    loading: variantsLoading,
+    error: variantsError
+  } = useAppSelector(state => state?.variants);
+
+  const [selectedVariant, setSelectedVariant] = useState(
+    product?.variants[0] || null
+  );
+
+  const [mainImage, setMainImage] = useState<string>('');
+  useEffect(() => {
+    if (id) {
+      dispatch(getProductById(id));
+    }
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (product) {
+      setMainImage(product.thumbnailImage);
+    }
+    if (product && product.variants.length > 0) {
+      setSelectedVariant(product.variants[0]);
+      setMainImage(product.thumbnailImage);
+    }
+  }, [product]);
+
+  useEffect(() => {
+    dispatch(fetchVariants());
+  }, [dispatch]);
+
+  if (loading)
+    return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
+  if (error)
+    return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
+  if (!product) return null;
+
   return (
-    <div className='container mx-auto px-4 py-8 pt-[200px]'>
+    <div className='container mx-auto px-4 pt-[200px] text-black mb-5'>
       <div className='flex flex-col lg:flex-row gap-10'>
-        <div className='w-full lg:w-1/2'>
+        <div className='lg:w-1/3'>
           <img
-            src={hoa}
-            alt='Main flower'
-            className='w-full rounded-lg shadow'
+            src={mainImage}
+            alt={product.title}
+            className='w-[650px] h-[650px] object-cover rounded-lg shadow mb-4'
           />
-          <div className='flex gap-4 mt-4'>
-            {['thumb1.jpg', 'thumb2.jpg', 'thumb3.jpg', 'thumb4.jpg'].map(
-              (img, index) => (
-                <img
-                  key={index}
-                  src={img}
-                  alt=''
-                  className={`w-16 h-16 rounded ${index === 0 ? 'border-2 border-red-500' : ''}`}
-                />
-              )
-            )}
+
+          <div className='flex gap-4'>
+            {/* Ảnh chính */}
+            <img
+              src={product.thumbnailImage}
+              alt='main-thumbnail'
+              onClick={() => {
+                setMainImage(product.thumbnailImage);
+                setSelectedVariant(null);
+              }}
+              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
+                mainImage === product.thumbnailImage && !selectedVariant
+                  ? 'border-pink-600 border-2'
+                  : 'border-gray-300'
+              }`}
+            />
+
+            {/* Ảnh variants */}
+            {product.variants.map(variant => (
+              <img
+                key={variant._id}
+                src={variant.image}
+                alt={variant.title}
+                onClick={() => {
+                  setMainImage(variant.image);
+                  setSelectedVariant(variant);
+                }}
+                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
+                  selectedVariant?._id === variant._id
+                    ? 'border-pink-600 border-2'
+                    : 'border-gray-300'
+                }`}
+              />
+            ))}
           </div>
         </div>
 
-        <div className='w-full lg:w-1/2 space-y-4'>
-          <h2 className='text-xl font-semibold text-gray-700'>
-            Dutchman's Breeches
-          </h2>
-          <p className='text-lg font-bold text-red-600'>
-            $130.00{' '}
-            <span className='line-through text-gray-400 ml-2'>$150.00</span>
-          </p>
-          <p className='text-sm text-gray-500'>Save: 13%</p>
+        <div className='lg:w-1/2 space-y-4'>
+          <h1 className='text-2xl font-bold'>{product.title}</h1>
           <p className='text-sm text-gray-600'>
-            There are many variations of passages of Lorem Ipsum available...
+            {product.description.replace(/"/g, '')}
           </p>
-
-          <div className='text-black'>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
-              Size
-            </label>
-            <div className='flex gap-2'>
-              {sizes.map(size => (
-                <button
-                  key={size}
-                  className='px-3 py-1 border rounded hover:bg-gray-100'
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
 
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
-              Color
-            </label>
-            <div className='flex gap-2'>
-              {colors.map((color, index) => (
-                <span
-                  key={index}
-                  className={`w-6 h-6 ${color} rounded-full border-2 border-black`}
-                ></span>
-              ))}
-            </div>
+            {product.variants.map(v => (
+              <div
+                key={v._id}
+                className={`border p-4 rounded mb-3 shadow-sm cursor-pointer ${selectedVariant?._id === v._id ? 'border-pink-600 border-2' : ''}`}
+                onClick={() => setSelectedVariant(v)}
+              >
+                <p className='text-md font-medium'>{v.title}</p>
+                <p className='text-sm text-gray-500'>(Kho: {v.inventory})</p>
+              </div>
+            ))}
           </div>
 
-          <div className='text-black'>
-            <label className='block text-sm font-medium text-gray-700 mb-1'>
-              Material
-            </label>
-            <div className='flex gap-3 text-sm'>
-              {materials.map((material, index) => (
-                <span key={index}>{material}</span>
-              ))}
-            </div>
+          <div className='mt-4'>
+            {selectedVariant && (
+              <div>
+                <span>Thành tiền: </span>
+                {selectedVariant.listPrice > selectedVariant.salePrice && (
+                  <span className='line-through text-gray-400 text-sm mr-2'>
+                    {selectedVariant.listPrice.toLocaleString()}đ
+                  </span>
+                )}
+                <span className='text-pink-600 text-2xl font-bold'>
+                  {selectedVariant.salePrice.toLocaleString()}đ
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className='flex items-center gap-4 mt-4 text-black'>
+          <div className='flex gap-4 mt-4'>
+            <span>Số lượng: </span>
             <input
               type='number'
               min='1'
               defaultValue='1'
               className='w-16 border rounded px-2 py-1'
             />
-            <button className='bg-gray-900 text-white px-6 py-2 rounded hover:bg-gray-700'>
-              Add to cart
+            <button className='bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700'>
+              Thêm vào giỏ
+            </button>
+            <button className='bg-yellow-400 px-6 py-2 rounded hover:bg-yellow-500 text-black font-semibold'>
+              Mua ngay
             </button>
           </div>
 
-          <button className='bg-yellow-500 text-black px-6 py-2 mt-4 rounded hover:bg-yellow-600 w-full'>
-            BUY IT NOW
-          </button>
-
-          <div className='mt-4 space-y-2 text-sm text-gray-500'>
-            <p>Category: Best Selling Greens Hot Flower</p>
-            <p>Tags: black, brown, cyan</p>
-            <div className='flex gap-3 mt-2'>
-              {socialButtons.map((social, i) => (
-                <button
-                  key={i}
-                  className={`px-3 py-1 rounded text-white flex items-center gap-2 ${social.class}`}
-                >
-                  {social.icon} {social.name}
-                </button>
-              ))}
-            </div>
+          <div className='pt-6 text-sm space-y-1'>
+            <p>
+              <strong>Danh mục:</strong>{' '}
+              {product.categories.map(cat => cat.title).join(', ')}
+            </p>
+            <p>
+              <strong>Người bán:</strong> {product.shop.fullName} (
+              {product.shop.username})
+            </p>
+            <p>
+              <strong>Liên hệ:</strong> {product.shop.phoneNumber} -{' '}
+              {product.shop.email}
+            </p>
           </div>
-        </div>
-      </div>
-
-      <div className='mt-12 text-black'>
-        <h3 className='text-lg font-semibold mb-4'>Pair it with</h3>
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
-          {relatedProducts.map(product => (
-            <div key={product.id} className='text-center shadow-2xs'>
-              <img
-                src={hoa1}
-                className='mx-auto mb-10 rounded shadow h-71'
-                alt='related'
-              />
-              <p className='text-sm'>Pearly Everlasting</p>
-              {product.oldPrice ? (
-                <>
-                  <p className='text-sm font-bold text-red-500 line-through'>
-                    ${product.oldPrice}.00
-                  </p>
-                  <p className='text-sm font-bold'>${product.price}.00</p>
-                </>
-              ) : (
-                <p className='text-sm font-bold'>${product.price}.00</p>
-              )}
-            </div>
-          ))}
         </div>
       </div>
     </div>
