@@ -42,6 +42,81 @@ export const userController = {
     }
   },
 
+  filterUsers: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const {
+        page = '1',
+        limit = '10',
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+        fullName,
+        username,
+        email,
+        phoneNumber
+      } = req.query as {
+        page?: string;
+        limit?: string;
+        sortBy?: string;
+        sortOrder?: 'asc' | 'desc';
+        fullName?: string;
+        username?: string;
+        email?: string;
+        phoneNumber?: string;
+      };
+
+      const allowedSortFields = [
+        'createdAt',
+        'updatedAt',
+        'username',
+        'email',
+        'phoneNumber',
+        'fullName'
+      ];
+
+      const sortField = allowedSortFields.includes(sortBy as string)
+        ? sortBy
+        : 'createdAt';
+      const sortDirection = sortOrder === 'asc' ? 1 : -1;
+
+      const makeRegex = (value?: string | string[]) =>
+        value ? { $regex: value, $options: 'i' } : undefined;
+
+      const matchStage: Record<string, any> = {
+        ...(fullName && { fullName: makeRegex(fullName) }),
+        ...(username && { username: makeRegex(username) }),
+        ...(email && { email: makeRegex(email) }),
+        ...(phoneNumber && { phoneNumber: makeRegex(phoneNumber) })
+      };
+
+      const aggregate = UserModel.aggregate([
+        { $match: matchStage },
+        { $sort: { [sortField]: sortDirection } }
+      ]);
+
+      const options = {
+        page: parseInt(page as string) || 1,
+        limit: parseInt(limit as string) || 10
+      };
+
+      const result = await (UserModel as any).aggregatePaginate(
+        aggregate,
+        options
+      );
+
+      return res.status(200).json(
+        apiResponse.success('User listed successfully', {
+          result
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  },
+
   /**
    * GET /users/:id
    * userController.list()
@@ -58,9 +133,7 @@ export const userController = {
         throw createHttpError(400, 'Invalid user id');
       }
 
-      const user = await UserModel.findById(id)
-        .select('-password')
-        .populate('addresses');
+      const user = await UserModel.findById(id).select('-password');
 
       if (!user) {
         throw createHttpError(404, 'User not found');
