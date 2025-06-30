@@ -12,7 +12,6 @@ export interface IUser extends Document {
   avatarUrl?: string;
   coverUrl?: string;
   role: 'admin' | 'customer' | 'shop';
-  addresses?: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,8 +51,7 @@ const userSchema = new Schema<IUser>(
       enum: ['admin', 'customer', 'shop']
     },
     avatarUrl: { type: String, default: '' },
-    coverUrl: { type: String, default: '' },
-    addresses: [{ type: Schema.Types.ObjectId, ref: 'Address' }]
+    coverUrl: { type: String, default: '' }
   },
   { timestamps: true }
 );
