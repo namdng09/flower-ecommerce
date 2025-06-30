@@ -49,7 +49,10 @@ export const productController = {
         title,
         category,
         minPrice,
-        maxPrice
+        maxPrice,
+        province,
+        district,
+        ward
       } = req.query;
 
       const matchStage: any = {};
@@ -67,22 +70,6 @@ export const productController = {
 
       const min = minPrice ? parseFloat(minPrice as string) : null;
       const max = maxPrice ? parseFloat(maxPrice as string) : null;
-
-      if (min != null || max != null) {
-        matchStage.$expr = {
-          $and: []
-        };
-        if (min != null) {
-          matchStage.$expr.$and.push({
-            $gte: [{ $arrayElemAt: ['$variants.salePrice', 0] }, min]
-          });
-        }
-        if (max != null) {
-          matchStage.$expr.$and.push({
-            $lte: [{ $arrayElemAt: ['$variants.salePrice', 0] }, max]
-          });
-        }
-      }
 
       const aggregate = ProductModel.aggregate([
         { $match: matchStage },
@@ -127,11 +114,76 @@ export const productController = {
         {
           $lookup: {
             from: 'addresses',
-            localField: 'shop',
-            foreignField: 'userId',
-            as: 'addresses'
+            let: { shopId: '$shop._id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$userId', '$$shopId'] },
+                      { $eq: ['$isDefault', true] }
+                    ]
+                  }
+                }
+              },
+              { $project: { __v: 0 } }
+            ],
+            as: 'address'
           }
-        }
+        },
+        { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+        // 4. Match theo salePrice sau khi có variants
+        ...(min != null || max != null
+          ? [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      ...(min != null
+                        ? [
+                            {
+                              $gte: [
+                                { $arrayElemAt: ['$variants.salePrice', 0] },
+                                min
+                              ]
+                            }
+                          ]
+                        : []),
+                      ...(max != null
+                        ? [
+                            {
+                              $lte: [
+                                { $arrayElemAt: ['$variants.salePrice', 0] },
+                                max
+                              ]
+                            }
+                          ]
+                        : [])
+                    ]
+                  }
+                }
+              }
+            ]
+          : []),
+
+        // 5. Match theo địa chỉ sau khi có address
+        ...(province || district || ward
+          ? [
+              {
+                $match: {
+                  ...(province && {
+                    'address.province': { $regex: province, $options: 'i' }
+                  }),
+                  ...(district && {
+                    'address.district': { $regex: district, $options: 'i' }
+                  }),
+                  ...(ward && {
+                    'address.ward': { $regex: ward, $options: 'i' }
+                  })
+                }
+              }
+            ]
+          : [])
       ]);
 
       const options = {
