@@ -115,7 +115,23 @@ export const productController = {
             as: 'shop'
           }
         },
-        { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } }
+        { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'variants',
+            localField: 'variants',
+            foreignField: '_id',
+            as: 'variants'
+          }
+        },
+        {
+          $lookup: {
+            from: 'addresses',
+            localField: 'shop',
+            foreignField: 'userId',
+            as: 'addresses'
+          }
+        }
       ]);
 
       const options = {
