@@ -25,7 +25,7 @@ function FeaturedProductsC() {
   };
 
   return (
-    <div className="max-w-screen-xl mx-auto py-12 px-4 pt-40">
+    <div className="max-w-screen-xl mx-auto py-12 px-4 pt-5">
       <h2 className="text-2xl font-semibold text-black mb-6">Featured Products</h2>
 
       {loading ? (
@@ -42,7 +42,7 @@ function FeaturedProductsC() {
               <img
                 src={product.thumbnailImage}
                 alt={product.title}
-                className="w-80 h-80 object-contain mb-4"
+                className="w-80 h-80 object-bottom mb-4"
               />
               <h3 className="text-black font-medium text-sm text-center">{product.title}</h3>
 
