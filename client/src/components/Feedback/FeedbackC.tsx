@@ -1,5 +1,5 @@
-import hoa1 from '../../../../assets/back.png';
-import hoa2 from '../../../../assets/hoa2.webp';
+import hoa1 from '../../../src/assets/back.png';
+import hoa2 from '../../../src/assets/hoa1.webp';
 
 const testimonials = [
   {
