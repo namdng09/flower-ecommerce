@@ -4,6 +4,7 @@ import { productController } from './productController';
 
 const router: Router = express.Router();
 
+router.get('/filter', asyncHandler(productController.filterProducts));
 router.get('/', asyncHandler(productController.list));
 router.get('/:id', asyncHandler(productController.show));
 router.get(
