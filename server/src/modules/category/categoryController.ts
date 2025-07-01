@@ -20,12 +20,96 @@ export const categoryController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const categories = await CategoryModel.find();
+      const allActiveCategories = await CategoryModel.find({
+        status: 'active'
+      }).lean();
+
+      const categoryMap = new Map<string, any>();
+
+      allActiveCategories.forEach(cat => {
+        categoryMap.set(cat._id.toString(), { ...cat, subCategory: [] });
+      });
+
+      const rootCategories: any[] = [];
+
+      allActiveCategories.forEach(cat => {
+        if (cat.parentId) {
+          const parent = categoryMap.get(cat.parentId.toString());
+          if (parent) {
+            parent.subCategory.push(categoryMap.get(cat._id.toString()));
+          }
+        } else {
+          rootCategories.push(categoryMap.get(cat._id.toString()));
+        }
+      });
+
       return res
         .status(200)
         .json(
-          apiResponse.success('Categories listed successfully', categories)
+          apiResponse.success(
+            'Active categories fetched successfully',
+            rootCategories
+          )
         );
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  filterCategories: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const {
+        page = '1',
+        limit = '10',
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+        title
+      } = req.query as {
+        page?: string;
+        limit?: string;
+        sortBy?: string;
+        sortOrder?: 'asc' | 'desc';
+        title?: string;
+      };
+
+      const allowedSortFields = ['createdAt', 'updatedAt', 'title'];
+
+      const sortField = allowedSortFields.includes(sortBy as string)
+        ? sortBy
+        : 'createdAt';
+      const sortDirection = sortOrder === 'asc' ? 1 : -1;
+
+      const makeRegex = (value?: string | string[]) =>
+        value ? { $regex: value, $options: 'i' } : undefined;
+
+      const matchStage: Record<string, any> = {
+        ...(title && { title: makeRegex(title) })
+      };
+
+      const aggregate = CategoryModel.aggregate([
+        { $match: matchStage },
+        { $sort: { [sortField]: sortDirection } }
+      ]);
+
+      const options = {
+        page: parseInt(page as string) || 1,
+        limit: parseInt(limit as string) || 10
+      };
+
+      const result = await (CategoryModel as any).aggregatePaginate(
+        aggregate,
+        options
+      );
+
+      return res.status(200).json(
+        apiResponse.success('Category listed successfully', {
+          result
+        })
+      );
     } catch (error) {
       next(error);
     }
