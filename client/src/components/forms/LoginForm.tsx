@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type LoginFormFields, loginSchema } from '~/types/login';
@@ -26,15 +26,11 @@ const LoginForm: React.FC = () => {
       await login(data);
       alert('Login successful! Redirecting to dashboard...');
       reset();
-      navigate('/home');
+      navigate('/home'); // Redirect to home page after successful login
     } catch {
       alert('Login failed. Please check your credentials and try again.');
     }
   };
-
-  useEffect(() => {
-    console.log(errors);
-  }, [errors]);
 
   return (
     <div
@@ -54,7 +50,7 @@ const LoginForm: React.FC = () => {
           style={{ minWidth: 0, width: 'fit-content' }}
         >
           <img src={googlelogo} alt='Google' className='w-5 h-5' />
-          <span className='text-primary'>Đăng nhập với Google</span>
+          <span className='text-base'>Đăng nhập với Google</span>
         </button>
         <div className='flex items-center justify-center space-x-2'>
           <span className='h-px w-16 bg-gray-300'></span>
@@ -67,16 +63,16 @@ const LoginForm: React.FC = () => {
               Email
             </label>
             <input
-              className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 validator ${
-                errors.email ? 'validator-error' : ''
-              }`}
+              className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.email ? 'border-red-500' : ''}`}
               type='email'
               placeholder='mail@gmail.com'
               autoComplete='email'
               {...register('email')}
             />
             {errors.email && (
-              <div className='validator-hint'>{errors.email.message}</div>
+              <span className='text-xs text-red-500'>
+                {errors.email.message}
+              </span>
             )}
           </div>
           <div className='mt-8 content-center'>
@@ -84,7 +80,7 @@ const LoginForm: React.FC = () => {
               Mật khẩu
             </label>
             <input
-              className={`w-full content-center text-primary py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.password ? 'border-red-500' : ''}`}
+              className={`w-full content-center text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.password ? 'border-red-500' : ''}`}
               type='password'
               placeholder='Enter your password'
               autoComplete='current-password'
@@ -101,7 +97,7 @@ const LoginForm: React.FC = () => {
               <input
                 id='rememberMe'
                 type='checkbox'
-                className=' checkbox checkbox-primary checkbox-sm'
+                className='h-4 w-4 bg-indigo-500 focus:ring-indigo-400 border-gray-300 rounded'
                 {...register('rememberMe')}
               />
               <label
@@ -113,7 +109,7 @@ const LoginForm: React.FC = () => {
             </div>
             <div className='text-sm'>
               <a
-                href='#'
+                href='reset-password'
                 className='font-medium text-indigo-500 hover:text-indigo-500'
               >
                 Quên mật khẩu?

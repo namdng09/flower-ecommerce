@@ -35,6 +35,177 @@ export const productController = {
     }
   },
 
+  filterProducts: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const {
+        page = '1',
+        limit = '10',
+        sortBy = 'createdAt',
+        sortOrder = 'desc',
+        title,
+        category,
+        minPrice,
+        maxPrice,
+        province,
+        district,
+        ward
+      } = req.query;
+
+      const matchStage: any = {};
+
+      if (title) {
+        matchStage.title = { $regex: title, $options: 'i' };
+      }
+
+      if (category) {
+        const categoryIds = (category as string)
+          .split(',')
+          .map(id => new mongoose.Types.ObjectId(id));
+        matchStage.categories = { $all: categoryIds };
+      }
+
+      const min = minPrice ? parseFloat(minPrice as string) : null;
+      const max = maxPrice ? parseFloat(maxPrice as string) : null;
+
+      const aggregate = ProductModel.aggregate([
+        { $match: matchStage },
+        {
+          $sort: {
+            [sortBy as string]: sortOrder === 'asc' ? 1 : -1
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            let: { shopId: '$shop' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$_id', '$$shopId'] },
+                      { $eq: ['$role', 'shop'] }
+                    ]
+                  }
+                }
+              },
+              {
+                $project: {
+                  password: 0
+                }
+              }
+            ],
+            as: 'shop'
+          }
+        },
+        { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
+        {
+          $lookup: {
+            from: 'variants',
+            localField: 'variants',
+            foreignField: '_id',
+            as: 'variants'
+          }
+        },
+        {
+          $lookup: {
+            from: 'addresses',
+            let: { shopId: '$shop._id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$userId', '$$shopId'] },
+                      { $eq: ['$isDefault', true] }
+                    ]
+                  }
+                }
+              },
+              { $project: { __v: 0 } }
+            ],
+            as: 'address'
+          }
+        },
+        { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+        // 4. Match theo salePrice sau khi có variants
+        ...(min != null || max != null
+          ? [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      ...(min != null
+                        ? [
+                            {
+                              $gte: [
+                                { $arrayElemAt: ['$variants.salePrice', 0] },
+                                min
+                              ]
+                            }
+                          ]
+                        : []),
+                      ...(max != null
+                        ? [
+                            {
+                              $lte: [
+                                { $arrayElemAt: ['$variants.salePrice', 0] },
+                                max
+                              ]
+                            }
+                          ]
+                        : [])
+                    ]
+                  }
+                }
+              }
+            ]
+          : []),
+
+        // 5. Match theo địa chỉ sau khi có address
+        ...(province || district || ward
+          ? [
+              {
+                $match: {
+                  ...(province && {
+                    'address.province': { $regex: province, $options: 'i' }
+                  }),
+                  ...(district && {
+                    'address.district': { $regex: district, $options: 'i' }
+                  }),
+                  ...(ward && {
+                    'address.ward': { $regex: ward, $options: 'i' }
+                  })
+                }
+              }
+            ]
+          : [])
+      ]);
+
+      const options = {
+        page: parseInt(page as string) || 1,
+        limit: parseInt(limit as string) || 10
+      };
+
+      const result = await (ProductModel as any).aggregatePaginate(
+        aggregate,
+        options
+      );
+
+      return res.status(200).json(
+        apiResponse.success('Product listed successfully', {
+          result
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  },
+
   /**
    * GET /products
    * productController.show()
