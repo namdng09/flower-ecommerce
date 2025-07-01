@@ -3,7 +3,7 @@ import { generateSKU } from '~/utils/generateSKU';
 
 export type OrderStatus =
   | 'PENDING' // Đặt hàng nhưng chưa thanh toán
-  | 'paid' // Đã thanh toán (online / COD đã thu)
+  | 'PAID' // Đã thanh toán (online / COD đã thu)
   | 'processing' // Đang chuẩn bị hàng
   | 'shipped' // Đã bàn giao cho đơn vị vận chuyển
   | 'completed' // Giao thành công
