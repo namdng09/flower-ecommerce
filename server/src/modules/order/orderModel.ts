@@ -2,7 +2,7 @@ import mongoose, { Schema, Types, Document, Model } from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
 
 export type OrderStatus =
-  | 'pending' // Đặt hàng nhưng chưa thanh toán
+  | 'PENDING' // Đặt hàng nhưng chưa thanh toán
   | 'paid' // Đã thanh toán (online / COD đã thu)
   | 'processing' // Đang chuẩn bị hàng
   | 'shipped' // Đã bàn giao cho đơn vị vận chuyển
