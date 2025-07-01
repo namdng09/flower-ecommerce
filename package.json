@@ -13,15 +13,24 @@
   },
   "lint-staged": {
     "client/**/*.{ts,tsx}": [
-      "tsc-files --noEmit -p client/tsconfig.app.json"
-    ],
-    "server/**/*.{ts,tsx}": [
-      "tsc-files --noEmit -p server/tsconfig.json"
-    ],
-    "*.{ts,tsx,js,mjs}": [
+      "tsc-files --noEmit -p client/tsconfig.app.json",
       "npm run lint",
       "npm run format",
       "git add"
+    ],
+    "server/**/*.{ts,tsx}": [
+      "tsc-files --glob server/src/**/*.ts --noEmit -p server/tsconfig.json",
+      "npm run lint",
+      "npm run format",
+      "git add"
+    ],
+    "*.{js,mjs}": [
+      "npm run lint",
+      "npm run format",
+      "git add"
+    ],
+    "package.json": [
+      "npm run lint"
     ]
   },
   "keywords": [],
