@@ -19,7 +19,7 @@
       "git add"
     ],
     "server/**/*.{ts,tsx}": [
-      "tsc-files --glob server/src/**/*.ts --noEmit -p server/tsconfig.json",
+      "bash -c 'npx tsc-files server/src/**/*.ts --noEmit -p server/tsconfig.json'",
       "npm run lint",
       "npm run format",
       "git add"
