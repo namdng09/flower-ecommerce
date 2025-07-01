@@ -19,10 +19,15 @@ const ProductList = () => {
   }, [dispatch]);
 
   const sortedProducts = [...products].sort((a, b) => {
+    const aVariant = a.variants?.[0];
+    const bVariant = b.variants?.[0];
+
     if (sortBy === 'A-Z') return a.title.localeCompare(b.title);
     if (sortBy === 'Z-A') return b.title.localeCompare(a.title);
-    if (sortBy === 'PriceLowHigh')
-      return a.variants[0].salePrice - b.variants[0].salePrice;
+    if (sortBy === 'PriceLowHigh') {
+      if (!aVariant || !bVariant) return 0;
+      return aVariant.salePrice - bVariant.salePrice;
+    }
     return 0;
   });
 
@@ -94,43 +99,54 @@ const ProductList = () => {
             <p className='text-red-600'>Lỗi: {error}</p>
           ) : (
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
-              {sortedProducts.map(product => (
-                <div
-                  key={product._id}
-                  className='border rounded p-4 text-center bg-white'
-                >
-                  <div className='relative group overflow-hidden rounded'>
-                    <img
-                      src={product.thumbnailImage}
-                      alt={product.title}
-                      className='w-[450px] h-[450px] object-cover rounded transition-transform duration-300 group-hover:scale-105'
-                    />
-                    <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
-                      <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
-                        Mua ngay
-                      </button>
-                      <button className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'>
-                        Thêm vào giỏ hàng
-                      </button>
+              {sortedProducts.map(product => {
+                const variant = product.variants?.[0];
+                return (
+                  <div
+                    key={product._id}
+                    className='border rounded p-4 text-center bg-white'
+                  >
+                    <div className='relative group overflow-hidden rounded'>
+                      <img
+                        src={product.thumbnailImage}
+                        alt={product.title}
+                        className='w-[450px] h-[450px] object-cover rounded transition-transform duration-300 group-hover:scale-105'
+                      />
+                      <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                        <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
+                          Mua ngay
+                        </button>
+                        <button className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'>
+                          Thêm vào giỏ hàng
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  <Link to={`/home/products/${product._id}`}>
-                    <h4 className='font-medium mb-1 text-black mt-5 hover:text-pink-600 transition'>
-                      {product.title}
-                    </h4>
-                  </Link>
-                  {product.variants[0]?.listPrice >
-                    product.variants[0]?.salePrice && (
-                    <p className='line-through text-gray-400 text-sm mb-1'>
-                      {product.variants[0].listPrice.toLocaleString()}đ
-                    </p>
-                  )}
-                  <p className='text-pink-600 font-semibold'>
-                    {product.variants[0].salePrice.toLocaleString()}đ
-                  </p>
-                </div>
-              ))}
+                    <Link to={`/home/products/${product._id}`}>
+                      <h4 className='font-medium mb-1 text-black mt-5 hover:text-pink-600 transition'>
+                        {product.title}
+                      </h4>
+                    </Link>
+
+                    {variant ? (
+                      <>
+                        {variant.listPrice > variant.salePrice && (
+                          <p className='line-through text-gray-400 text-sm mb-1'>
+                            {variant.listPrice.toLocaleString()}đ
+                          </p>
+                        )}
+                        <p className='text-pink-600 font-semibold'>
+                          {variant.salePrice.toLocaleString()}đ
+                        </p>
+                      </>
+                    ) : (
+                      <p className='text-gray-500 italic'>
+                        Chưa có thông tin giá
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

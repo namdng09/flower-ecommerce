@@ -4,12 +4,14 @@ import productDetailReducer from './slices/productDetailSlice';
 import variantReducer from './slices/variantSlice';
 
 import categoryReducer from './slices/categorySlice';
+import cartReducer from './slices/cartSlice';
 export const store = configureStore({
   reducer: {
     products: productReducer,
     productDetail: productDetailReducer,
     variants: variantReducer,
-    categories: categoryReducer
+    categories: categoryReducer,
+    carts: cartReducer
   }
 });
 
