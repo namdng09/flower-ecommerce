@@ -52,6 +52,59 @@ export const orderController = {
         orderNumber?: string;
         userId?: string;
       };
+
+      const allowedSortFields = [
+        'createdAt',
+        'updatedAt',
+        'totalCost',
+        'totalQuantity',
+        'orderNumber'
+      ];
+
+      const makeRegex = (value?: string | string[]) =>
+        value ? { $regex: value, $options: 'i' } : undefined;
+
+      const matchStage: Record<string, any> = {
+        ...(orderNumber && { fullName: makeRegex(orderNumber) }),
+        ...(status && { username: makeRegex(status) }),
+        ...(userId && { email: makeRegex(userId) })
+      };
+
+      const sortField = allowedSortFields.includes(sortBy as string)
+        ? sortBy
+        : 'createdAt';
+      const sortDirection = sortOrder === 'asc' ? 1 : -1;
+
+      const aggregate = OrderModel.aggregate([
+        { $match: matchStage },
+        { $sort: { [sortField]: sortDirection } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'user',
+            foreignField: '_id',
+            pipeline: [{ $project: { password: 0 } }],
+            as: 'user'
+          }
+        },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } }
+      ]);
+
+      const options = {
+        page: parseInt(page as string) || 1,
+        limit: parseInt(limit as string) || 10
+      };
+
+      const result = await (OrderModel as any).aggregatePaginate(
+        aggregate,
+        options
+      );
+
+      return res.status(200).json(
+        apiResponse.success('Orders listed successfully', {
+          result
+        })
+      );
     } catch (error) {
       next(error);
     }
