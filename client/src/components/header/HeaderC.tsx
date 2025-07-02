@@ -1,10 +1,8 @@
 import { Link, useNavigate } from 'react-router';
-import MiniCartModal from '../Cart/Cart';
-import logo1 from '../../../../assets/logo1.svg';
+import logo1 from '../../../src/assets/logo1.svg';
 import { jwtDecode } from 'jwt-decode';
 
-function HeaderC({ cartItems, openCart, setOpenCart }) {
-  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+function HeaderC() {
   const navigate = useNavigate();
 
   const accessToken = sessionStorage.getItem('accessToken');
@@ -46,23 +44,13 @@ function HeaderC({ cartItems, openCart, setOpenCart }) {
           </ul>
 
           <div className='flex items-center space-x-8 md:order-2 relative'>
-            <button
+            {/* <button
               onClick={() => setOpenCart(true)}
               className='text-black relative'
             >
               🛒 Giỏ hàng{' '}
               <span className='text-pink-600'>({totalQuantity} sản phẩm)</span>
-            </button>
-
-            <MiniCartModal
-              isOpen={openCart}
-              onClose={() => setOpenCart(false)}
-              items={cartItems}
-              onNavigateCart={() => {
-                setOpenCart(false);
-                navigate('/home/cart');
-              }}
-            />
+            </button> */}
 
             {userId ? (
               <Link

@@ -2,7 +2,7 @@ import { useAppSelector } from '~/hooks/useAppSelector';
 import { useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { fetchProducts } from '~/store/slices/productSlice';
-import banner from '../../../../assets/banner1.webp';
+import banner from '../../../src/assets/banner1.webp';
 import { Link } from 'react-router';
 import ListCategory from '~/components/listcategory/ListCategory'; // Ensure this path is correct
 const ProductList = () => {

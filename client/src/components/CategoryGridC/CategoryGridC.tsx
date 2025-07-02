@@ -1,6 +1,6 @@
-import camelliasImg from '../../../../assets/banner.webp';
-import bergamotImg from '../../../../assets/banner2.webp';
-import bottlebrushImg from '../../../../assets/banner3.jpg';
+import camelliasImg from '../../../src/assets/banner.webp';
+import bergamotImg from '../../../src/assets/banner2.webp';
+import bottlebrushImg from '../../../src/assets/banner3.jpg';
 
 const categories = [
   {
