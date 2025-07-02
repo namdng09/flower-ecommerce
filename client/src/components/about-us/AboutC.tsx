@@ -1,4 +1,4 @@
-import pic from '../../../../assets/about-us.webp';
+import pic from '../../../src/assets/about-us.webp';
 
 const PhulerIntro = () => {
   return (

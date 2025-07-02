@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import hoa1 from '../../../../assets/hoa2.webp';
+import hoa1 from '../../../src/assets/hoa1.webp';
 
 function BestSellingProductsC() {
   type TimeLeft = {

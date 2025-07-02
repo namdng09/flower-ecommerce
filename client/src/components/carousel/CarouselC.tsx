@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { initFlowbite } from 'flowbite';
 
-import pic1 from '../../../../assets/carousel.jpg';
-import pic2 from '../../../../assets/carousel1.jpg';
-import pic3 from '../../../../assets/carousel2.jpg';
-import pic4 from '../../../../assets/carousel3.jpg';
-import pic5 from '../../../../assets/carousel4.jpg';
+import pic1 from '../../../src/assets/carousel.jpg';
+import pic2 from '../../../src/assets/carousel1.jpg';
+import pic3 from '../../../src/assets/carousel2.jpg';
+import pic4 from '../../../src/assets/carousel3.jpg';
+import pic5 from '../../../src/assets/carousel4.jpg';
 
 const images = [pic1, pic2, pic3, pic4, pic5];
 

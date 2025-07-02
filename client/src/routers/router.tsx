@@ -36,37 +36,27 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: lazy(() => import('../app/home/homepage/Homepage'))
+        Component: lazy(() => import('../app/home/page'))
       },
       {
         path: 'shop',
-        Component: lazy(
-          () => import('../app/home/homepage/productList/ProductList')
-        )
+        Component: lazy(() => import('../app/home/shop/page'))
       },
       {
         path: 'products/:id',
-        Component: lazy(
-          () => import('../app/home/homepage/productList/ProductPage')
-        )
+        Component: lazy(() => import('../app/home/products/[id]/page'))
       },
       {
         path: 'about',
-        Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
-      },
-      {
-        path: 'cart',
-        Component: lazy(() => import('../app/home/homepage/Cart/CartDetails'))
+        Component: lazy(() => import('../app/home/about/page'))
       },
       {
         path: 'checkout',
-        Component: lazy(
-          () => import('../app/home/homepage/check-out/CheckoutPage')
-        )
+        Component: lazy(() => import('../app/home/checkout/page'))
       },
       {
         path: 'profile/:id',
-        Component: lazy(() => import('../app/home/homepage/profile/ProfileC'))
+        Component: lazy(() => import('../app/home/profile/[id]/page'))
       }
     ]
   }

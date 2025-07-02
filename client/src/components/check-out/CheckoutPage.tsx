@@ -1,9 +1,4 @@
-import { useOutletContext } from 'react-router';
-import type { CartItem } from '../Cart/Cart';
-
 export default function CheckoutPage() {
-  const { cartItems } = useOutletContext<{ cartItems: CartItem[] }>();
-
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
