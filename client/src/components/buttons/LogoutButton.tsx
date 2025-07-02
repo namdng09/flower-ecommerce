@@ -9,7 +9,7 @@ const LogoutButton = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('auth/login'); // Chuyển hướng về trang đăng nhập
+    navigate('/auth/login'); // Chuyển hướng về trang đăng nhập
   };
 
   return <button onClick={handleLogout}>Đăng xuất</button>;

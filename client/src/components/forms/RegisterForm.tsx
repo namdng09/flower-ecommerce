@@ -66,7 +66,7 @@ const RegisterForm = () => {
             {/* Cột trái */}
             <div className='flex-1 space-y-6'>
               <div>
-                <label className='text-sm text-black font-bold  tracking-wide'>
+                <label className='text-sm text-black font-bold tracking-wide'>
                   Họ tên
                 </label>
                 <input

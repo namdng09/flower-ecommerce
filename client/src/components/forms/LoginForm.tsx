@@ -63,7 +63,7 @@ const LoginForm: React.FC = () => {
               Email
             </label>
             <input
-              className={`w-full text-black text-base py-2 border-b border-black focus:outline-none focus:border-black-500 ${errors.email ? 'border-black' : ''}`}
+              className={`w-full text-black text-base py-2 border-b border-black focus:outline-none focus:border-black ${errors.email ? 'border-black' : ''}`}
               type='email'
               placeholder='mail@gmail.com'
               autoComplete='email'

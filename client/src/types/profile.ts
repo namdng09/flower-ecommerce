@@ -3,8 +3,7 @@ export interface Profile {
   username: string;
   email: string;
   phoneNumber: string;
-
   avatarUrl: string | null;
   coverUrl: string | null;
-  addresses: [];
+  addresses: string[];
 }
