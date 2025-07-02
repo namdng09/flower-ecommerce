@@ -5,13 +5,17 @@ import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
 
 export const orderController = {
+  /**
+   * GET /orders
+   * orderController.list()
+   */
   list: async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const orders = OrderModel.find();
+      const orders = await OrderModel.find();
 
       return res
         .status(201)
@@ -21,6 +25,10 @@ export const orderController = {
     }
   },
 
+  /**
+   * GET /orders
+   * orderController.filterOrder()
+   */
   filterOrder: async (
     req: Request,
     res: Response,
@@ -132,6 +140,32 @@ export const orderController = {
       return res
         .status(201)
         .json(apiResponse.success('Order created successfully', newOrder));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
+   * DELETE /orders/:id
+   * orderController.remove()
+   */
+  remove: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { id } = req.params;
+
+      if (!Types.ObjectId.isValid(id))
+        throw createHttpError(400, 'Invalid order id');
+
+      const deleted = await OrderModel.findByIdAndDelete(id);
+      if (!deleted) throw createHttpError(404, 'Order not found');
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Order removed successfully'));
     } catch (error) {
       next(error);
     }
