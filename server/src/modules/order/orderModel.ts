@@ -1,17 +1,30 @@
-import mongoose, { Schema, Types, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document, Model } from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
 
 export type OrderStatus =
-  | 'PENDING' // Đặt hàng nhưng chưa thanh toán
-  | 'PAID' // Đã thanh toán (online / COD đã thu)
-  | 'processing' // Đang chuẩn bị hàng
-  | 'shipped' // Đã bàn giao cho đơn vị vận chuyển
-  | 'completed' // Giao thành công
-  | 'cancelled' // Khách huỷ
-  | 'refunded'; // Hoàn tiền
+  | 'pending'
+  | 'ready_for_pickup'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'returned'
+  | 'cancelled';
+
+export type PaymentStatus =
+  | 'awaiting_payment'
+  | 'unpaid'
+  | 'paid'
+  | 'expired'
+  | 'refunded';
+
+export type ShipmentStatus =
+  | 'pending'
+  | 'picking_up'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'failed';
 
 export interface IOrderItem {
-  variant: Types.ObjectId;
+  variant: mongoose.Types.ObjectId;
   quantity: number;
   price: number;
 }
@@ -19,16 +32,17 @@ export interface IOrderItem {
 export interface IPayment {
   amount: number;
   method: 'cod' | 'banking';
-  status: 'unpaid' | 'paid' | 'failed';
+  status: PaymentStatus;
   description?: string;
   paymentDate?: Date;
-  gatewayRef?: string; // ID giao dịch do cổng thanh toán trả về
+  gatewayRef?: string;
 }
 
 export interface IShipment {
   carrier: string;
   trackingNumber?: string;
   shippingCost: number;
+  status: ShipmentStatus;
   isReturn?: boolean;
   returnReason?: string;
   notes?: string;
@@ -36,13 +50,16 @@ export interface IShipment {
 
 export interface IOrder extends Document {
   orderNumber: string;
-  user: Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   items: IOrderItem[];
-  totalCost: number;
+  totalQuantity: number;
+  totalPrice: number;
   status: OrderStatus;
   payment: IPayment;
   shipments: IShipment[];
   description?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const OrderItemSchema = new Schema<IOrderItem>(
@@ -64,7 +81,7 @@ const PaymentSchema = new Schema<IPayment>(
     },
     status: {
       type: String,
-      enum: ['unpaid', 'paid', 'failed'],
+      enum: ['awaiting_payment', 'unpaid', 'paid', 'expired', 'refunded'],
       default: 'unpaid'
     },
     description: String,
@@ -79,6 +96,17 @@ const ShipmentSchema = new Schema<IShipment>(
     carrier: { type: String, required: true },
     trackingNumber: String,
     shippingCost: { type: Number, required: true, min: 0 },
+    status: {
+      type: String,
+      enum: [
+        'pending',
+        'picking_up',
+        'out_for_delivery',
+        'delivered',
+        'failed'
+      ],
+      default: 'pending'
+    },
     isReturn: { type: Boolean, default: false },
     returnReason: String,
     notes: String
@@ -96,17 +124,17 @@ const OrderSchema = new Schema<IOrder>(
       index: true
     },
     items: { type: [OrderItemSchema], required: true },
-    totalCost: { type: Number, required: true, min: 0 },
+    totalQuantity: { type: Number, default: 0 },
+    totalPrice: { type: Number, required: true, min: 0 },
     status: {
       type: String,
       enum: [
         'pending',
-        'paid',
-        'processing',
-        'shipped',
-        'completed',
-        'cancelled',
-        'refunded'
+        'ready_for_pickup',
+        'out_for_delivery',
+        'delivered',
+        'returned',
+        'cancelled'
       ],
       default: 'pending'
     },
@@ -132,4 +160,5 @@ OrderSchema.pre<IOrder>('validate', async function (next) {
   next();
 });
 
-export default mongoose.model<IOrder>('Order', OrderSchema);
+const OrderModel: Model<IOrder> = mongoose.model('Order', OrderSchema);
+export default OrderModel;
