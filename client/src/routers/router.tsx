@@ -1,13 +1,18 @@
 import { lazy } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 // import PrivateRoutes from '../components/privateRoutes';
 
 const router = createBrowserRouter([
   {
+    path: '/',
+    element: <Navigate to='/home' replace />
+  },
+  {
+    path: '/playground',
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: '',
+        index: true,
         Component: lazy(() => import('../app/page'))
       }
     ]
@@ -59,12 +64,111 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/home/profile/[id]/page'))
       }
     ]
+  },
+  {
+    path: '/admin',
+    Component: lazy(() => import('../layouts/adminLayout')),
+    children: [
+      {
+        index: true,
+        Component: lazy(() => import('../app/(admin)/dashboard/page'))
+      },
+      {
+        path: 'login',
+        Component: lazy(() => import('../app/(admin)/login/page'))
+      },
+      {
+        path: 'dashboard',
+        Component: lazy(() => import('../app/(admin)/dashboard/page'))
+      },
+      {
+        path: 'category',
+        Component: lazy(() => import('../app/(admin)/category/page'))
+      },
+      {
+        path: 'category/:id',
+        Component: lazy(() => import('../app/(admin)/category/[id]/page'))
+      },
+      {
+        path: 'order',
+        Component: lazy(() => import('../app/(admin)/order/page'))
+      },
+      {
+        path: 'order/:id',
+        Component: lazy(() => import('../app/(admin)/order/[id]/page'))
+      },
+      {
+        path: 'product',
+        Component: lazy(() => import('../app/(admin)/product/page'))
+      },
+      {
+        path: 'product/:id',
+        Component: lazy(() => import('../app/(admin)/product/[id]/page'))
+      },
+      {
+        path: 'product/create',
+        Component: lazy(() => import('../app/(admin)/product/create/page'))
+      },
+      {
+        path: 'review',
+        Component: lazy(() => import('../app/(admin)/review/page'))
+      },
+      {
+        path: 'user',
+        Component: lazy(() => import('../app/(admin)/user/page'))
+      },
+      {
+        path: 'user/:id',
+        Component: lazy(() => import('../app/(admin)/user/[id]/page'))
+      }
+    ]
+  },
+  {
+    path: '/shop',
+    Component: lazy(() => import('../layouts/shopLayout')),
+    children: [
+      {
+        index: true,
+        Component: lazy(() => import('../app/(shop)/dashboard/page'))
+      },
+      {
+        path: 'login',
+        Component: lazy(() => import('../app/(shop)/login/page'))
+      },
+      {
+        path: 'register',
+        Component: lazy(() => import('../app/(shop)/register/page'))
+      },
+      {
+        path: 'dashboard',
+        Component: lazy(() => import('../app/(shop)/dashboard/page'))
+      },
+      {
+        path: 'order',
+        Component: lazy(() => import('../app/(shop)/order/page'))
+      },
+      {
+        path: 'order/:id',
+        Component: lazy(() => import('../app/(shop)/order/[id]/page'))
+      },
+      {
+        path: 'product',
+        Component: lazy(() => import('../app/(shop)/product/page'))
+      },
+      {
+        path: 'product/:id',
+        Component: lazy(() => import('../app/(shop)/product/[id]/page'))
+      },
+      {
+        path: 'product/create',
+        Component: lazy(() => import('../app/(shop)/product/create/page'))
+      },
+      {
+        path: 'review',
+        Component: lazy(() => import('../app/(shop)/review/page'))
+      }
+    ]
   }
-  // TODO: This route is commented out temporarily. Re-enable when the UserProfile component is ready for production.
-  // {
-  //   path:'/profile',
-  //   Component: lazy(() => import('../components/profile/UserProfile')),
-  // }
 ]);
 
 export default router;
