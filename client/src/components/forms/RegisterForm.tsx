@@ -66,11 +66,11 @@ const RegisterForm = () => {
             {/* Cột trái */}
             <div className='flex-1 space-y-6'>
               <div>
-                <label className='text-sm font-bold text-gray-700 tracking-wide'>
+                <label className='text-sm text-black font-bold tracking-wide'>
                   Họ tên
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.fullName ? 'border-red-500' : ''}`}
+                  className={`w-full text-black text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.fullName ? 'border-red-500' : ''}`}
                   type='text'
                   placeholder='Nhập họ tên'
                   autoComplete='name'
@@ -83,11 +83,11 @@ const RegisterForm = () => {
                 )}
               </div>
               <div>
-                <label className='text-sm font-bold text-gray-700 tracking-wide'>
+                <label className='text-sm text-black font-bold tracking-wide'>
                   Tài khoản đăng nhập
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.username ? 'border-red-500' : ''}`}
+                  className={`w-full  text-black text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.username ? 'border-red-500' : ''}`}
                   type='text'
                   placeholder='username'
                   autoComplete='username'
@@ -100,11 +100,11 @@ const RegisterForm = () => {
                 )}
               </div>
               <div>
-                <label className='text-sm font-bold text-gray-700 tracking-wide'>
+                <label className='text-sm font-bold text-black tracking-wide'>
                   Email
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`w-full text-black text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.email ? 'border-red-500' : ''}`}
                   type='email'
                   placeholder='mail@gmail.com'
                   autoComplete='email'
@@ -120,11 +120,11 @@ const RegisterForm = () => {
             {/* Cột phải */}
             <div className='flex-1 space-y-6'>
               <div>
-                <label className='text-sm font-bold text-gray-700 tracking-wide'>
+                <label className='text-sm font-bold text-black tracking-wide'>
                   Số điện thoại
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.phoneNumber ? 'border-red-500' : ''}`}
+                  className={`w-full text-black text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.phoneNumber ? 'border-red-500' : ''}`}
                   type='tel'
                   placeholder='Nhập số điện thoại'
                   autoComplete='tel'
@@ -137,11 +137,11 @@ const RegisterForm = () => {
                 )}
               </div>
               <div>
-                <label className='text-sm font-bold text-gray-700 tracking-wide'>
+                <label className='text-sm font-bold text-black tracking-wide'>
                   Mật khẩu
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`w-full text-black text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.password ? 'border-red-500' : ''}`}
                   type='password'
                   placeholder='Nhập mật khẩu'
                   autoComplete='new-password'
@@ -154,11 +154,11 @@ const RegisterForm = () => {
                 )}
               </div>
               <div>
-                <label className='text-sm font-bold text-gray-700 tracking-wide'>
+                <label className='text-sm font-bold text-black tracking-wide'>
                   Xác nhận mật khẩu
                 </label>
                 <input
-                  className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                  className={`w-full text-black text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                   type='password'
                   placeholder='Nhập lại mật khẩu'
                   autoComplete='new-password'

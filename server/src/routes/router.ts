@@ -32,6 +32,6 @@ router.use('/reviews', reviewRoute);
 
 router.use('/favourites', favouriteRoute);
 
-router.use('/carts', cartRoute);
+router.use('/carts', jwtAuth, authorize('customer'), cartRoute);
 
 export default router;
