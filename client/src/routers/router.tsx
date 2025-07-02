@@ -60,6 +60,11 @@ const router = createBrowserRouter([
       }
     ]
   }
+  // TODO: This route is commented out temporarily. Re-enable when the UserProfile component is ready for production.
+  // {
+  //   path:'/profile',
+  //   Component: lazy(() => import('../components/profile/UserProfile')),
+  // }
 ]);
 
 export default router;

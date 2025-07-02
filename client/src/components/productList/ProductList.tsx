@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { fetchProducts } from '~/store/slices/productSlice';
 import banner from '../../../src/assets/banner1.webp';
 import { Link } from 'react-router';
-import ListCategory from '~/app/home/homepage/listcategory/ListCategory';
+import ListCategory from '~/components/listcategory/ListCategory'; // Ensure this path is correct
 const ProductList = () => {
   const [sortBy, setSortBy] = useState('A-Z');
   const dispatch = useDispatch();
