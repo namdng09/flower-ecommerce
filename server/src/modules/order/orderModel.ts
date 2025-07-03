@@ -41,7 +41,7 @@ export interface IPayment {
 }
 
 export interface IShipment {
-  carrier: string;
+  carrier?: string;
   trackingNumber?: string;
   shippingCost: number;
   status: ShipmentStatus;
@@ -58,10 +58,10 @@ export interface IOrder extends Document {
   totalPrice: number;
   status: OrderStatus;
   payment: IPayment;
-  shipments: IShipment[];
+  shipment: IShipment;
   description?: string;
   expectedDeliveryAt?: Date;
-  deliveredAt: Date;
+  deliveredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -143,7 +143,7 @@ const OrderSchema = new Schema<IOrder>(
       default: 'pending'
     },
     payment: { type: PaymentSchema, required: true },
-    shipments: { type: [ShipmentSchema], default: [] },
+    shipment: { type: ShipmentSchema, required: true },
     expectedDeliveryAt: Date,
     deliveredAt: Date,
     description: String
@@ -152,9 +152,6 @@ const OrderSchema = new Schema<IOrder>(
 );
 
 OrderSchema.plugin(aggregatePaginate);
-
-export interface OrderDocument extends IOrder, mongoose.Document {}
-export type OrderPaginateModel = PaginateModel<OrderDocument>;
 
 OrderSchema.pre<IOrder>('validate', async function (next) {
   if (!this.orderNumber) {
@@ -170,6 +167,9 @@ OrderSchema.pre<IOrder>('validate', async function (next) {
   }
   next();
 });
+
+export interface OrderDocument extends IOrder, mongoose.Document {}
+export type OrderPaginateModel = PaginateModel<OrderDocument>;
 
 const OrderModel = mongoose.model<OrderDocument, OrderPaginateModel>(
   'Order',
