@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import axios from 'axios';
-import defaultAva from '../../../../assets/no-user.jpg';
+import defaultAva from '../../../src/assets/no-user.jpg';
 
 interface UserProfile {
   fullName: string;
