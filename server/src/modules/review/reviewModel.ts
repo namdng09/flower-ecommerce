@@ -12,7 +12,7 @@ export interface IReview extends Document {
   images: string[];
 }
 
-const ReviewSchema = new Schema<IReview>(
+const ReviewSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -24,8 +24,17 @@ const ReviewSchema = new Schema<IReview>(
       ref: 'Product',
       required: true
     },
-    targetType: { type: String, required: true, trim: true },
-    rating: { type: Number, required: true, trim: true },
+    targetType: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
     description: { type: String, default: '', trim: true },
     status: {
       type: String,
@@ -37,9 +46,6 @@ const ReviewSchema = new Schema<IReview>(
   { timestamps: true }
 );
 
-const ReviewModel: Model<IReview> = mongoose.model<IReview>(
-  'Review',
-  ReviewSchema
-);
+const ReviewModel = mongoose.model<IReview>('Review', ReviewSchema);
 
 export default ReviewModel;
