@@ -141,7 +141,7 @@ export const orderController = {
    * orderController.create()
    *
    * Expected body:
-   *   user, items[], payment, shipments[]?, description?
+   *   user, items[], payment, shipment, description?
    */
   create: async (
     req: Request,
@@ -153,7 +153,7 @@ export const orderController = {
         user,
         items,
         payment,
-        shipments = [],
+        shipment,
         description,
         expectedDeliveryAt
       } = req.body;
@@ -191,12 +191,7 @@ export const orderController = {
         0
       );
 
-      const shippingTotal = shipments.reduce(
-        (sum: number, s: any) => sum + (s.shippingCost || 0),
-        0
-      );
-
-      totalPrice += shippingTotal;
+      totalPrice += shipment.shippingCost;
 
       const newOrder = await OrderModel.create({
         user,
@@ -204,7 +199,7 @@ export const orderController = {
         totalQuantity,
         totalPrice,
         payment,
-        shipments,
+        shipment,
         expectedDeliveryAt,
         description
       });
