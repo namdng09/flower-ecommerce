@@ -149,7 +149,14 @@ export const orderController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { user, items, payment, shipments = [], description } = req.body;
+      const {
+        user,
+        items,
+        payment,
+        shipments = [],
+        description,
+        expectedDeliveryAt
+      } = req.body;
 
       if (!Types.ObjectId.isValid(user))
         throw createHttpError(400, 'Invalid user id');
@@ -166,8 +173,16 @@ export const orderController = {
           throw createHttpError(400, `Price must be ≥0 at index ${index}`);
       }
 
+      if (expectedDeliveryAt && isNaN(Date.parse(expectedDeliveryAt))) {
+        throw createHttpError(400, 'Invalid expectedDeliveryAt date');
+      }
+
       if (!payment || !['cod', 'banking'].includes(payment.method))
         throw createHttpError(400, 'Invalid or missing payment method');
+
+      if (payment.method === 'banking') {
+        payment.status = 'awaiting_payment';
+      }
 
       const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -190,6 +205,7 @@ export const orderController = {
         totalPrice,
         payment,
         shipments,
+        expectedDeliveryAt,
         description
       });
 

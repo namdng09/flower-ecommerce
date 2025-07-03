@@ -60,6 +60,8 @@ export interface IOrder extends Document {
   payment: IPayment;
   shipments: IShipment[];
   description?: string;
+  expectedDeliveryAt?: Date;
+  deliveredAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -95,7 +97,7 @@ const PaymentSchema = new Schema<IPayment>(
 
 const ShipmentSchema = new Schema<IShipment>(
   {
-    carrier: { type: String, required: true },
+    carrier: String,
     trackingNumber: String,
     shippingCost: { type: Number, required: true, min: 0 },
     status: {
@@ -142,6 +144,8 @@ const OrderSchema = new Schema<IOrder>(
     },
     payment: { type: PaymentSchema, required: true },
     shipments: { type: [ShipmentSchema], default: [] },
+    expectedDeliveryAt: Date,
+    deliveredAt: Date,
     description: String
   },
   { timestamps: true }
