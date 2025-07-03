@@ -212,6 +212,58 @@ export const orderController = {
     }
   },
 
+  updateShipment: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { id } = req.params;
+      const {
+        carrier,
+        trackingNumber,
+        shippingCost,
+        status,
+        returnReason,
+        notes
+      } = req.body;
+
+      if (!Types.ObjectId.isValid(id))
+        throw createHttpError(400, 'Invalid order id');
+
+      if (shippingCost !== undefined)
+        throw createHttpError(400, 'Shipping cost cannot be modified');
+
+      const order = await OrderModel.findById(id);
+      if (!order) throw createHttpError(404, 'Order not found');
+
+      if (carrier !== undefined) order.shipment.carrier = carrier;
+      if (trackingNumber !== undefined)
+        order.shipment.trackingNumber = trackingNumber;
+      if (status !== undefined) order.shipment.status = status;
+      if (notes !== undefined) order.shipment.notes = notes;
+
+      if (returnReason !== undefined) {
+        order.shipment.returnReason = returnReason;
+        order.shipment.isReturn = true;
+      }
+
+      if (status === 'delivered') {
+        order.status = 'delivered';
+      } else if (status === 'failed') {
+        order.status = 'cancelled';
+      }
+
+      const updated = await order.save();
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Shipment updated successfully', updated));
+    } catch (error) {
+      next(error);
+    }
+  },
+
   /**
    * DELETE /orders/:id
    * orderController.remove()
