@@ -228,6 +228,18 @@ export const orderController = {
       const order = await OrderModel.findById(id);
       if (!order) throw createHttpError(404, 'Order not found');
 
+      const allowedShipmentStatus: ShipmentStatus[] = [
+        'pending',
+        'picking_up',
+        'out_for_delivery',
+        'delivered',
+        'failed'
+      ];
+
+      if (status && !allowedShipmentStatus.includes(status as ShipmentStatus)) {
+        throw createHttpError(400, 'Invalid shipment status');
+      }
+
       const ship = order.shipment;
 
       if (carrier !== undefined) ship.carrier = carrier;
@@ -270,6 +282,18 @@ export const orderController = {
 
       const order = await OrderModel.findById(id);
       if (!order) throw createHttpError(404, 'Order not found');
+
+      const allowedPaymentStatus: PaymentStatus[] = [
+        'awaiting_payment',
+        'unpaid',
+        'paid',
+        'expired',
+        'refunded'
+      ];
+
+      if (status && !allowedPaymentStatus.includes(status as PaymentStatus)) {
+        throw createHttpError(400, 'Invalid payment status');
+      }
 
       const pay = order.payment;
 
