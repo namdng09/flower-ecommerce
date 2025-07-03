@@ -219,29 +219,20 @@ export const orderController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const {
-        carrier,
-        trackingNumber,
-        shippingCost,
-        status,
-        returnReason,
-        notes
-      } = req.body;
+      const { carrier, trackingNumber, status, returnReason, notes } = req.body;
 
       if (!Types.ObjectId.isValid(id))
         throw createHttpError(400, 'Invalid order id');
 
-      if (shippingCost !== undefined)
-        throw createHttpError(400, 'Shipping cost cannot be modified');
-
       const order = await OrderModel.findById(id);
       if (!order) throw createHttpError(404, 'Order not found');
 
-      if (carrier !== undefined) order.shipment.carrier = carrier;
-      if (trackingNumber !== undefined)
-        order.shipment.trackingNumber = trackingNumber;
-      if (status !== undefined) order.shipment.status = status;
-      if (notes !== undefined) order.shipment.notes = notes;
+      const ship = order.shipment;
+
+      if (carrier !== undefined) ship.carrier = carrier;
+      if (trackingNumber !== undefined) ship.trackingNumber = trackingNumber;
+      if (status !== undefined) ship.status = status;
+      if (notes !== undefined) ship.notes = notes;
 
       if (returnReason !== undefined) {
         order.shipment.returnReason = returnReason;
@@ -259,6 +250,42 @@ export const orderController = {
       return res
         .status(200)
         .json(apiResponse.success('Shipment updated successfully', updated));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  updatePayment: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { id } = req.params;
+      const { status, description, paymentDate, gatewayRef } = req.body;
+
+      if (!Types.ObjectId.isValid(id))
+        throw createHttpError(400, 'Invalid order id');
+
+      const order = await OrderModel.findById(id);
+      if (!order) throw createHttpError(404, 'Order not found');
+
+      const pay = order.payment;
+
+      if (status !== undefined) pay.status = status;
+      if (description !== undefined) pay.description = description;
+      if (paymentDate !== undefined) pay.paymentDate = new Date(paymentDate);
+      if (gatewayRef !== undefined) pay.gatewayRef = gatewayRef;
+
+      if (status === 'expired') {
+        order.status = 'cancelled';
+      }
+
+      const updated = await order.save();
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Payment updated successfully', updated));
     } catch (error) {
       next(error);
     }
