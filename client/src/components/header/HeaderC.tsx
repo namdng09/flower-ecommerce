@@ -1,12 +1,14 @@
 import { Link, useNavigate } from 'react-router';
 import logo1 from '../../../src/assets/logo1.svg';
 import { jwtDecode } from 'jwt-decode';
+import { useSelector } from 'react-redux';
+import type { RootState } from '~/store';
+import { FiShoppingCart } from 'react-icons/fi';
 
 function HeaderC() {
   const navigate = useNavigate();
 
   const accessToken = sessionStorage.getItem('accessToken');
-
   let userId = '';
   if (accessToken) {
     try {
@@ -16,6 +18,10 @@ function HeaderC() {
       console.error('Invalid token:', error);
     }
   }
+
+  const totalQuantity = useSelector((state: RootState) =>
+    state.carts.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
 
   return (
     <div>
@@ -43,14 +49,18 @@ function HeaderC() {
             </li>
           </ul>
 
-          <div className='flex items-center space-x-8 md:order-2 relative'>
-            {/* <button
-              onClick={() => setOpenCart(true)}
-              className='text-black relative'
+          <div className='flex items-center space-x-6 md:order-2 relative'>
+            <Link
+              to='/home/cart'
+              className='relative text-gray-700 hover:text-pink-600'
             >
-              🛒 Giỏ hàng{' '}
-              <span className='text-pink-600'>({totalQuantity} sản phẩm)</span>
-            </button> */}
+              <FiShoppingCart size={26} />
+              {totalQuantity > 0 && (
+                <span className='absolute -top-2 -right-3 bg-pink-600 text-white text-xs rounded-full px-1.5 py-0.5'>
+                  {totalQuantity}
+                </span>
+              )}
+            </Link>
 
             {userId ? (
               <Link
