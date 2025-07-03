@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import OrderModel from './orderModel';
+import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
 import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
 
@@ -286,6 +287,62 @@ export const orderController = {
       return res
         .status(200)
         .json(apiResponse.success('Payment updated successfully', updated));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  updateOrder: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { id } = req.params;
+      const { status, deliveredAt, description, ...rest } = req.body;
+
+      if (!Types.ObjectId.isValid(id))
+        throw createHttpError(400, 'Invalid order id');
+
+      if (Object.keys(rest).length > 0)
+        throw createHttpError(
+          400,
+          'Only status, deliveredAt, description can be updated'
+        );
+
+      const allowedStatus: OrderStatus[] = [
+        'pending',
+        'ready_for_pickup',
+        'out_for_delivery',
+        'delivered',
+        'returned',
+        'cancelled'
+      ];
+
+      if (status && !allowedStatus.includes(status))
+        throw createHttpError(400, 'Invalid order status');
+
+      const order = await OrderModel.findById(id);
+      if (!order) throw createHttpError(404, 'Order not found');
+
+      if (status !== undefined) order.status = status;
+      if (description !== undefined) order.description = description;
+
+      if (deliveredAt !== undefined) {
+        const dateObj = new Date(deliveredAt);
+        if (isNaN(dateObj.getTime()))
+          throw createHttpError(400, 'Invalid deliveredAt date');
+        order.deliveredAt = dateObj;
+      }
+
+      if (status === 'delivered' && !order.deliveredAt)
+        order.deliveredAt = new Date();
+
+      const updated = await order.save();
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Order updated successfully', updated));
     } catch (error) {
       next(error);
     }
