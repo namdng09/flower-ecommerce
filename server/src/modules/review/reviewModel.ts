@@ -1,15 +1,17 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IReview extends Document {
+export interface IReviewRequest {
   userId: mongoose.Types.ObjectId;
   productId: mongoose.Types.ObjectId;
   targetType: string;
   rating: number;
-  description: string;
-  status: string;
+  description?: string;
+  status: 'active' | 'inactive';
+  images?: string[];
+}
+export interface IReview extends IReviewRequest, Document {
   createdAt: Date;
   updatedAt: Date;
-  images: string[];
 }
 
 const ReviewSchema = new Schema(
