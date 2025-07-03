@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '~/config/axiosConfig';
 
-const BASE_URL = '/api/carts'; // Đã dùng axiosInstance, không cần domain
+const BASE_URL = '/api/carts'; // dùng axiosInstance, không cần domain
 
-// ✅ Thêm sản phẩm vào giỏ hàng
+// Thêm sản phẩm vào giỏ hàng
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async (
@@ -26,7 +26,7 @@ export const addToCart = createAsyncThunk(
   }
 );
 
-// ✅ Cập nhật số lượng sản phẩm trong giỏ hàng
+// Cập nhật số lượng sản phẩm trong giỏ hàng
 export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
   async (
@@ -49,7 +49,7 @@ export const updateCartItem = createAsyncThunk(
   }
 );
 
-// ✅ Xóa sản phẩm khỏi giỏ hàng
+// Xóa sản phẩm khỏi giỏ hàng
 export const removeFromCart = createAsyncThunk(
   'cart/removeFromCart',
   async (
@@ -67,7 +67,7 @@ export const removeFromCart = createAsyncThunk(
   }
 );
 
-// ✅ Slice
+//  Slice
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
