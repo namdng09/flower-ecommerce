@@ -42,7 +42,7 @@ export const orderController = {
         sortOrder = 'desc',
         status,
         orderNumber,
-        userId
+        user
       } = req.query as {
         page?: string;
         limit?: string;
@@ -50,7 +50,7 @@ export const orderController = {
         sortOrder?: 'asc' | 'desc';
         status?: string;
         orderNumber?: string;
-        userId?: string;
+        user?: string;
       };
 
       const allowedSortFields = [
@@ -67,7 +67,7 @@ export const orderController = {
       const matchStage: Record<string, any> = {
         ...(orderNumber && { fullName: makeRegex(orderNumber) }),
         ...(status && { username: makeRegex(status) }),
-        ...(userId && { email: makeRegex(userId) })
+        ...(user && { email: makeRegex(user) })
       };
 
       const sortField = allowedSortFields.includes(sortBy as string)
@@ -151,7 +151,6 @@ export const orderController = {
     try {
       const { user, items, payment, shipments = [], description } = req.body;
 
-      /* ---------- basic validations ---------- */
       if (!Types.ObjectId.isValid(user))
         throw createHttpError(400, 'Invalid user id');
 
@@ -170,21 +169,25 @@ export const orderController = {
       if (!payment || !['cod', 'banking'].includes(payment.method))
         throw createHttpError(400, 'Invalid or missing payment method');
 
-      /* ---------- compute total ---------- */
-      const itemsTotal = items.reduce(
-        (sum: number, it: any) => sum + it.quantity * it.price,
+      const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
+      let totalPrice = items.reduce(
+        (sum, item) => sum + item.quantity * item.price,
         0
       );
+
       const shippingTotal = shipments.reduce(
         (sum: number, s: any) => sum + (s.shippingCost || 0),
         0
       );
-      const totalCost = itemsTotal + shippingTotal;
+
+      totalPrice += shippingTotal;
 
       const newOrder = await OrderModel.create({
         user,
         items,
-        totalPrice: totalCost,
+        totalQuantity,
+        totalPrice,
         payment,
         shipments,
         description
