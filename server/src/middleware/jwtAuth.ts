@@ -11,10 +11,10 @@ const jwtAuth = (req: Request, res: Response, next: NextFunction) => {
       user: Express.User | false,
       info: { message?: string } | undefined
     ) => {
-      if (err) return next(err);
+      if (err) throw err;
 
       if (!user) {
-        return next(createHttpError(401, info?.message || 'Unauthorized'));
+        throw createHttpError(401, info?.message || 'Unauthorized');
       }
 
       req.user = user;
