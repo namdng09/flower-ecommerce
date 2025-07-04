@@ -1,10 +1,13 @@
 import { useAppSelector } from '~/hooks/useAppSelector';
 import { useDispatch } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { fetchProducts } from '~/store/slices/productSlice';
+import { addToCart } from '~/store/slices/cartSlice';
 import banner from '../../../src/assets/banner1.webp';
 import { Link } from 'react-router';
-import ListCategory from '~/components/listcategory/ListCategory'; // Ensure this path is correct
+import ListCategory from '~/components/listcategory/ListCategory';
+import { AuthContext } from '~/contexts/authContext';
+
 const ProductList = () => {
   const [sortBy, setSortBy] = useState('A-Z');
   const dispatch = useDispatch();
@@ -13,6 +16,9 @@ const ProductList = () => {
     loading,
     error
   } = useAppSelector(state => state.products);
+
+  const auth = useContext(AuthContext);
+  const userId = auth?.user?.id;
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -30,6 +36,14 @@ const ProductList = () => {
     }
     return 0;
   });
+
+  const handleAddToCart = (variantId: string) => {
+    if (!userId) {
+      alert('Vui lòng đăng nhập để thêm vào giỏ hàng.');
+      return;
+    }
+    dispatch(addToCart({ userId, variantId, quantity: 1 }));
+  };
 
   return (
     <div className='container mx-auto px-4 pt-[200px] mb-5'>
@@ -116,7 +130,10 @@ const ProductList = () => {
                         <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
                           Mua ngay
                         </button>
-                        <button className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'>
+                        <button
+                          onClick={() => handleAddToCart(variant?._id)}
+                          className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'
+                        >
                           Thêm vào giỏ hàng
                         </button>
                       </div>
