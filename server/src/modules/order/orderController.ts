@@ -19,7 +19,7 @@ export const orderController = {
       const orders = await OrderModel.find();
 
       return res
-        .status(201)
+        .status(200)
         .json(apiResponse.success('Orders listed successfully', orders));
     } catch (error) {
       next(error);
