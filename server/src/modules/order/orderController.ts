@@ -57,7 +57,7 @@ export const orderController = {
       const allowedSortFields = [
         'createdAt',
         'updatedAt',
-        'totalCost',
+        'totalPrice',
         'totalQuantity',
         'orderNumber'
       ];
