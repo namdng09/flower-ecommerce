@@ -11,6 +11,7 @@ import {
 } from '~/store/slices/cartSlice';
 import { createOrder } from '~/store/slices/orderSlice';
 import { useNavigate } from 'react-router';
+import { FaTrashAlt } from 'react-icons/fa';
 
 const CartItemsTable: React.FC = () => {
   const { items, loading } = useSelector((state: RootState) => state.carts);
@@ -92,11 +93,11 @@ const CartItemsTable: React.FC = () => {
               <table className='min-w-full border-collapse'>
                 <thead className='bg-gray-100 text-left text-sm uppercase text-gray-600 sticky top-0 z-10'>
                   <tr>
-                    <th className='p-3'>Xoá</th>
                     <th className='p-3'>Sản phẩm</th>
                     <th className='p-3'>Giá</th>
                     <th className='p-3'>Số lượng</th>
                     <th className='p-3'>Tổng</th>
+                    <th className='p-3'>Xoá</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -105,12 +106,6 @@ const CartItemsTable: React.FC = () => {
                     const isDiscounted = v.salePrice < v.listPrice;
                     return (
                       <tr key={v._id} className='border-t'>
-                        <td
-                          className='p-3 text-center text-red-500 cursor-pointer'
-                          onClick={() => handleRemove(v._id)}
-                        >
-                          ✖
-                        </td>
                         <td className='p-3 flex items-center gap-3'>
                           <img
                             src={v.image}
@@ -175,6 +170,13 @@ const CartItemsTable: React.FC = () => {
                         <td className='p-3 font-semibold text-gray-800'>
                           {(v.salePrice * item.quantity).toLocaleString()}₫
                         </td>
+
+                        <td
+                          className='p-3 text-center text-red-500 cursor-pointer hover:text-red-700 transition'
+                          onClick={() => handleRemove(v._id)}
+                        >
+                          <FaTrashAlt size={25} />
+                        </td>
                       </tr>
                     );
                   })}
@@ -190,18 +192,6 @@ const CartItemsTable: React.FC = () => {
             </h2>
 
             <div className='space-y-3 text-base'>
-              {/* <div className='flex justify-between'>
-                <span className='text-gray-600'>Tạm tính:</span>
-                <span className='font-medium'>
-                  {subtotal.toLocaleString()}₫
-                </span>
-              </div> */}
-              {/* <div className='flex justify-between'>
-                <span className='text-gray-600'>Phí vận chuyển:</span>
-                <span className='font-medium'>
-                  {shippingCost.toLocaleString()}₫
-                </span>
-              </div> */}
               <div className='flex justify-between pt-2 mt-2 font-bold text-lg text-[#C4265B]'>
                 <span>Tổng cộng:</span>
                 {subtotal.toLocaleString()}₫
