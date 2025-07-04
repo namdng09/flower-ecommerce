@@ -190,21 +190,21 @@ const CartItemsTable: React.FC = () => {
             </h2>
 
             <div className='space-y-3 text-base'>
-              <div className='flex justify-between'>
+              {/* <div className='flex justify-between'>
                 <span className='text-gray-600'>Tạm tính:</span>
                 <span className='font-medium'>
                   {subtotal.toLocaleString()}₫
                 </span>
-              </div>
-              <div className='flex justify-between'>
+              </div> */}
+              {/* <div className='flex justify-between'>
                 <span className='text-gray-600'>Phí vận chuyển:</span>
                 <span className='font-medium'>
                   {shippingCost.toLocaleString()}₫
                 </span>
-              </div>
-              <div className='flex justify-between pt-2 mt-2 border-t font-bold text-lg text-[#C4265B]'>
+              </div> */}
+              <div className='flex justify-between pt-2 mt-2 font-bold text-lg text-[#C4265B]'>
                 <span>Tổng cộng:</span>
-                <span>{totalPrice.toLocaleString()}₫</span>
+                {subtotal.toLocaleString()}₫
               </div>
             </div>
           </div>
