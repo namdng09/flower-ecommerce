@@ -211,7 +211,7 @@ const CartItemsTable: React.FC = () => {
 
           <button
             onClick={handlePlaceOrder}
-            className='w-full bg-[#C4265B] text-white py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 hover:bg-blue-700 active:scale-95'
+            className='w-full bg-[#C4265B] text-white py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 transition-all duration-300 hover:bg-blue-700 active:scale-95 mb-6'
           >
             <FaShoppingCart size={18} />
             Đặt hàng ngay
