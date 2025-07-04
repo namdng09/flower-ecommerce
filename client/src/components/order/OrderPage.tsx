@@ -85,10 +85,17 @@ const OrderPage: React.FC = () => {
               <tbody>
                 {cart.items.map((item, index) => (
                   <tr key={index} className='border-b'>
-                    <td className='py-2 font-bold'>
-                      {item.variantId.title}
-                      <div className='text-sm text-gray-500'>
-                        Mã SP: {item.variantId.variantCode}
+                    <td className='py-2 font-bold flex items-center gap-3'>
+                      <img
+                        src={item.variantId.image}
+                        alt={item.variantId.title}
+                        className='w-30 h-30 object-cover rounded'
+                      />
+                      <div>
+                        <div>{item.variantId.title}</div>
+                        <div className='text-sm text-gray-500'>
+                          Mã SP: {item.variantId.variantCode}
+                        </div>
                       </div>
                     </td>
                     <td className='text-left py-2'>{item.quantity}</td>
