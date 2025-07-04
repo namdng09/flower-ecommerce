@@ -64,7 +64,7 @@ const OrderPage: React.FC = () => {
   return (
     <div className='max-w-6xl mx-auto p-6 mt-10 text-black mt-50'>
       <h2 className='text-2xl font-semibold mb-4 flex items-center gap-2'>
-        <FaShoppingCart className='text-blue-600' size={22} />
+        <FaShoppingCart className='text-[#C4265B]' size={22} />
         Xác nhận đơn hàng
       </h2>
 
@@ -153,7 +153,7 @@ const OrderPage: React.FC = () => {
 
           <button
             onClick={handleOrder}
-            className='w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded flex items-center justify-center gap-2'
+            className='w-full bg-[#C4265B] hover:bg-blue-700 text-white font-bold py-3 rounded flex items-center justify-center gap-2'
           >
             <FiSend size={18} />
             Đặt hàng ngay
