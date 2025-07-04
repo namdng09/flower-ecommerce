@@ -9,6 +9,7 @@ import userRoute from '~/modules/user/userRoute';
 import reviewRoute from '~/modules/review/reviewRoute';
 import cartRoute from '~/modules/cart/cartRoute';
 import favouriteRoute from '~/modules/favourite/favouriteRoute';
+import orderRoute from '~/modules/order/orderRoute';
 import { authorize } from '~/middleware/authorize';
 import jwtAuth from '~/middleware/jwtAuth';
 
@@ -33,5 +34,7 @@ router.use('/reviews', reviewRoute);
 router.use('/favourites', favouriteRoute);
 
 router.use('/carts', jwtAuth, authorize('customer'), cartRoute);
+
+router.use('/orders', orderRoute);
 
 export default router;
