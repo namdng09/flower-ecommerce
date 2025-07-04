@@ -66,9 +66,9 @@ export const orderController = {
         value ? { $regex: value, $options: 'i' } : undefined;
 
       const matchStage: Record<string, any> = {
-        ...(orderNumber && { fullName: makeRegex(orderNumber) }),
-        ...(status && { username: makeRegex(status) }),
-        ...(user && { email: makeRegex(user) })
+        ...(orderNumber && { orderNumber: makeRegex(orderNumber) }),
+        ...(status && { status: makeRegex(status) }),
+        ...(user && { user: makeRegex(user) })
       };
 
       const sortField = allowedSortFields.includes(sortBy as string)
