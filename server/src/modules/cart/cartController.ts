@@ -49,7 +49,7 @@ export const cartController = {
 
   /**
    * POST /carts
-   * cartController.create()
+   * cartController.addCartItem()
    */
   addCartItem: async (
     req: Request,
@@ -110,7 +110,7 @@ export const cartController = {
 
   /**
    * PUT /carts
-   * cartController.create()
+   * cartController.updateCartItem()
    */
   updateCartItem: async (
     req: Request,
@@ -164,7 +164,7 @@ export const cartController = {
 
   /**
    * DELETE /carts/:userId
-   * cartController.remove()
+   * cartController.removeCartItem()
    */
   removeCartItem: async (
     req: Request,
