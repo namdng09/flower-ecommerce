@@ -1,9 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { AiOutlineCheckCircle } from 'react-icons/ai';
 
 const OrderSuccess: React.FC = () => {
   const navigate = useNavigate();
+  const { orderId } = useParams();
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-gray-100 px-4'>
@@ -16,8 +17,8 @@ const OrderSuccess: React.FC = () => {
           Đặt hàng thành công!
         </h2>
         <p className='text-gray-600 mb-6'>
-          Cảm ơn bạn đã mua hàng. Chúng tôi đã nhận được đơn hàng của bạn và sẽ
-          xử lý trong thời gian sớm nhất.
+          Cảm ơn bạn đã mua hàng. Mã đơn hàng của bạn là:
+          <span className='font-semibold text-black'> {orderId}</span>
         </p>
 
         <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
@@ -28,7 +29,7 @@ const OrderSuccess: React.FC = () => {
             Về trang chủ
           </button>
           <button
-            onClick={() => navigate('/home/orders')}
+            onClick={() => navigate(`/home/order-tracking/${orderId}`)}
             className='border border-green-600 text-green-600 hover:bg-blue-100 px-6 py-2 rounded font-medium transition'
           >
             Xem đơn hàng
