@@ -1,9 +1,7 @@
-import { Types } from 'mongoose';
-import { NextFunction, Request, Response } from 'express';
-import AddressModel from './addressModel';
+import { Request, Response, NextFunction } from 'express';
+import { addressService } from './addressService';
 import { apiResponse } from '~/types/apiResponse';
-import UserModel from '../user/userModel';
-import createHttpError from 'http-errors';
+import { IAddress } from './addressModel';
 
 /**
  * addressController.ts
@@ -12,222 +10,73 @@ import createHttpError from 'http-errors';
  */
 export const addressController = {
   /**
-   * GET /addresses?userId=?
+   * GET /addresses
    * addressController.list()
    */
-  list: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { userId } = req.query;
+  list: async (req: Request, res: Response): Promise<Response> => {
+    const addresses = await addressService.list();
 
-      if (!userId || !Types.ObjectId.isValid(userId as string)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
-
-      const addresses = await AddressModel.find({ userId });
-
-      return res
-        .status(200)
-        .json(apiResponse.success('Addresses listed successfully', addresses));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Addresses listed successfully', addresses));
   },
-
   /**
    * GET /addresses/:id
    * addressController.show()
    */
-  show: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { id } = req.params;
+  show: async (req: Request, res: Response): Promise<Response> => {
+    const { addressId } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid address id');
-      }
+    const address = await addressService.show(addressId);
 
-      const address = await AddressModel.findById(id);
-
-      if (!address) {
-        throw createHttpError(404, 'Address not found');
-      }
-
-      return res
-        .status(200)
-        .json(apiResponse.success('Address fetched successfully', address));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Address fetched successfully', address));
   },
-
   /**
    * POST /addresses
    * addressController.create()
    */
-  create: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const {
-        userId,
-        fullName,
-        phone,
-        province,
-        district,
-        ward,
-        street,
-        location,
-        addressType = 'home',
-        isDefault = false
-      } = req.body;
+  create: async (req: Request, res: Response): Promise<Response> => {
+    const addressData: IAddress = req.body;
 
-      if (!userId || !Types.ObjectId.isValid(userId)) {
-        throw createHttpError(400, 'Invalid or missing userId');
-      }
+    const newAddress = await addressService.create(addressData);
 
-      const userExists = await UserModel.exists({ _id: userId });
-      if (!userExists) {
-        throw createHttpError(404, 'User not found');
-      }
-
-      if (!fullName || !phone || !province || !district || !ward || !street) {
-        throw createHttpError(400, 'Missing required fields');
-      }
-
-      if (isDefault) {
-        await AddressModel.updateMany(
-          { userId, isDefault: true },
-          { isDefault: false }
-        );
-      }
-
-      const newAddress = await AddressModel.create({
-        userId,
-        fullName,
-        phone,
-        province,
-        district,
-        ward,
-        street,
-        location,
-        addressType,
-        isDefault
-      });
-
-      return res
-        .status(201)
-        .json(apiResponse.success('Address created successfully', newAddress));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(201)
+      .json(apiResponse.success('Address created successfully', newAddress));
   },
-
   /**
    * PUT /addresses/:id
    * addressController.update()
    */
-  update: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { id } = req.params;
-      const {
-        userId,
-        fullName,
-        phone,
-        province,
-        district,
-        ward,
-        street,
-        location,
-        addressType,
-        isDefault
-      } = req.body;
+  update: async (req: Request, res: Response): Promise<Response> => {
+    const { addressId } = req.params;
+    const addressData: IAddress = req.body;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid address id');
-      }
+    const address = await addressService.update(addressId, addressData);
 
-      const address = await AddressModel.findById(id);
-      if (!address) {
-        throw createHttpError(404, 'Address not found');
-      }
-
-      if (!userId || !Types.ObjectId.isValid(userId)) {
-        throw createHttpError(400, 'Invalid or missing userId');
-      }
-
-      const userExists = await UserModel.exists({ _id: userId });
-      if (!userExists) {
-        throw createHttpError(404, 'User does not exist');
-      }
-
-      if (userId !== undefined) address.userId = userId;
-      if (fullName !== undefined) address.fullName = fullName;
-      if (phone !== undefined) address.phone = phone;
-      if (province !== undefined) address.province = province;
-      if (district !== undefined) address.district = district;
-      if (ward !== undefined) address.ward = ward;
-      if (street !== undefined) address.street = street;
-      if (location !== undefined) address.location = location;
-      if (addressType !== undefined) address.addressType = addressType;
-      if (isDefault !== undefined) address.isDefault = isDefault;
-
-      const updatedAddress = await address.save();
-
-      if (isDefault === true && address.userId) {
-        await AddressModel.updateMany(
-          { userId: address.userId, _id: { $ne: id }, isDefault: true },
-          { isDefault: false }
-        );
-      }
-
-      return res
-        .status(200)
-        .json(
-          apiResponse.success('Address updated successfully', updatedAddress)
-        );
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Address updated successfully', address));
   },
-
   /**
    * DELETE /addresses/:id
-   * addressController.remove()
+   * addressController.delete()
    */
-  remove: async (
+  delete: async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
+      const { addressId } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid address id');
-      }
-
-      const deletedAddress = await AddressModel.findByIdAndDelete(id);
-
-      if (!deletedAddress) {
-        throw createHttpError(404, 'Address not found');
-      }
+      const address = await addressService.delete(addressId);
 
       return res
         .status(200)
-        .json(apiResponse.success('Address removed successfully'));
+        .json(apiResponse.success('Address deleted successfully', address));
     } catch (error) {
       next(error);
     }
