@@ -246,7 +246,7 @@ export const cartController = {
 
       return res
         .status(200)
-        .json(apiResponse.success('Cart clear successfully'));
+        .json(apiResponse.success('Cart cleared successfully'));
     } catch (err) {
       next(err);
     }
