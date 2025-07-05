@@ -7,9 +7,9 @@ import VariantModel from '../variant/variantModel';
 import { calculateCartTotals } from '~/utils/calculateCartTotals';
 
 /**
- * categoryController.ts
+ * cartController.ts
  *
- * @description :: Server-side logic for managing categories.
+ * @description :: Server-side logic for managing carts.
  */
 export const cartController = {
   /**
@@ -48,8 +48,8 @@ export const cartController = {
   },
 
   /**
-   * POST /categories
-   * categoryController.create()
+   * POST /carts
+   * cartController.create()
    */
   addCartItem: async (
     req: Request,
@@ -109,8 +109,8 @@ export const cartController = {
   },
 
   /**
-   * PUT /categories
-   * categoryController.create()
+   * PUT /carts
+   * cartController.create()
    */
   updateCartItem: async (
     req: Request,
@@ -163,8 +163,8 @@ export const cartController = {
   },
 
   /**
-   * DELETE /categories/:id
-   * categoryController.remove()
+   * DELETE /carts/:userId
+   * cartController.remove()
    */
   removeCartItem: async (
     req: Request,
@@ -178,6 +178,7 @@ export const cartController = {
       if (!Types.ObjectId.isValid(userId)) {
         throw createHttpError(400, 'Invalid userId');
       }
+
       if (!Types.ObjectId.isValid(variantId)) {
         throw createHttpError(400, 'Invalid variantId');
       }
@@ -210,6 +211,42 @@ export const cartController = {
       return res
         .status(200)
         .json(apiResponse.success('Cart Item removed successfully'));
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  /**
+   * DELETE /carts/:userId/clear
+   * cartController.clearCart()
+   */
+  clearCart: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { userId } = req.params;
+
+      if (!Types.ObjectId.isValid(userId)) {
+        throw createHttpError(400, 'Invalid userId');
+      }
+
+      let cart = await CartModel.findOne({ userId });
+      if (!cart) {
+        cart = new CartModel({ userId, items: [] });
+      }
+
+      cart.items = [];
+
+      cart.totalQuantity = 0;
+      cart.totalPrice = 0;
+
+      await cart.save();
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Cart clear successfully'));
     } catch (err) {
       next(err);
     }
