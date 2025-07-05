@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import OrderModel from './orderModel';
+import UserModel from '../user/userModel';
 import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
 import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
+import VariantModel from '../variant/variantModel';
 
 export const orderController = {
   /**
@@ -54,6 +56,18 @@ export const orderController = {
         user?: string;
       };
 
+      const allowedStatus: OrderStatus[] = [
+        'pending',
+        'ready_for_pickup',
+        'out_for_delivery',
+        'delivered',
+        'returned',
+        'cancelled'
+      ];
+
+      if (status && !allowedStatus.includes(status as OrderStatus))
+        throw createHttpError(400, 'Invalid order status');
+
       const allowedSortFields = [
         'createdAt',
         'updatedAt',
@@ -67,16 +81,22 @@ export const orderController = {
 
       const matchStage: Record<string, any> = {
         ...(orderNumber && { orderNumber: makeRegex(orderNumber) }),
-        ...(status && { status: makeRegex(status) }),
-        ...(user && { user: makeRegex(user) })
+        ...(status && { status: makeRegex(status) })
       };
+
+      if (user) {
+        if (!Types.ObjectId.isValid(user)) {
+          return next(createHttpError(400, 'Invalid user id'));
+        }
+        matchStage.user = new Types.ObjectId(user);
+      }
 
       const sortField = allowedSortFields.includes(sortBy as string)
         ? sortBy
         : 'createdAt';
       const sortDirection = sortOrder === 'asc' ? 1 : -1;
 
-      const aggregate = OrderModel.aggregate([
+      const aggregate = [
         { $match: matchStage },
         { $sort: { [sortField]: sortDirection } },
         {
@@ -88,8 +108,51 @@ export const orderController = {
             as: 'user'
           }
         },
-        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } }
-      ]);
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+        { $unwind: '$items' },
+        {
+          $lookup: {
+            from: 'variants',
+            localField: 'items.variant',
+            foreignField: '_id',
+            as: 'items.variant'
+          }
+        },
+        { $unwind: '$items.variant' },
+
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'items.variant._id',
+            foreignField: 'variants',
+            pipeline: [
+              { $project: { title: 1, skuCode: 1, thumbnailImage: 1 } }
+            ],
+            as: 'productInfo'
+          }
+        },
+
+        {
+          $addFields: {
+            'items.variant.product': '$productInfo'
+          }
+        },
+        { $project: { productInfo: 0 } }, // bỏ field tạm
+
+        {
+          $group: {
+            _id: '$_id',
+            doc: { $first: '$$ROOT' },
+            items: { $push: '$items' }
+          }
+        },
+        {
+          $replaceRoot: {
+            newRoot: { $mergeObjects: ['$doc', { items: '$items' }] }
+          }
+        }
+      ];
 
       const options = {
         page: parseInt(page as string) || 1,
@@ -138,6 +201,33 @@ export const orderController = {
   },
 
   /**
+   * GET /orders/:userId/user
+   * orderController.getByUserId()
+   */
+  getByUserId: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { userId } = req.params;
+
+      if (!Types.ObjectId.isValid(userId))
+        throw createHttpError(400, 'Invalid user id');
+
+      const orders = await OrderModel.find({ user: userId }).sort({
+        createdAt: -1
+      });
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Order fetched successfully', orders));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * POST /orders
    * orderController.create()
    *
@@ -162,12 +252,22 @@ export const orderController = {
       if (!Types.ObjectId.isValid(user))
         throw createHttpError(400, 'Invalid user id');
 
+      const existingUser = await UserModel.findById(user);
+
+      if (!existingUser) {
+        throw createHttpError(404, 'User not found');
+      }
+
       if (!Array.isArray(items) || items.length === 0)
         throw createHttpError(400, 'Order must contain at least one item');
 
       for (const [index, it] of items.entries()) {
         if (!Types.ObjectId.isValid(it.variant))
           throw createHttpError(400, `Invalid variant id at index ${index}`);
+        const variantDoc = await VariantModel.findById(it.variant);
+        if (!variantDoc) {
+          throw createHttpError(400, `Variant not found at index ${index}`);
+        }
         if (!it.quantity || it.quantity < 1)
           throw createHttpError(400, `Quantity must be ≥1 at index ${index}`);
         if (!it.price || it.price < 0)
