@@ -37,11 +37,13 @@ const CartItemsTable: React.FC = () => {
       dispatch(fetchCartByUserId(userId))
     );
   };
+  const subtotal = items.reduce((sum, item) => {
+    const v = item?.variantId;
+    const price = v?.salePrice || 0;
+    const quantity = item?.quantity || 0;
+    return sum + price * quantity;
+  }, 0);
 
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.quantity * item.variantId.salePrice,
-    0
-  );
   const shippingCost = 30000;
   const totalPrice = subtotal + shippingCost;
 
@@ -102,22 +104,24 @@ const CartItemsTable: React.FC = () => {
                 </thead>
                 <tbody>
                   {items.map(item => {
-                    const v = item.variantId;
-                    const isDiscounted = v.salePrice < v.listPrice;
+                    const v = item?.variantId;
+                    if (!v) return null;
+                    const isDiscounted = v?.salePrice < v?.listPrice;
+
                     return (
-                      <tr key={v._id} className='border-t'>
+                      <tr key={v._id || Math.random()} className='border-t'>
                         <td className='p-3 flex items-center gap-3'>
                           <img
-                            src={v.image}
-                            alt={v.title}
+                            src={v.image || '/placeholder.jpg'}
+                            alt={v.title || 'Sản phẩm'}
                             className='w-40 h-40 rounded object-cover'
                           />
                           <div>
                             <p className='font-semibold text-gray-800'>
-                              {v.title}
+                              {v.title || 'Sản phẩm không tên'}
                             </p>
                             <p className='text-xs text-gray-500'>
-                              Mã: {v.variantCode}
+                              Mã: {v.variantCode || 'Không rõ'}
                             </p>
                           </div>
                         </td>
@@ -125,15 +129,15 @@ const CartItemsTable: React.FC = () => {
                           {isDiscounted ? (
                             <>
                               <span className='line-through text-sm text-gray-400 mr-1'>
-                                {v.listPrice.toLocaleString()}₫
+                                {(v.listPrice || 0).toLocaleString()}₫
                               </span>
                               <span className='text-red-600 font-semibold'>
-                                {v.salePrice.toLocaleString()}₫
+                                {(v.salePrice || 0).toLocaleString()}₫
                               </span>
                             </>
                           ) : (
                             <span className='text-gray-800'>
-                              {v.listPrice.toLocaleString()}₫
+                              {(v.listPrice || 0).toLocaleString()}₫
                             </span>
                           )}
                         </td>
@@ -144,8 +148,11 @@ const CartItemsTable: React.FC = () => {
                                 handleQuantityChange(v._id, item.quantity - 1)
                               }
                               disabled={item.quantity <= 1}
-                              className={`w-8 h-8 flex items-center justify-center border rounded text-xl font-bold 
-          ${item.quantity <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                              className={`w-8 h-8 flex items-center justify-center border rounded text-xl font-bold ${
+                                item.quantity <= 1
+                                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                              }`}
                               aria-label='Giảm số lượng'
                             >
                               −
