@@ -9,9 +9,9 @@ router.get('/code/:variantCode', asyncHandler(variantController.getByCode));
 router.get('/', asyncHandler(variantController.list));
 router.post('/', asyncHandler(variantController.create));
 
-router.get('/:id', asyncHandler(variantController.show));
+router.get('/:variantId', asyncHandler(variantController.show));
 
-router.put('/:id', asyncHandler(variantController.update));
-router.delete('/:id', asyncHandler(variantController.remove));
+router.put('/:variantId', asyncHandler(variantController.update));
+router.delete('/:variantId', asyncHandler(variantController.remove));
 
 export default router as Router;

@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
-import VariantModel from './variantModel';
+import { IVariant } from './variantModel';
 import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
-import { generateSKU } from '~/utils/generateSKU';
+import { variantService } from './variantService';
 
 /**
  * variantController.ts
@@ -21,12 +21,7 @@ export const variantController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const variants = await VariantModel.find()
-        .populate({
-          path: 'product',
-          select: 'title skuCode thumbnailImage'
-        })
-        .lean();
+      const variants = await variantService.list();
 
       return res
         .status(200)
@@ -46,15 +41,9 @@ export const variantController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid variant id');
-      }
+      const { variantId } = req.params;
 
-      const variant = await VariantModel.findById(id);
-      if (!variant) {
-        throw createHttpError(404, 'Variant not found');
-      }
+      const variant = await variantService.show(variantId);
 
       return res
         .status(200)
@@ -76,17 +65,7 @@ export const variantController = {
     try {
       const { variantCode } = req.params;
 
-      if (!variantCode || variantCode.trim() === '') {
-        throw createHttpError(400, 'Variant Code is required');
-      }
-
-      const variant = await VariantModel.findOne({
-        variantCode: variantCode.trim()
-      });
-
-      if (!variant) {
-        throw createHttpError(404, 'Variant not found');
-      }
+      const variant = await variantService.getByCode(variantCode);
 
       return res
         .status(200)
@@ -106,32 +85,9 @@ export const variantController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { title, listPrice, salePrice, image, inventory = 0 } = req.body;
+      const variantData: IVariant = req.body;
 
-      if (!title || typeof title !== 'string' || title.trim() === '') {
-        throw createHttpError(400, 'Title is required');
-      }
-
-      if (salePrice > listPrice) {
-        throw createHttpError(400, 'Sale Price cannot exceed List Price');
-      }
-
-      let variantCode = generateSKU();
-
-      let existing = await VariantModel.findOne({ variantCode });
-      while (existing) {
-        variantCode = generateSKU();
-        existing = await VariantModel.findOne({ variantCode });
-      }
-
-      const variant = await VariantModel.create({
-        variantCode,
-        title,
-        listPrice,
-        salePrice,
-        image,
-        inventory
-      });
+      const variant = await variantService.create(variantData);
 
       return res
         .status(201)
@@ -151,33 +107,11 @@ export const variantController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
-      const { title, listPrice, salePrice, image, inventory } = req.body;
+      const { variantId } = req.params;
+      const variantData: IVariant = req.body;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid variant id');
-      }
+      const updatedVariant = await variantService.update(variantId, variantData);
 
-      const variant = await VariantModel.findById(id);
-      if (!variant) {
-        throw createHttpError(404, 'Variant not found');
-      }
-
-      if (
-        salePrice !== undefined &&
-        listPrice !== undefined &&
-        salePrice > listPrice
-      ) {
-        throw createHttpError(400, 'Sale Price cannot exceed List Price');
-      }
-
-      if (title !== undefined) variant.title = title;
-      if (listPrice !== undefined) variant.listPrice = listPrice;
-      if (salePrice !== undefined) variant.salePrice = salePrice;
-      if (image !== undefined) variant.image = image;
-      if (inventory !== undefined) variant.inventory = inventory;
-
-      const updatedVariant = await variant.save();
       return res
         .status(200)
         .json(
@@ -198,15 +132,9 @@ export const variantController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid variant id');
-      }
+      const { variantId } = req.params;
 
-      const deleted = await VariantModel.findByIdAndDelete(id);
-      if (!deleted) {
-        throw createHttpError(404, 'Variant not found');
-      }
+      await variantService.delete(variantId);
 
       return res
         .status(200)
