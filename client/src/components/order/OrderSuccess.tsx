@@ -7,7 +7,7 @@ const OrderSuccess: React.FC = () => {
   const { orderId } = useParams();
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-100 px-4'>
+    <div className='min-h-screen flex items-center justify-center bg-gray-100 px-4 mt-10'>
       <div className='bg-white shadow-lg rounded-xl p-8 max-w-md text-center'>
         <AiOutlineCheckCircle
           className='text-green-500 mx-auto mb-4'
