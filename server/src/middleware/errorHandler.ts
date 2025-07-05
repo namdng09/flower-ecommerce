@@ -1,10 +1,11 @@
-import { Request, Response, ErrorRequestHandler } from 'express';
+import { Request, Response, ErrorRequestHandler, NextFunction } from 'express';
 import { apiResponse } from '~/types/apiResponse';
 
 export const errorHandler: ErrorRequestHandler = (
   err: any,
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): void => {
   const status = err.status || err.statusCode || 500;
 
