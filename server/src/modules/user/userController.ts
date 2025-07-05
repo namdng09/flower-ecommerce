@@ -1,11 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { Types } from 'mongoose';
-import crypto from 'crypto';
-import UserModel from './userModel';
+import { IUser } from './userModel';
+import { userService } from './userService';
 import { apiResponse } from '~/types/apiResponse';
-import { comparePassword } from '~/utils/bcrypt';
-import createHttpError from 'http-errors';
-// import { sendMail } from '~/utils/mailer';   // Giả sử bạn có util gửi mail
 
 /**
  * userController.ts
@@ -25,14 +21,8 @@ export const userController = {
   ): Promise<Response | void> => {
     try {
       const { role } = req.query as { role?: string };
-      const validRoles = ['admin', 'customer', 'shop'];
 
-      if (role && !validRoles.includes(role)) {
-        throw createHttpError(400, 'Invalid role value');
-      }
-
-      const filter = role ? { role } : {};
-      const users = await UserModel.find(filter).select('-password');
+      const users = await userService.list(role);
 
       return res
         .status(200)
@@ -68,43 +58,15 @@ export const userController = {
         phoneNumber?: string;
       };
 
-      const allowedSortFields = [
-        'createdAt',
-        'updatedAt',
-        'username',
-        'email',
-        'phoneNumber',
-        'fullName'
-      ];
-
-      const sortField = allowedSortFields.includes(sortBy as string)
-        ? sortBy
-        : 'createdAt';
-      const sortDirection = sortOrder === 'asc' ? 1 : -1;
-
-      const makeRegex = (value?: string | string[]) =>
-        value ? { $regex: value, $options: 'i' } : undefined;
-
-      const matchStage: Record<string, any> = {
-        ...(fullName && { fullName: makeRegex(fullName) }),
-        ...(username && { username: makeRegex(username) }),
-        ...(email && { email: makeRegex(email) }),
-        ...(phoneNumber && { phoneNumber: makeRegex(phoneNumber) })
-      };
-
-      const aggregate = UserModel.aggregate([
-        { $match: matchStage },
-        { $sort: { [sortField]: sortDirection } }
-      ]);
-
-      const options = {
-        page: parseInt(page as string) || 1,
-        limit: parseInt(limit as string) || 10
-      };
-
-      const result = await (UserModel as any).aggregatePaginate(
-        aggregate,
-        options
+      const result = await userService.filterUsers(
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        fullName,
+        username,
+        email,
+        phoneNumber
       );
 
       return res.status(200).json(
@@ -127,17 +89,9 @@ export const userController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
+      const { userId } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
-
-      const user = await UserModel.findById(id).select('-password');
-
-      if (!user) {
-        throw createHttpError(404, 'User not found');
-      }
+      const user = await userService.show(userId);
 
       return res
         .status(200)
@@ -157,45 +111,9 @@ export const userController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { fullName, username, email, phoneNumber, role } = req.body;
+      const userData: IUser = req.body;
 
-      if (!fullName || !username || !email || !phoneNumber || !role) {
-        throw createHttpError(400, 'Missing required fields');
-      }
-
-      if (!['admin', 'customer', 'shop'].includes(role)) {
-        throw createHttpError(400, 'Invalid role value');
-      }
-
-      if (await UserModel.findOne({ username })) {
-        throw createHttpError(409, 'Username already exists');
-      }
-      if (await UserModel.findOne({ email })) {
-        throw createHttpError(409, 'Email already exists');
-      }
-      if (await UserModel.findOne({ phoneNumber })) {
-        throw createHttpError(409, 'Phone number already exists');
-      }
-
-      const password = crypto.randomBytes(4).toString('hex');
-
-      const newUser = await UserModel.create({
-        fullName,
-        username,
-        email,
-        phoneNumber,
-        password,
-        role
-      });
-
-      if (!newUser) {
-        throw createHttpError(400, 'User creation failed');
-      }
-
-      /* ---- TODO: gửi email/notify password cho user ---- */
-      // await sendMail({ ... })
-
-      const { password: _pw, ...resUser } = newUser.toObject();
+      const resUser = await userService.create(userData);
 
       return res
         .status(201)
@@ -215,54 +133,11 @@ export const userController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
-      const { fullName, username, email, phoneNumber, role } = req.body;
+      const { userId } = req.params;
+      const userData: IUser = req.body;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
+      const resUser = await userService.update(userId, userData)
 
-      const user = await UserModel.findById(id);
-      if (!user) {
-        throw createHttpError(404, 'User not found');
-      }
-
-      if (!fullName || !username || !email || !phoneNumber || !role) {
-        throw createHttpError(400, 'Missing required fields');
-      }
-
-      if (!['admin', 'customer', 'shop'].includes(role)) {
-        throw createHttpError(400, 'Invalid role value');
-      }
-
-      if (username && username !== user.username) {
-        const dup = await UserModel.findOne({ username, _id: { $ne: id } });
-        if (dup) throw createHttpError(409, 'Username already exists');
-        user.username = username;
-      }
-
-      if (email && email !== user.email) {
-        const dup = await UserModel.findOne({ email, _id: { $ne: id } });
-        if (dup) throw createHttpError(409, 'Email already exists');
-        user.email = email;
-      }
-
-      if (phoneNumber && phoneNumber !== user.phoneNumber) {
-        const dup = await UserModel.findOne({ phoneNumber, _id: { $ne: id } });
-        if (dup) throw createHttpError(409, 'Phone number already exists');
-        user.phoneNumber = phoneNumber;
-      }
-
-      if (fullName !== undefined) user.fullName = fullName;
-      if (username !== undefined) user.username = username;
-      if (email !== undefined) user.email = email;
-      if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
-      if (role !== undefined) user.role = role;
-
-      const updatedUser = await user.save();
-      if (!updatedUser) throw createHttpError(400, 'User update failed');
-
-      const { password: _pw, ...resUser } = updatedUser.toObject();
       return res
         .status(200)
         .json(apiResponse.success('Profile updated successfully', resUser));
@@ -281,24 +156,11 @@ export const userController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
-      const { avatarUrl } = req.body;
+      const { userId } = req.params;
+      const userData: IUser = req.body;
 
-      if (!avatarUrl?.trim()) {
-        throw createHttpError(400, 'avatarUrl field is required');
-      }
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
+      const resUser = await userService.updateAvataUrl(userId, userData);
 
-      const existingUser = await UserModel.findByIdAndUpdate(
-        id,
-        { avatarUrl },
-        { new: true }
-      );
-      if (!existingUser) throw createHttpError(404, 'User not found');
-
-      const { password: _pw, ...resUser } = existingUser.toObject();
       return res
         .status(200)
         .json(apiResponse.success('Avatar updated successfully', resUser));
@@ -317,24 +179,11 @@ export const userController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
-      const { coverUrl } = req.body;
+      const { userId } = req.params;
+      const userData: IUser = req.body;
 
-      if (!coverUrl?.trim()) {
-        throw createHttpError(400, 'coverUrl field is required');
-      }
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
+      const resUser = await userService.updateCoverUrl(userId, userData);
 
-      const existingUser = await UserModel.findByIdAndUpdate(
-        id,
-        { coverUrl },
-        { new: true }
-      );
-      if (!existingUser) throw createHttpError(404, 'User not found');
-
-      const { password: _pw, ...resUser } = existingUser.toObject();
       return res
         .status(200)
         .json(apiResponse.success('Cover photo updated successfully', resUser));
@@ -353,14 +202,9 @@ export const userController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
+      const { userId } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
-
-      const deleted = await UserModel.findByIdAndDelete(id);
-      if (!deleted) throw createHttpError(404, 'User not found');
+      await userService.delete(userId);
 
       return res
         .status(200)
@@ -383,31 +227,11 @@ export const userController = {
       const { email } = req.params;
       const { oldPassword, newPassword } = req.body;
 
-      if (!oldPassword || !newPassword) {
-        throw createHttpError(
-          400,
-          'Old Password and New Password are required'
-        );
-      }
-      if (newPassword.length < 6) {
-        throw createHttpError(
-          400,
-          'New Password must be at least 6 characters'
-        );
-      }
-
-      const user = await UserModel.findOne({ email });
-      if (!user) throw createHttpError(404, 'User not found');
-
-      const isMatch = await comparePassword(oldPassword, user.password);
-      if (!isMatch) throw createHttpError(401, 'Incorrect old password');
-
-      user.password = newPassword;
-      await user.save();
+      const user = await userService.updatePassword(email, oldPassword, newPassword);
 
       return res
         .status(200)
-        .json(apiResponse.success('Password updated successfully'));
+        .json(apiResponse.success('Password updated successfully', user));
     } catch (error) {
       next(error);
     }
