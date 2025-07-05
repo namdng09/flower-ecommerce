@@ -96,7 +96,7 @@ export const orderController = {
         : 'createdAt';
       const sortDirection = sortOrder === 'asc' ? 1 : -1;
 
-      const aggregate = OrderModel.aggregate([
+      const aggregate = [
         { $match: matchStage },
         { $sort: { [sortField]: sortDirection } },
         {
@@ -108,8 +108,51 @@ export const orderController = {
             as: 'user'
           }
         },
-        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } }
-      ]);
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+        { $unwind: '$items' },
+        {
+          $lookup: {
+            from: 'variants',
+            localField: 'items.variant',
+            foreignField: '_id',
+            as: 'items.variant'
+          }
+        },
+        { $unwind: '$items.variant' },
+
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'items.variant._id',
+            foreignField: 'variants',
+            pipeline: [
+              { $project: { title: 1, skuCode: 1, thumbnailImage: 1 } }
+            ],
+            as: 'productInfo'
+          }
+        },
+
+        {
+          $addFields: {
+            'items.variant.product': '$productInfo'
+          }
+        },
+        { $project: { productInfo: 0 } }, // bỏ field tạm
+
+        {
+          $group: {
+            _id: '$_id',
+            doc: { $first: '$$ROOT' },
+            items: { $push: '$items' }
+          }
+        },
+        {
+          $replaceRoot: {
+            newRoot: { $mergeObjects: ['$doc', { items: '$items' }] }
+          }
+        }
+      ];
 
       const options = {
         page: parseInt(page as string) || 1,
