@@ -17,7 +17,7 @@ const OrderPage: React.FC = () => {
   // console.log("Cart state:", cart);
 
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'banking'>('cod');
-  const [shippingCost] = useState<number>(20000);
+  const [shippingCost] = useState<number>(30000);
   const [note, setNote] = useState('');
 
   const totalPrice = cart.items.reduce(
@@ -51,7 +51,9 @@ const OrderPage: React.FC = () => {
     try {
       const result = await dispatch(createOrder(orderData));
       if (createOrder.fulfilled.match(result)) {
-        navigate('/home/order-success');
+        const order = result.payload;
+        const orderId = order._id;
+        navigate(`/home/order-success/${orderId}`);
       } else {
         navigate('/home/order-fail');
       }
