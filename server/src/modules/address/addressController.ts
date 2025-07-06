@@ -99,7 +99,7 @@ export const addressController = {
         throw createHttpError(404, 'User not found');
       }
 
-      if (!fullName || !phone || !province || !ward || !street || !plusCode) {
+      if (!fullName || !phone || !province || !ward || !street) {
         throw createHttpError(400, 'Missing required fields');
       }
 
