@@ -368,6 +368,11 @@ export const orderController = {
         if (status === 'delivered') {
           ship.deliveredAt = new Date();
           order.status = 'delivered';
+
+          if (order.payment.method === 'cod') {
+            order.payment.paymentDate = ship.deliveredAt;
+            order.payment.status = 'paid';
+          }
         } else if (status === 'failed') {
           order.status = 'cancelled';
         }
