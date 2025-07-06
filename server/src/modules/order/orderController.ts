@@ -245,6 +245,31 @@ export const orderController = {
       if (!Types.ObjectId.isValid(user))
         throw createHttpError(400, 'Invalid user id');
 
+      // Validate customization object
+      if (customization) {
+        if (
+          customization.giftMessage &&
+          (typeof customization.giftMessage !== 'string' ||
+            customization.giftMessage.length > 255)
+        ) {
+          throw createHttpError(400, 'Invalid giftMessage');
+        }
+
+        if (
+          customization.isAnonymous !== undefined &&
+          typeof customization.isAnonymous !== 'boolean'
+        ) {
+          throw createHttpError(400, 'Invalid isAnonymous value');
+        }
+
+        if (
+          customization.deliveryTimeRequested &&
+          isNaN(Date.parse(customization.deliveryTimeRequested))
+        ) {
+          throw createHttpError(400, 'Invalid deliveryTimeRequested');
+        }
+      }
+
       const existingUser = await UserModel.findById(user);
       if (!existingUser) throw createHttpError(404, 'User not found');
 
