@@ -16,14 +16,15 @@ import { useNavigate } from 'react-router';
 
 const CartItemsTable: React.FC = () => {
   const { items, loading } = useSelector((state: RootState) => state.carts);
-  const {addresses} = useSelector((state: RootState) => state.addresses);
+  const { addresses } = useSelector((state: RootState) => state.addresses);
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const userId = user?.id;  
+  const userId = user?.id;
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'banking'>('cod');
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
@@ -41,14 +42,14 @@ const CartItemsTable: React.FC = () => {
   }, [userId, dispatch]);
 
   console.log(addresses);
-  
+
   useEffect(() => {
     if (addresses.length > 0 && !selectedAddressId) {
       const defaultAddress = addresses.find(addr => addr.isDefault);
       setSelectedAddressId(defaultAddress?._id || addresses[0]._id);
     }
   }, [addresses, selectedAddressId]);
-  
+
   const handleRemove = (variantId: string) => {
     dispatch(removeFromCart({ userId, variantId }));
   };
@@ -93,12 +94,17 @@ const CartItemsTable: React.FC = () => {
       description: 'Đơn hàng từ giỏ hàng'
     };
 
-    const result = await dispatch(createOrder(orderData));
-    if (createOrder.fulfilled.match(result)) {
-      alert('✅ Đặt hàng thành công!');
-      navigate('/home/orders');
-    } else {
-      alert('❌ Có lỗi xảy ra khi đặt hàng');
+    try {
+      const result = await dispatch(createOrder(orderData));
+      if (createOrder.fulfilled.match(result)) {
+        const order = result.payload;
+        navigate(`/home/orders/${order._id}`);
+      } else {
+        navigate('/home/order-fail');
+      }
+    } catch (error) {
+      console.error('Order failed:', error);
+      navigate('/home/order-fail');
     }
   };
 
@@ -125,7 +131,7 @@ const CartItemsTable: React.FC = () => {
             <h3 className='text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2'>
               <FiMapPin className='text-[#C4265B]' />
               Địa chỉ giao hàng
-            </h3>            
+            </h3>
             {addresses.length === 0 ? (
               <p>Bạn chưa có địa chỉ nào.</p>
             ) : (
@@ -262,6 +268,17 @@ const CartItemsTable: React.FC = () => {
                 <span>Phí vận chuyển:</span>
                 <span>{shippingCost.toLocaleString()}₫</span>
               </div>
+              <div className='flex justify-between'>
+                <span>Phương thức thanh toán:</span>
+                <select
+                  value={paymentMethod}
+                  onChange={e => setPaymentMethod(e.target.value as 'cod' | 'banking')}
+                  className='p-2 border rounded text-gray-700'
+                >
+                  <option value='cod'>Thanh toán khi nhận hàng (COD)</option>
+                  <option value='banking'>Chuyển khoản ngân hàng</option>
+                </select>
+              </div>
               <div className='flex justify-between font-bold text-lg text-[#C4265B] pt-2 mt-2'>
                 <span>Tổng cộng:</span>
                 <span>{totalPrice.toLocaleString()}₫</span>
@@ -269,7 +286,7 @@ const CartItemsTable: React.FC = () => {
             </div>
           </div>
 
-          <button onClick={handlePlaceOrder} className='w-full bg-[#C4265B] text-white py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700'>
+          <button onClick={handlePlaceOrder} className='w-full bg-[#C4265B] text-white py-3 rounded-lg font-semibold text-base flex items-center justify-center gap-2 hover:bg-blue-700 mb-20'>
             <FaShoppingCart size={18} />
             Đặt hàng ngay
           </button>
