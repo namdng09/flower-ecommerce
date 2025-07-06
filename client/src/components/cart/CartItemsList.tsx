@@ -152,7 +152,7 @@ const CartItemsTable: React.FC = () => {
             )}
             <button
               onClick={() => setIsModalOpen(true)}
-              className='text-blue-600 underline mt-2 flex items-center gap-1'
+              className='bg-white text-blue-600 border border-blue-400 hover:bg-blue-50 font-medium mt-2 px-3 py-1 rounded flex items-center gap-1 transition'
             >
               <FiPlus />
               Thêm địa chỉ mới
