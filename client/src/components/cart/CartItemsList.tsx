@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AuthContext } from '~/contexts/authContext';
 import { FaShoppingCart, FaTrashAlt } from 'react-icons/fa';
 import { HiOutlineReceiptRefund } from 'react-icons/hi';
+import { FiMapPin, FiPlus } from 'react-icons/fi';
 import type { RootState } from '~/store';
 import {
   fetchCartByUserId,
@@ -120,9 +121,11 @@ const CartItemsTable: React.FC = () => {
 
       {items.length > 0 && (
         <>
-          {/* Địa chỉ giao hàng */}
           <div className='mb-6'>
-            <h3 className='text-lg font-semibold mb-2 text-[#C4265B]'>📍 Địa chỉ giao hàng</h3>
+            <h3 className='text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2'>
+              <FiMapPin className='text-[#C4265B]' />
+              Địa chỉ giao hàng
+            </h3>            
             {addresses.length === 0 ? (
               <p>Bạn chưa có địa chỉ nào.</p>
             ) : (
@@ -149,9 +152,10 @@ const CartItemsTable: React.FC = () => {
             )}
             <button
               onClick={() => setIsModalOpen(true)}
-              className='text-blue-600 underline mt-2'
+              className='text-blue-600 underline mt-2 flex items-center gap-1'
             >
-              ➕ Thêm địa chỉ mới
+              <FiPlus />
+              Thêm địa chỉ mới
             </button>
 
             {/* Modal thêm địa chỉ */}
