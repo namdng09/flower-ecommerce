@@ -442,7 +442,7 @@ export const orderController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const { status, deliveredAt, description, ...rest } = req.body;
+      const { status, description, expectedDeliveryAt, ...rest } = req.body;
 
       if (!Types.ObjectId.isValid(id))
         throw createHttpError(400, 'Invalid order id');
@@ -450,7 +450,7 @@ export const orderController = {
       if (Object.keys(rest).length > 0)
         throw createHttpError(
           400,
-          'Only status, deliveredAt, description can be updated'
+          'Only status, description, expectedDeliveryAt can be updated'
         );
 
       const allowedStatus: OrderStatus[] = [
@@ -471,15 +471,15 @@ export const orderController = {
       if (status !== undefined) order.status = status;
       if (description !== undefined) order.description = description;
 
-      if (deliveredAt !== undefined) {
-        const dateObj = new Date(deliveredAt);
+      if (expectedDeliveryAt !== undefined) {
+        const dateObj = new Date(expectedDeliveryAt);
         if (isNaN(dateObj.getTime()))
-          throw createHttpError(400, 'Invalid deliveredAt date');
-        order.deliveredAt = dateObj;
+          throw createHttpError(400, 'Invalid expectedDeliveryAt date');
+        order.expectedDeliveryAt = dateObj;
       }
 
-      if (status === 'delivered' && !order.deliveredAt)
-        order.deliveredAt = new Date();
+      if (status === 'delivered' && !order.shipment.deliveredAt)
+        order.shipment.deliveredAt = new Date();
 
       const updated = await order.save();
 
