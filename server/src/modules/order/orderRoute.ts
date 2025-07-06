@@ -6,6 +6,7 @@ const router: Router = express.Router();
 
 router.get('/filter', asyncHandler(orderController.filterOrder));
 router.get('/', asyncHandler(orderController.list));
+router.get('/:userId/user', asyncHandler(orderController.getByUserId));
 router.get('/:id', asyncHandler(orderController.show));
 
 router.post('/', asyncHandler(orderController.create));

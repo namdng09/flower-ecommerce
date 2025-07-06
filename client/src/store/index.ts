@@ -5,13 +5,16 @@ import variantReducer from './slices/variantSlice';
 
 import categoryReducer from './slices/categorySlice';
 import cartReducer from './slices/cartSlice';
+import orderReducer from './slices/orderSlice';
+
 export const store = configureStore({
   reducer: {
     products: productReducer,
     productDetail: productDetailReducer,
     variants: variantReducer,
     categories: categoryReducer,
-    carts: cartReducer
+    carts: cartReducer,
+    orders: orderReducer
   }
 });
 

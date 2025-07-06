@@ -13,11 +13,9 @@
   },
   "lint-staged": {
     "client/**/*.{ts,tsx}": [
-      "tsc-files --noEmit -p client/tsconfig.app.json'",
       "git add"
     ],
     "server/**/*.{ts,tsx}": [
-      "npx tsc-files --noEmit -p server/tsconfig.json'",
       "git add"
     ],
     "*.{js,mjs}": [
