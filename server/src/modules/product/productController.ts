@@ -51,7 +51,6 @@ export const productController = {
         minPrice,
         maxPrice,
         province,
-        district,
         ward
       } = req.query;
 
@@ -166,16 +165,12 @@ export const productController = {
             ]
           : []),
 
-        // 5. Match theo địa chỉ sau khi có address
-        ...(province || district || ward
+        ...(province || ward
           ? [
               {
                 $match: {
                   ...(province && {
                     'address.province': { $regex: province, $options: 'i' }
-                  }),
-                  ...(district && {
-                    'address.district': { $regex: district, $options: 'i' }
                   }),
                   ...(ward && {
                     'address.ward': { $regex: ward, $options: 'i' }
