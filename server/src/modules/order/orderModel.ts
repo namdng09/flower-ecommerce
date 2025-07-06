@@ -45,8 +45,15 @@ export interface IShipment {
   trackingNumber?: string;
   shippingCost: number;
   status: ShipmentStatus;
+  deliveredAt?: Date;
   isReturn?: boolean;
   returnReason?: string;
+}
+
+export interface ICustomization {
+  giftMessage?: string;
+  isAnonymous?: boolean;
+  deliveryTimeRequested?: Date;
   notes?: string;
 }
 
@@ -59,9 +66,9 @@ export interface IOrder extends Document {
   status: OrderStatus;
   payment: IPayment;
   shipment: IShipment;
+  customization?: ICustomization;
   description?: string;
   expectedDeliveryAt?: Date;
-  deliveredAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -111,9 +118,19 @@ const ShipmentSchema = new Schema<IShipment>(
       ],
       default: 'pending'
     },
-    isReturn: { type: Boolean, default: false },
-    returnReason: String,
-    notes: String
+    deliveredAt: { type: Date },
+    isReturn: { type: Boolean },
+    returnReason: { type: String, trim: true }
+  },
+  { _id: false }
+);
+
+const CustomizationSchema = new Schema<ICustomization>(
+  {
+    giftMessage: { type: String, trim: true, maxlength: 500 },
+    isAnonymous: { type: Boolean },
+    deliveryTimeRequested: { type: Date },
+    notes: { type: String, trime: true }
   },
   { _id: false }
 );
@@ -144,9 +161,9 @@ const OrderSchema = new Schema<IOrder>(
     },
     payment: { type: PaymentSchema, required: true },
     shipment: { type: ShipmentSchema, required: true },
-    expectedDeliveryAt: Date,
-    deliveredAt: Date,
-    description: String
+    customization: { type: CustomizationSchema },
+    description: { type: String, trim: true },
+    expectedDeliveryAt: { type: Date }
   },
   { timestamps: true }
 );
