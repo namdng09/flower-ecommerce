@@ -3,7 +3,6 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api/orders';
 
-// Get all orders (pagination + filters)
 export const fetchOrders = createAsyncThunk(
   'orders/fetchAll',
   async (params = {}, { rejectWithValue }) => {
@@ -17,7 +16,6 @@ export const fetchOrders = createAsyncThunk(
   }
 );
 
-// Get single order by ID
 export const fetchOrderById = createAsyncThunk(
   'orders/fetchById',
   async (id: string, { rejectWithValue }) => {
@@ -30,7 +28,18 @@ export const fetchOrderById = createAsyncThunk(
   }
 );
 
-// Create new order
+export const fetchOrdersByUser = createAsyncThunk(
+  'orders/fetchByUser',
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${BASE_URL}/${userId}/user`);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Fetch failed');
+    }
+  }
+);
+
 export const createOrder = createAsyncThunk(
   'orders/create',
   async (orderData, { rejectWithValue }) => {
@@ -43,7 +52,59 @@ export const createOrder = createAsyncThunk(
   }
 );
 
-// Slice Definition
+export const updateOrder = createAsyncThunk(
+  'orders/updateOrder',
+  async ({ id, updateData }, { rejectWithValue }) => {
+    try {
+      const res = await axios.patch(`${BASE_URL}/${id}`, updateData);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Update failed');
+    }
+  }
+);
+
+export const updateShipment = createAsyncThunk(
+  'orders/updateShipment',
+  async ({ id, shipmentData }, { rejectWithValue }) => {
+    try {
+      const res = await axios.patch(`${BASE_URL}/${id}/shipment`, shipmentData);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Update shipment failed'
+      );
+    }
+  }
+);
+
+export const updatePayment = createAsyncThunk(
+  'orders/updatePayment',
+  async ({ id, paymentData }, { rejectWithValue }) => {
+    try {
+      const res = await axios.patch(`${BASE_URL}/${id}/payment`, paymentData);
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Update payment failed'
+      );
+    }
+  }
+);
+
+export const deleteOrder = createAsyncThunk(
+  'orders/delete',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await axios.delete(`${BASE_URL}/${id}`);
+      return id;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Delete failed');
+    }
+  }
+);
+
+// Slice definition
 const orderSlice = createSlice({
   name: 'orders',
   initialState: {
@@ -51,12 +112,12 @@ const orderSlice = createSlice({
     error: null,
     orders: [],
     pagination: {},
-    currentOrder: null
+    currentOrder: null,
+    userOrders: []
   },
   reducers: {},
   extraReducers: builder => {
     builder
-      // Fetch All order
       .addCase(fetchOrders.pending, state => {
         state.loading = true;
         state.error = null;
@@ -76,7 +137,6 @@ const orderSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch One order
       .addCase(fetchOrderById.pending, state => {
         state.loading = true;
         state.error = null;
@@ -90,7 +150,19 @@ const orderSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Create new order
+      .addCase(fetchOrdersByUser.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOrdersByUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.userOrders = action.payload;
+      })
+      .addCase(fetchOrdersByUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       .addCase(createOrder.pending, state => {
         state.loading = true;
         state.error = null;
@@ -102,6 +174,22 @@ const orderSlice = createSlice({
       .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      .addCase(updateOrder.fulfilled, (state, action) => {
+        state.currentOrder = action.payload;
+      })
+      .addCase(updateShipment.fulfilled, (state, action) => {
+        state.currentOrder = action.payload;
+      })
+      .addCase(updatePayment.fulfilled, (state, action) => {
+        state.currentOrder = action.payload;
+      })
+
+      .addCase(deleteOrder.fulfilled, (state, action) => {
+        state.orders = state.orders.filter(
+          order => order._id !== action.payload
+        );
       });
   }
 });
