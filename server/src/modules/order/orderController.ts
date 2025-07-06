@@ -6,6 +6,7 @@ import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
 import { apiResponse } from '~/types/apiResponse';
 import createHttpError from 'http-errors';
 import VariantModel from '../variant/variantModel';
+import AddressModel from '../address/addressModel';
 
 export const orderController = {
   /**
@@ -18,7 +19,7 @@ export const orderController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const orders = await OrderModel.find();
+      const orders = await OrderModel.find().populate('address');
 
       return res
         .status(200)
@@ -109,7 +110,14 @@ export const orderController = {
           }
         },
         { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-
+        {
+          $lookup: {
+            from: 'addresses',
+            localField: 'address',
+            foreignField: '_id',
+            as: 'address'
+          }
+        },
         { $unwind: '$items' },
         {
           $lookup: {
@@ -189,7 +197,7 @@ export const orderController = {
       if (!Types.ObjectId.isValid(id))
         throw createHttpError(400, 'Invalid order id');
 
-      const order = await OrderModel.findById(id);
+      const order = await OrderModel.findById(id).populate('address');
       if (!order) throw createHttpError(404, 'Order not found');
 
       return res
@@ -240,13 +248,19 @@ export const orderController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { user, items, payment, shipment, customization } = req.body;
+      const { user, address, items, payment, shipment, customization } = req.body;
 
       if (!Types.ObjectId.isValid(user))
         throw createHttpError(400, 'Invalid user id');
 
+      if (!Types.ObjectId.isValid(address))
+        throw createHttpError(400, 'Invalid address id');
+
       const existingUser = await UserModel.findById(user);
       if (!existingUser) throw createHttpError(404, 'User not found');
+
+      const existingAddress = await AddressModel.findById(address);
+      if (!existingAddress) throw createHttpError(404, 'Address not found');
 
       if (!Array.isArray(items) || items.length === 0)
         throw createHttpError(400, 'Order must contain at least one item');
@@ -317,6 +331,7 @@ export const orderController = {
 
       const newOrder = await OrderModel.create({
         user,
+        address,
         items,
         totalQuantity,
         totalPrice,

@@ -59,6 +59,7 @@ export interface ICustomization {
 export interface IOrder extends Document {
   orderNumber: string;
   user: mongoose.Types.ObjectId;
+  address: mongoose.Types.ObjectId;
   items: IOrderItem[];
   totalQuantity: number;
   totalPrice: number;
@@ -141,6 +142,11 @@ const OrderSchema = new Schema<IOrder>(
       ref: 'User',
       required: true,
       index: true
+    },
+    address: {
+      type: Schema.Types.ObjectId,
+      ref: 'Address',
+      required: true
     },
     items: { type: [OrderItemSchema], required: true },
     totalQuantity: { type: Number, default: 0 },
