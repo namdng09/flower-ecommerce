@@ -121,7 +121,7 @@ const CartItemsTable: React.FC = () => {
 
       {items.length > 0 && (
         <>
-          <div className='mb-6'>
+          <div className='mb-6 text-black'>
             <h3 className='text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2'>
               <FiMapPin className='text-[#C4265B]' />
               Địa chỉ giao hàng
@@ -231,7 +231,7 @@ const CartItemsTable: React.FC = () => {
                         <td className='p-3'>
                           <div className='flex items-center gap-2'>
                             <button onClick={() => handleQuantityChange(v._id, item.quantity - 1)} disabled={item.quantity <= 1} className={`w-8 h-8 border rounded ${item.quantity <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>−</button>
-                            <span className='px-3 py-1 border rounded bg-white min-w-[2rem] text-center'>{item.quantity}</span>
+                            <span className='px-3 py-1 border rounded bg-white min-w-[2rem] text-center text-black'>{item.quantity}</span>
                             <button onClick={() => handleQuantityChange(v._id, item.quantity + 1)} className='w-8 h-8 border rounded bg-gray-100 hover:bg-gray-200 text-gray-700'>+</button>
                           </div>
                         </td>
@@ -249,7 +249,7 @@ const CartItemsTable: React.FC = () => {
 
           {/* Tổng cộng và đặt hàng */}
           <div className='bg-white shadow-md p-6 rounded-xl mb-6'>
-            <h2 className='text-xl font-bold mb-4 border-b pb-2 flex items-center gap-2'>
+            <h2 className='text-xl font-bold mb-4 border-b pb-2 flex items-center gap-2 text-[#C4265B]'>
               <HiOutlineReceiptRefund className='text-[#C4265B]' size={22} />
               Tóm tắt đơn hàng
             </h2>
