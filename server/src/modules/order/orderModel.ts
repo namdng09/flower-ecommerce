@@ -46,7 +46,6 @@ export interface IShipment {
   shippingCost: number;
   status: ShipmentStatus;
   deliveredAt?: Date;
-  isReturn?: boolean;
   returnReason?: string;
 }
 
@@ -119,7 +118,6 @@ const ShipmentSchema = new Schema<IShipment>(
       default: 'pending'
     },
     deliveredAt: { type: Date },
-    isReturn: { type: Boolean },
     returnReason: { type: String, trim: true }
   },
   { _id: false }

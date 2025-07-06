@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
-import OrderModel from './orderModel';
+import OrderModel, { IPayment } from './orderModel';
 import UserModel from '../user/userModel';
 import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
 import { apiResponse } from '~/types/apiResponse';
@@ -240,23 +240,13 @@ export const orderController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const {
-        user,
-        items,
-        payment,
-        shipment,
-        description,
-        expectedDeliveryAt
-      } = req.body;
+      const { user, items, payment, shipment, customization } = req.body;
 
       if (!Types.ObjectId.isValid(user))
         throw createHttpError(400, 'Invalid user id');
 
       const existingUser = await UserModel.findById(user);
-
-      if (!existingUser) {
-        throw createHttpError(404, 'User not found');
-      }
+      if (!existingUser) throw createHttpError(404, 'User not found');
 
       if (!Array.isArray(items) || items.length === 0)
         throw createHttpError(400, 'Order must contain at least one item');
@@ -264,18 +254,37 @@ export const orderController = {
       for (const [index, it] of items.entries()) {
         if (!Types.ObjectId.isValid(it.variant))
           throw createHttpError(400, `Invalid variant id at index ${index}`);
+
         const variantDoc = await VariantModel.findById(it.variant);
-        if (!variantDoc) {
+        if (!variantDoc)
           throw createHttpError(400, `Variant not found at index ${index}`);
-        }
+
         if (!it.quantity || it.quantity < 1)
           throw createHttpError(400, `Quantity must be ≥1 at index ${index}`);
+
         if (!it.price || it.price < 0)
           throw createHttpError(400, `Price must be ≥0 at index ${index}`);
       }
 
-      if (expectedDeliveryAt && isNaN(Date.parse(expectedDeliveryAt))) {
-        throw createHttpError(400, 'Invalid expectedDeliveryAt date');
+      if (
+        !shipment ||
+        typeof shipment.shippingCost !== 'number' ||
+        shipment.shippingCost < 0
+      )
+        throw createHttpError(400, 'Invalid or missing shippingCost');
+
+      const allowedShipmentStatus: ShipmentStatus[] = [
+        'pending',
+        'picking_up',
+        'out_for_delivery',
+        'delivered',
+        'failed'
+      ];
+      if (
+        shipment.status &&
+        !allowedShipmentStatus.includes(shipment.status as ShipmentStatus)
+      ) {
+        throw createHttpError(400, 'Invalid shipment status');
       }
 
       if (!payment || !['cod', 'banking'].includes(payment.method))
@@ -287,22 +296,33 @@ export const orderController = {
 
       const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
 
-      let totalPrice = items.reduce(
+      let itemsTotal = items.reduce(
         (sum, item) => sum + item.quantity * item.price,
         0
       );
 
-      totalPrice += shipment.shippingCost;
+      const totalPrice = itemsTotal + shipment.shippingCost;
+
+      const paymentStatus: PaymentStatus =
+        payment.method === 'banking' ? 'awaiting_payment' : 'unpaid';
+
+      const paymentData: IPayment = {
+        amount: totalPrice,
+        method: payment.method,
+        status: paymentStatus,
+        description: payment.description,
+        gatewayRef: payment.gatewayRef,
+        paymentDate: payment.paymentDate
+      };
 
       const newOrder = await OrderModel.create({
         user,
         items,
         totalQuantity,
         totalPrice,
-        payment,
+        payment: paymentData,
         shipment,
-        expectedDeliveryAt,
-        description
+        customization
       });
 
       return res
@@ -320,7 +340,7 @@ export const orderController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const { carrier, trackingNumber, status, returnReason, notes } = req.body;
+      const { carrier, trackingNumber, status, returnReason } = req.body;
 
       if (!Types.ObjectId.isValid(id))
         throw createHttpError(400, 'Invalid order id');
@@ -342,21 +362,20 @@ export const orderController = {
 
       const ship = order.shipment;
 
+      if (status !== undefined) {
+        ship.status = status as ShipmentStatus;
+
+        if (status === 'delivered') {
+          ship.deliveredAt = new Date();
+          order.status = 'delivered';
+        } else if (status === 'failed') {
+          order.status = 'cancelled';
+        }
+      }
+
       if (carrier !== undefined) ship.carrier = carrier;
       if (trackingNumber !== undefined) ship.trackingNumber = trackingNumber;
-      if (status !== undefined) ship.status = status;
-      if (notes !== undefined) ship.notes = notes;
-
-      if (returnReason !== undefined) {
-        order.shipment.returnReason = returnReason;
-        order.shipment.isReturn = true;
-      }
-
-      if (status === 'delivered') {
-        order.status = 'delivered';
-      } else if (status === 'failed') {
-        order.status = 'cancelled';
-      }
+      if (returnReason !== undefined) ship.returnReason = returnReason;
 
       const updated = await order.save();
 
