@@ -167,6 +167,17 @@ export const addressController = {
         throw createHttpError(400, 'Invalid address id');
       }
 
+      const validAddressTypes = ['home', 'office', 'other'];
+      if (
+        addressType !== undefined &&
+        !validAddressTypes.includes(addressType)
+      ) {
+        throw createHttpError(
+          400,
+          `Invalid addressType. Must be one of: ${validAddressTypes.join(', ')}`
+        );
+      }
+
       const address = await AddressModel.findById(id);
       if (!address) {
         throw createHttpError(404, 'Address not found');
