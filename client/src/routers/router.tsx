@@ -9,7 +9,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/playground',
-    Component: lazy(() => import('../layouts/mainLayout')),
+    Component: lazy(() => import('../layouts/homepageLayout')),
     children: [
       {
         index: true,
@@ -140,6 +140,10 @@ const router = createBrowserRouter([
       {
         path: 'user',
         Component: lazy(() => import('../app/(admin)/user/page'))
+      },
+      {
+        path: 'user/create',
+        Component: lazy(() => import('../app/(admin)/user/create/page'))
       },
       {
         path: 'user/:id',

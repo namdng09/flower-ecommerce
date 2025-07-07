@@ -1,7 +1,311 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '~/store/hooks';
+import {
+  fetchUsers,
+  deleteUser,
+  setFilters,
+  clearError
+} from '~/store/slices/userSlice';
+import { Link, useSearchParams } from 'react-router';
+import DynamicTable from '~/components/DynamicTable';
+import Pagination from '~/components/Pagination';
+import type { User } from '~/types/user';
 
-const Page = () => {
-  return <div>Page</div>;
+const UserPage = () => {
+  const dispatch = useAppDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { users, loading, error, totalPages, currentPage, totalUsers } =
+    useAppSelector(state => state.users);
+
+  // Get filters from URL params
+  const getFiltersFromParams = () => ({
+    search: searchParams.get('search') || '',
+    role: searchParams.get('role') || '',
+    sortBy: searchParams.get('sortBy') || 'createdAt',
+    sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
+    page: parseInt(searchParams.get('page') || '1', 10)
+  });
+
+  const updateURLParams = (newFilters: {
+    search: string;
+    role: string;
+    sortBy: string;
+    sortOrder: string;
+    page: number;
+  }) => {
+    const params = new URLSearchParams();
+
+    if (newFilters.search) params.set('search', newFilters.search);
+    if (newFilters.role) params.set('role', newFilters.role);
+    if (newFilters.sortBy !== 'createdAt')
+      params.set('sortBy', newFilters.sortBy);
+    if (newFilters.sortOrder !== 'desc')
+      params.set('sortOrder', newFilters.sortOrder);
+    if (newFilters.page !== 1) params.set('page', newFilters.page.toString());
+
+    setSearchParams(params);
+  };
+
+  const [localFilters, setLocalFilters] = useState(getFiltersFromParams);
+
+  // Load users only when URL params change
+  useEffect(() => {
+    const filters = getFiltersFromParams();
+    dispatch(setFilters(filters));
+    dispatch(fetchUsers(filters));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, dispatch]);
+
+  // Handle search input with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const currentFilters = getFiltersFromParams();
+      if (localFilters.search !== currentFilters.search) {
+        updateURLParams({ ...localFilters, page: 1 });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localFilters.search]);
+
+  const handleFilterChange = (key: string, value: string) => {
+    const newFilters = { ...localFilters, [key]: value };
+    setLocalFilters(newFilters);
+
+    if (key !== 'search') {
+      updateURLParams({ ...newFilters, page: 1 });
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    const newFilters = { ...localFilters, page };
+    setLocalFilters(newFilters);
+    updateURLParams(newFilters);
+  };
+
+  const handleDelete = async (userId: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        await dispatch(deleteUser(userId)).unwrap();
+        // Refresh the list with current filters
+        const currentFilters = getFiltersFromParams();
+        dispatch(fetchUsers(currentFilters));
+      } catch (error) {
+        console.error('Failed to delete user:', error);
+      }
+    }
+  };
+
+  const columns = [
+    {
+      accessorKey: 'avatarUrl' as keyof User,
+      header: 'Avatar',
+      render: (value: string, row: User) => (
+        <div className='avatar'>
+          <div className='w-12 h-12 rounded-full'>
+            {value ? (
+              <img src={value} alt={row.fullName} className='rounded-full' />
+            ) : (
+              <div className='bg-gray-300 rounded-full w-12 h-12 flex items-center justify-center'>
+                <span className='text-gray-600 text-sm font-medium'>
+                  {row.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    {
+      accessorKey: 'fullName' as keyof User,
+      header: 'Full Name'
+    },
+    {
+      accessorKey: 'username' as keyof User,
+      header: 'Username'
+    },
+    {
+      accessorKey: 'email' as keyof User,
+      header: 'Email'
+    },
+    {
+      accessorKey: 'phoneNumber' as keyof User,
+      header: 'Phone'
+    },
+    {
+      accessorKey: 'role' as keyof User,
+      header: 'Role',
+      render: (value: string) => (
+        <span
+          className={`badge ${
+            value === 'admin'
+              ? 'badge-error'
+              : value === 'shop'
+                ? 'badge-warning'
+                : 'badge-info'
+          }`}
+        >
+          {value}
+        </span>
+      )
+    },
+    {
+      accessorKey: 'createdAt' as keyof User,
+      header: 'Created',
+      render: (value: string) => new Date(value).toLocaleDateString()
+    },
+    {
+      accessorKey: '_id' as keyof User,
+      header: 'Actions',
+      render: (_: string, row: User) => (
+        <div className='flex gap-2'>
+          <Link
+            to={`/admin/user/${row._id}`}
+            className='btn btn-sm btn-outline btn-info'
+          >
+            View
+          </Link>
+          <Link
+            to={`/admin/user/${row._id}?edit=true`}
+            className='btn btn-sm btn-outline btn-warning'
+          >
+            Edit
+          </Link>
+          <button
+            onClick={() => handleDelete(row._id)}
+            className='btn btn-sm btn-outline btn-error'
+          >
+            Delete
+          </button>
+        </div>
+      )
+    }
+  ];
+
+  if (error) {
+    return (
+      <div className='alert alert-error'>
+        <span>{error}</span>
+        <button onClick={() => dispatch(clearError())} className='btn btn-sm'>
+          Dismiss
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className='p-6'>
+      <div className='flex justify-between items-center mb-6'>
+        <div>
+          <h1 className='text-3xl font-bold'>User Management</h1>
+          <p className='text-gray-600 mt-2'>
+            Total: {totalUsers} users | Page {currentPage} of {totalPages}
+          </p>
+        </div>
+        <Link to='/admin/user/create' className='btn btn-primary'>
+          Add New User
+        </Link>
+      </div>
+
+      {/* Filters */}
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
+        <div className='form-control'>
+          <label className='label'>
+            <span className='label-text'>Search</span>
+          </label>
+          <input
+            type='text'
+            placeholder='Search by name, email, username...'
+            className='input input-bordered'
+            value={localFilters.search}
+            onChange={e => handleFilterChange('search', e.target.value)}
+          />
+        </div>
+
+        <div className='form-control'>
+          <label className='label'>
+            <span className='label-text'>Role</span>
+          </label>
+          <select
+            className='select select-bordered'
+            value={localFilters.role}
+            onChange={e => handleFilterChange('role', e.target.value)}
+          >
+            <option value=''>All Roles</option>
+            <option value='admin'>Admin</option>
+            <option value='shop'>Shop</option>
+            <option value='customer'>Customer</option>
+          </select>
+        </div>
+
+        <div className='form-control'>
+          <label className='label'>
+            <span className='label-text'>Sort By</span>
+          </label>
+          <select
+            className='select select-bordered'
+            value={localFilters.sortBy}
+            onChange={e => handleFilterChange('sortBy', e.target.value)}
+          >
+            <option value='createdAt'>Created Date</option>
+            <option value='fullName'>Full Name</option>
+            <option value='email'>Email</option>
+            <option value='role'>Role</option>
+          </select>
+        </div>
+
+        <div className='form-control'>
+          <label className='label'>
+            <span className='label-text'>Order</span>
+          </label>
+          <select
+            className='select select-bordered'
+            value={localFilters.sortOrder}
+            onChange={e =>
+              handleFilterChange('sortOrder', e.target.value as 'asc' | 'desc')
+            }
+          >
+            <option value='desc'>Descending</option>
+            <option value='asc'>Ascending</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Loading state */}
+      {loading && (
+        <div className='flex justify-center my-8'>
+          <span className='loading loading-spinner loading-lg'></span>
+        </div>
+      )}
+
+      {/* Users table */}
+      {!loading && users.length > 0 && (
+        <>
+          <DynamicTable data={users} columns={columns} />
+          {totalPages > 1 && (
+            <div className='flex justify-center mt-6'>
+              <Pagination
+                page={currentPage}
+                setPage={handlePageChange}
+                totalPages={totalPages}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Empty state */}
+      {!loading && users.length === 0 && (
+        <div className='text-center py-12'>
+          <p className='text-gray-500 text-lg'>No users found</p>
+          <Link to='/admin/user/create' className='btn btn-primary mt-4'>
+            Create First User
+          </Link>
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default Page;
+export default UserPage;
