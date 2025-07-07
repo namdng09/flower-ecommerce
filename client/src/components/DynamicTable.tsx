@@ -13,22 +13,22 @@ interface DynamicTableProps<T> {
 
 function DynamicTable<T>({ data, columns }: DynamicTableProps<T>) {
   return (
-    <div className="overflow-x-auto">
-      <table className="table table-zebra">
+    <div className='overflow-x-auto'>
+      <table className='table table-zebra'>
         <thead>
           <tr>
-            {columns.map((column, index) => (
-              <th key={index}>{column.header}</th>
+            {columns.map(column => (
+              <th key={column.accessorKey as string}>{column.header}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {data.map((row, rowIndex) => (
             <tr key={rowIndex}>
-              {columns.map((column, colIndex) => {
+              {columns.map(column => {
                 const value = row[column.accessorKey];
                 return (
-                  <td key={colIndex}>
+                  <td key={`${rowIndex}-${column.accessorKey as string}`}>
                     {column.render ? column.render(value, row) : String(value)}
                   </td>
                 );

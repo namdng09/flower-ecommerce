@@ -137,7 +137,7 @@ export const updateUserPassword = createAsyncThunk(
     oldPassword: string;
     newPassword: string;
   }) => {
-    const res = await axios.patch(`/api/users/${email}`, {
+    const res = await axios.patch(`/api/users/reset-password/${email}`, {
       oldPassword,
       newPassword
     });
