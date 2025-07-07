@@ -68,8 +68,8 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/home/cart/page'))
       },
       {
-        path: 'orders',
-        Component: lazy(() => import('../app/home/order/page'))
+        path: 'orders/:orderId',
+        Component: lazy(() => import('../app/home/order/[orderId]/page'))
       },
       {
         path: 'order-success/:orderId',
