@@ -41,7 +41,7 @@ const AddressSchema = new Schema<IAddress>(
     province: { type: String, required: true, trim: true },
     ward: { type: String, required: true, trim: true },
     street: { type: String, required: true, trim: true },
-    plusCode: { type: String, required: true, trim: true },
+    plusCode: { type: String, trim: true },
     location: {
       type: {
         type: String,
