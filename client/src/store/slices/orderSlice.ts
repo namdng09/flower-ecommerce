@@ -9,7 +9,7 @@ export const fetchOrders = createAsyncThunk(
     try {
       const query = new URLSearchParams(params).toString();
       const res = await axios.get(`${BASE_URL}?${query}`);
-      return res.data.data.result;
+      return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Fetch failed');
     }
@@ -104,7 +104,7 @@ export const deleteOrder = createAsyncThunk(
   }
 );
 
-// Slice definition
+// Slice
 const orderSlice = createSlice({
   name: 'orders',
   initialState: {
@@ -124,12 +124,12 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload.docs || [];
+        state.orders = action.payload || [];
         state.pagination = {
-          total: action.payload.totalDocs,
-          page: action.payload.page,
-          limit: action.payload.limit,
-          totalPages: action.payload.totalPages
+          total: action.payload.length,
+          page: 1,
+          limit: action.payload.length,
+          totalPages: 1
         };
       })
       .addCase(fetchOrders.rejected, (state, action) => {
@@ -167,15 +167,10 @@ const orderSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      // .addCase(createOrder.fulfilled, (state, action) => {
-      //   state.loading = false;
-      //   state.orders.unshift(action.payload);
-      // })
-      
       .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = false;
         state.orders.unshift(action.payload);
-        state.currentOrder = action.payload; 
+        state.currentOrder = action.payload;
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;
