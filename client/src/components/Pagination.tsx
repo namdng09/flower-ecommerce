@@ -11,7 +11,7 @@ const Pagination = ({
   page,
   setPage,
   totalPages,
-  limit = 2,
+  limit = 10,
   setLimit,
   totalItems
 }: PaginationProps) => {
