@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAppDispatch, useAppSelector } from '~/store/hooks';
 import {
   fetchUsers,
@@ -11,61 +14,84 @@ import DynamicTable from '~/components/DynamicTable';
 import Pagination from '~/components/Pagination';
 import type { User } from '~/types/user';
 
+const filterSchema = z.object({
+  search: z.string(),
+  role: z.string(),
+  sortBy: z.string(),
+  sortOrder: z.enum(['asc', 'desc'])
+});
+
+type FilterFormData = z.infer<typeof filterSchema>;
+
 const UserPage = () => {
   const dispatch = useAppDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { users, loading, error, totalPages, currentPage, totalUsers } =
     useAppSelector(state => state.users);
 
-  const getFiltersFromParams = () => ({
-    search: searchParams.get('search') || '',
-    role: searchParams.get('role') || '',
-    sortBy: searchParams.get('sortBy') || 'createdAt',
-    sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
-    page: parseInt(searchParams.get('page') || '1', 10),
-    limit: parseInt(searchParams.get('limit') || '2', 10)
-  });
+  const [page, setPage] = useState(() =>
+    parseInt(searchParams.get('page') || '1', 10)
+  );
+  const [limit, setLimit] = useState(() =>
+    parseInt(searchParams.get('limit') || '2', 10)
+  );
 
-  const updateURLParams = (newFilters: {
-    search: string;
-    role: string;
-    sortBy: string;
-    sortOrder: string;
-    page: number;
-    limit: number;
-  }) => {
+  const { register, handleSubmit, watch, reset, setValue } =
+    useForm<FilterFormData>({
+      resolver: zodResolver(filterSchema),
+      defaultValues: {
+        search: searchParams.get('search') || '',
+        role: searchParams.get('role') || '',
+        sortBy: searchParams.get('sortBy') || 'createdAt',
+        sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc'
+      }
+    });
+
+  const updateURLParams = (
+    filters: FilterFormData,
+    currentPage: number,
+    currentLimit: number
+  ) => {
     const params = new URLSearchParams();
 
-    if (newFilters.search) params.set('search', newFilters.search);
-    if (newFilters.role) params.set('role', newFilters.role);
-    if (newFilters.sortBy !== 'createdAt')
-      params.set('sortBy', newFilters.sortBy);
-    if (newFilters.sortOrder !== 'desc')
-      params.set('sortOrder', newFilters.sortOrder);
-    if (newFilters.page !== 1) params.set('page', newFilters.page.toString());
-    params.set('limit', newFilters.limit.toString());
+    if (filters.search) params.set('search', filters.search);
+    if (filters.role) params.set('role', filters.role);
+    if (filters.sortBy !== 'createdAt') params.set('sortBy', filters.sortBy);
+    if (filters.sortOrder !== 'desc')
+      params.set('sortOrder', filters.sortOrder);
+    if (currentPage !== 1) params.set('page', currentPage.toString());
+    params.set('limit', currentLimit.toString());
+
     setSearchParams(params);
   };
 
-  const [localFilters, setLocalFilters] = useState(getFiltersFromParams);
+  useEffect(() => {
+    setValue('search', searchParams.get('search') || '');
+    setValue('role', searchParams.get('role') || '');
+    setValue('sortBy', searchParams.get('sortBy') || 'createdAt');
+    setValue(
+      'sortOrder',
+      (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc'
+    );
+
+    setPage(parseInt(searchParams.get('page') || '1', 10));
+    setLimit(parseInt(searchParams.get('limit') || '10', 10));
+  }, [searchParams, setValue]);
 
   useEffect(() => {
-    const filters = getFiltersFromParams();
-    setLocalFilters(filters);
+    const currentFilters = watch();
+    const filters = {
+      ...currentFilters,
+      page,
+      limit
+    };
     dispatch(setFilters(filters));
     dispatch(fetchUsers(filters));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, dispatch]);
+  }, [searchParams, dispatch, page, limit, watch]);
 
-  const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...localFilters, [key]: value };
-    setLocalFilters(newFilters);
-  };
-
-  const handleApplyFilters = () => {
-    const newFilters = { ...localFilters, page: 1 };
-    setLocalFilters(newFilters);
-    updateURLParams(newFilters);
+  const onSubmit = (data: FilterFormData) => {
+    setPage(1); // Reset to first page when applying filters
+    updateURLParams(data, 1, limit);
   };
 
   const handleResetFilters = () => {
@@ -73,33 +99,37 @@ const UserPage = () => {
       search: '',
       role: '',
       sortBy: 'createdAt',
-      sortOrder: 'desc' as 'asc' | 'desc',
-      page: 1,
-      limit: localFilters.limit
+      sortOrder: 'desc' as const
     };
-    setLocalFilters(resetFilters);
-    updateURLParams(resetFilters);
+    reset(resetFilters);
+    setPage(1);
+    updateURLParams(resetFilters, 1, limit);
   };
 
-  const handlePageChange = (page: number) => {
-    const newFilters = { ...localFilters, page };
-    setLocalFilters(newFilters);
-    updateURLParams(newFilters);
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    const currentFilters = watch();
+    updateURLParams(currentFilters, newPage, limit);
   };
 
-  const handleLimitChange = (limit: number) => {
-    const newFilters = { ...localFilters, limit, page: 1 };
-    setLocalFilters(newFilters);
-    updateURLParams(newFilters);
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    const currentFilters = watch();
+    updateURLParams(currentFilters, 1, newLimit);
   };
 
   const handleDelete = async (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await dispatch(deleteUser(userId)).unwrap();
-        // Refresh the list with current filters
-        const currentFilters = getFiltersFromParams();
-        dispatch(fetchUsers(currentFilters));
+        const currentFilters = watch();
+        const filters = {
+          ...currentFilters,
+          page,
+          limit
+        };
+        dispatch(fetchUsers(filters));
       } catch (error) {
         console.error('Failed to delete user:', error);
       }
@@ -217,85 +247,72 @@ const UserPage = () => {
         </Link>
       </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
-        <div className='form-control'>
-          <label className='label'>
-            <span className='label-text'>Search</span>
-          </label>
-          <input
-            type='text'
-            placeholder='Search by name, email, username...'
-            className='input input-bordered'
-            value={localFilters.search}
-            onChange={e => handleFilterChange('search', e.target.value)}
-          />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
+          <div className='form-control'>
+            <label className='label'>
+              <span className='label-text'>Search</span>
+            </label>
+            <input
+              type='text'
+              placeholder='Search by name, email, username...'
+              className='input input-bordered'
+              {...register('search')}
+            />
+          </div>
+
+          <div className='form-control'>
+            <label className='label'>
+              <span className='label-text'>Role</span>
+            </label>
+            <select className='select select-bordered' {...register('role')}>
+              <option value=''>All Roles</option>
+              <option value='admin'>Admin</option>
+              <option value='shop'>Shop</option>
+              <option value='customer'>Customer</option>
+            </select>
+          </div>
+
+          <div className='form-control'>
+            <label className='label'>
+              <span className='label-text'>Sort By</span>
+            </label>
+            <select className='select select-bordered' {...register('sortBy')}>
+              <option value='createdAt'>Created Date</option>
+              <option value='fullName'>Full Name</option>
+              <option value='email'>Email</option>
+              <option value='role'>Role</option>
+            </select>
+          </div>
+
+          <div className='form-control'>
+            <label className='label'>
+              <span className='label-text'>Order</span>
+            </label>
+            <select
+              className='select select-bordered'
+              {...register('sortOrder')}
+            >
+              <option value='desc'>Descending</option>
+              <option value='asc'>Ascending</option>
+            </select>
+          </div>
         </div>
 
-        <div className='form-control'>
-          <label className='label'>
-            <span className='label-text'>Role</span>
-          </label>
-          <select
-            className='select select-bordered'
-            value={localFilters.role}
-            onChange={e => handleFilterChange('role', e.target.value)}
+        <div className='flex gap-4 mb-6'>
+          <button type='submit' className='btn btn-primary' disabled={loading}>
+            Apply Filters
+          </button>
+          <button
+            type='button'
+            onClick={handleResetFilters}
+            className='btn btn-outline'
+            disabled={loading}
           >
-            <option value=''>All Roles</option>
-            <option value='admin'>Admin</option>
-            <option value='shop'>Shop</option>
-            <option value='customer'>Customer</option>
-          </select>
+            Reset Filters
+          </button>
         </div>
-
-        <div className='form-control'>
-          <label className='label'>
-            <span className='label-text'>Sort By</span>
-          </label>
-          <select
-            className='select select-bordered'
-            value={localFilters.sortBy}
-            onChange={e => handleFilterChange('sortBy', e.target.value)}
-          >
-            <option value='createdAt'>Created Date</option>
-            <option value='fullName'>Full Name</option>
-            <option value='email'>Email</option>
-            <option value='role'>Role</option>
-          </select>
-        </div>
-
-        <div className='form-control'>
-          <label className='label'>
-            <span className='label-text'>Order</span>
-          </label>
-          <select
-            className='select select-bordered'
-            value={localFilters.sortOrder}
-            onChange={e =>
-              handleFilterChange('sortOrder', e.target.value as 'asc' | 'desc')
-            }
-          >
-            <option value='desc'>Descending</option>
-            <option value='asc'>Ascending</option>
-          </select>
-        </div>
-      </div>
-
-      <div className='flex gap-4 mb-6'>
-        <button
-          onClick={handleApplyFilters}
-          className='btn btn-primary'
-          disabled={loading}
-        >
-          Apply Filters
-        </button>
-        <button
-          onClick={handleResetFilters}
-          className='btn btn-outline'
-          disabled={loading}
-        >
-          Reset Filters
-        </button>
-      </div>
+      </form>
 
       {loading && (
         <div className='flex justify-center my-8'>
@@ -311,7 +328,7 @@ const UserPage = () => {
               page={currentPage}
               setPage={handlePageChange}
               totalPages={totalPages}
-              limit={localFilters.limit}
+              limit={limit}
               setLimit={handleLimitChange}
               totalItems={totalUsers}
             />
