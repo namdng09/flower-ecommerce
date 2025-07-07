@@ -230,11 +230,42 @@ const OrderPage: React.FC = () => {
           {address.street}, {address.ward}, {address.province}
         </p>
 
-        <div className="space-y-2">
+        {order.customization && (
+          <div className="mt-6 space-y-2">
+            <h2 className="text-lg font-semibold text-[#C4265B]">🎁 Tuỳ chọn đơn hàng</h2>
+
+            {order.customization.giftMessage && (
+              <div className="text-gray-800">
+                <strong>Lời chúc:</strong> {order.customization.giftMessage}
+              </div>
+            )}
+
+            {order.customization.isAnonymous && (
+              <div className="text-gray-800">
+                <strong>Người gửi:</strong> Ẩn danh
+              </div>
+            )}
+
+            {order.customization.deliveryTimeRequested && (
+              <div className="text-gray-800">
+                <strong>Thời gian giao hàng mong muốn:</strong>{' '}
+                {new Date(order.customization.deliveryTimeRequested).toLocaleString('vi-VN', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="space-y-2 mt-10">
           <div className="flex justify-between">
             <span>Tạm tính:</span>
             <span>{(totalPrice - shipment.shippingCost).toLocaleString()}₫</span>
-          </div>
+            </div>
           <div className="flex justify-between">
             <span>Phí vận chuyển:</span>
             <span>{shipment.shippingCost.toLocaleString()}₫</span>
@@ -249,7 +280,7 @@ const OrderPage: React.FC = () => {
           </div>
         </div>
 
-        <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
+        <div className='flex flex-col gap-3 sm:flex-row sm:justify-center mt-10'>
           <button
             onClick={() => navigate('/home')}
             className='bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition'
