@@ -230,7 +230,6 @@ export const productService = {
         const createdVariants: Types.ObjectId[] = [];
 
         for (const variant of variants) {
-            console.log(variant);
             const { title, listPrice, salePrice, image, inventory = 0 } = variant as any;
 
             if (!title || typeof title !== 'string' || title.trim() === '') {
