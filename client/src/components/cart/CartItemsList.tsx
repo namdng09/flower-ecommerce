@@ -24,7 +24,9 @@ const CartItemsTable: React.FC = () => {
   const { user } = useContext(AuthContext);
   const userId = user?.id;
 
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
@@ -90,7 +92,9 @@ const CartItemsTable: React.FC = () => {
     const customization = {
       giftMessage: giftMessage.trim() || undefined,
       isAnonymous,
-      deliveryTimeRequested: deliveryTimeRequested ? new Date(deliveryTimeRequested).toISOString() : undefined
+      deliveryTimeRequested: deliveryTimeRequested
+        ? new Date(deliveryTimeRequested).toISOString()
+        : undefined
     };
 
     const orderData = {
@@ -136,7 +140,9 @@ const CartItemsTable: React.FC = () => {
 
   return (
     <div className='pt-50 px-4 max-w-7xl mx-auto min-h-screen bg-white'>
-      <h2 className='text-2xl font-bold mb-6 text-gray-800'>🛒 Giỏ hàng của bạn</h2>
+      <h2 className='text-2xl font-bold mb-6 text-gray-800'>
+        🛒 Giỏ hàng của bạn
+      </h2>
 
       {loading && <p>Đang tải...</p>}
       {!loading && items.length === 0 && (
@@ -166,7 +172,8 @@ const CartItemsTable: React.FC = () => {
                       checked={selectedAddressId === address._id}
                       onChange={() => setSelectedAddressId(address._id)}
                     />
-                    <span className='font-semibold'>{address.fullName}</span> - {address.phone}
+                    <span className='font-semibold'>{address.fullName}</span> -{' '}
+                    {address.phone}
                     <div className='text-sm text-gray-600'>
                       {address.street}, {address.ward}, {address.province}
                     </div>
@@ -187,15 +194,22 @@ const CartItemsTable: React.FC = () => {
               <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 text-black'>
                 <div className='bg-white/80 backdrop-blur-md p-6 rounded-lg w-[95%] max-w-md shadow-lg relative border border-gray-200'>
                   <h3 className='text-lg font-bold mb-4'>Thêm địa chỉ mới</h3>
-                  {['fullName', 'phone', 'street', 'ward', 'province'].map(field => (
-                    <input
-                      key={field}
-                      placeholder={field}
-                      className='w-full border p-2 mb-2 rounded text-sm bg-white/70 backdrop-blur placeholder-black text-black'
-                      value={(form as any)[field]}
-                      onChange={e => setForm(prev => ({ ...prev, [field]: e.target.value }))}
-                    />
-                  ))}
+                  {['fullName', 'phone', 'street', 'ward', 'province'].map(
+                    field => (
+                      <input
+                        key={field}
+                        placeholder={field}
+                        className='w-full border p-2 mb-2 rounded text-sm bg-white/70 backdrop-blur placeholder-black text-black'
+                        value={(form as any)[field]}
+                        onChange={e =>
+                          setForm(prev => ({
+                            ...prev,
+                            [field]: e.target.value
+                          }))
+                        }
+                      />
+                    )
+                  )}
                   <div className='flex justify-end gap-2 mt-4'>
                     <button
                       onClick={() => setIsModalOpen(false)}
@@ -236,31 +250,67 @@ const CartItemsTable: React.FC = () => {
                     return (
                       <tr key={v._id} className='border-t'>
                         <td className='p-3 flex items-center gap-3'>
-                          <img src={v.image || '/placeholder.jpg'} alt={v.title} className='w-40 h-40 rounded object-cover' />
+                          <img
+                            src={v.image || '/placeholder.jpg'}
+                            alt={v.title}
+                            className='w-40 h-40 rounded object-cover'
+                          />
                           <div>
-                            <p className='font-semibold text-gray-800'>{v.title}</p>
-                            <p className='text-xs text-gray-500'>Mã: {v.variantCode}</p>
+                            <p className='font-semibold text-gray-800'>
+                              {v.title}
+                            </p>
+                            <p className='text-xs text-gray-500'>
+                              Mã: {v.variantCode}
+                            </p>
                           </div>
                         </td>
                         <td className='p-3'>
                           {isDiscounted ? (
                             <>
-                              <span className='line-through text-sm text-gray-400 mr-1'>{(v.listPrice || 0).toLocaleString()}₫</span>
-                              <span className='text-red-600 font-semibold'>{(v.salePrice || 0).toLocaleString()}₫</span>
+                              <span className='line-through text-sm text-gray-400 mr-1'>
+                                {(v.listPrice || 0).toLocaleString()}₫
+                              </span>
+                              <span className='text-red-600 font-semibold'>
+                                {(v.salePrice || 0).toLocaleString()}₫
+                              </span>
                             </>
                           ) : (
-                            <span className='text-gray-800'>{(v.listPrice || 0).toLocaleString()}₫</span>
+                            <span className='text-gray-800'>
+                              {(v.listPrice || 0).toLocaleString()}₫
+                            </span>
                           )}
                         </td>
                         <td className='p-3'>
                           <div className='flex items-center gap-2'>
-                            <button onClick={() => handleQuantityChange(v._id, item.quantity - 1)} disabled={item.quantity <= 1} className={`w-8 h-8 border rounded ${item.quantity <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>−</button>
-                            <span className='px-3 py-1 border rounded bg-white min-w-[2rem] text-center text-black'>{item.quantity}</span>
-                            <button onClick={() => handleQuantityChange(v._id, item.quantity + 1)} className='w-8 h-8 border rounded bg-gray-100 hover:bg-gray-200 text-gray-700'>+</button>
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(v._id, item.quantity - 1)
+                              }
+                              disabled={item.quantity <= 1}
+                              className={`w-8 h-8 border rounded ${item.quantity <= 1 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}
+                            >
+                              −
+                            </button>
+                            <span className='px-3 py-1 border rounded bg-white min-w-[2rem] text-center text-black'>
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(v._id, item.quantity + 1)
+                              }
+                              className='w-8 h-8 border rounded bg-gray-100 hover:bg-gray-200 text-gray-700'
+                            >
+                              +
+                            </button>
                           </div>
                         </td>
-                        <td className='p-3 font-semibold text-gray-800'>{(v.salePrice * item.quantity).toLocaleString()}₫</td>
-                        <td className='p-3 text-center text-red-500 cursor-pointer hover:text-red-700' onClick={() => handleRemove(v._id)}>
+                        <td className='p-3 font-semibold text-gray-800'>
+                          {(v.salePrice * item.quantity).toLocaleString()}₫
+                        </td>
+                        <td
+                          className='p-3 text-center text-red-500 cursor-pointer hover:text-red-700'
+                          onClick={() => handleRemove(v._id)}
+                        >
                           <FaTrashAlt size={20} />
                         </td>
                       </tr>
@@ -362,7 +412,9 @@ const CartItemsTable: React.FC = () => {
                 </div>
                 <select
                   value={paymentMethod}
-                  onChange={e => setPaymentMethod(e.target.value as 'cod' | 'banking')}
+                  onChange={e =>
+                    setPaymentMethod(e.target.value as 'cod' | 'banking')
+                  }
                   className='w-full border p-2 rounded text-black'
                 >
                   <option value='cod'>Thanh toán khi nhận hàng (COD)</option>

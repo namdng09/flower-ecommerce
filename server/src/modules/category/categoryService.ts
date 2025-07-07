@@ -4,11 +4,30 @@ import { Types } from 'mongoose';
 
 export const categoryService = {
   list: async () => {
-    const categories = await CategoryModel.find();
-    if (!categories || categories.length === 0) {
-      throw createHttpError(404, 'No category found');
-    }
-    return categories;
+    const allActiveCategories = await CategoryModel.find({
+      status: 'active'
+    }).lean();
+
+    const categoryMap = new Map<string, any>();
+
+    allActiveCategories.forEach(cat => {
+      categoryMap.set(cat._id.toString(), { ...cat, subCategory: [] });
+    });
+
+    const rootCategories: any[] = [];
+
+    allActiveCategories.forEach(cat => {
+      if (cat.parentId) {
+        const parent = categoryMap.get(cat.parentId.toString());
+        if (parent) {
+          parent.subCategory.push(categoryMap.get(cat._id.toString()));
+        }
+      } else {
+        rootCategories.push(categoryMap.get(cat._id.toString()));
+      }
+    });
+
+    return rootCategories;
   },
 
   show: async (categoryId: string) => {

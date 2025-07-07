@@ -13,7 +13,9 @@ const ProductPage = () => {
   const { user } = useContext(AuthContext);
   const [quantity, setQuantity] = useState(1);
 
-  const { product, loading, error } = useAppSelector(state => state?.productDetail);
+  const { product, loading, error } = useAppSelector(
+    state => state?.productDetail
+  );
   const { items: variants } = useAppSelector(state => state?.variants);
 
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
@@ -53,19 +55,23 @@ const ProductPage = () => {
     }
 
     try {
-      await dispatch(addToCart({
-        userId: user.id,
-        variantId: selectedVariant._id,
-        quantity
-      }));
+      await dispatch(
+        addToCart({
+          userId: user.id,
+          variantId: selectedVariant._id,
+          quantity
+        })
+      );
       alert('✅ Đã thêm vào giỏ hàng!');
     } catch (err) {
       alert('❌ Có lỗi khi thêm vào giỏ hàng!');
     }
   };
 
-  if (loading) return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
-  if (error) return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
+  if (loading)
+    return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
+  if (error)
+    return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
   if (!product) return null;
 
   return (
@@ -87,8 +93,11 @@ const ProductPage = () => {
                 setMainImage(product.thumbnailImage);
                 setSelectedVariant(null);
               }}
-              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${mainImage === product.thumbnailImage && !selectedVariant
-                ? 'border-pink-600 border-2' : 'border-gray-300'}`}
+              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
+                mainImage === product.thumbnailImage && !selectedVariant
+                  ? 'border-pink-600 border-2'
+                  : 'border-gray-300'
+              }`}
             />
 
             {product.variants.map(variant => (
@@ -100,8 +109,11 @@ const ProductPage = () => {
                   setMainImage(variant.image);
                   setSelectedVariant(variant);
                 }}
-                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${selectedVariant?._id === variant._id
-                  ? 'border-pink-600 border-2' : 'border-gray-300'}`}
+                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
+                  selectedVariant?._id === variant._id
+                    ? 'border-pink-600 border-2'
+                    : 'border-gray-300'
+                }`}
               />
             ))}
           </div>
@@ -110,7 +122,9 @@ const ProductPage = () => {
         {/* Thông tin sản phẩm */}
         <div className='lg:w-1/2 space-y-4'>
           <h1 className='text-2xl font-bold'>{product.title}</h1>
-          <p className='text-sm text-gray-600'>{product.description.replace(/"/g, '')}</p>
+          <p className='text-sm text-gray-600'>
+            {product.description.replace(/"/g, '')}
+          </p>
 
           <div>
             {product.variants.map(v => (
@@ -171,10 +185,12 @@ const ProductPage = () => {
               {product.categories.map(cat => cat.title).join(', ')}
             </p>
             <p>
-              <strong>Người bán:</strong> {product.shop.fullName} ({product.shop.username})
+              <strong>Người bán:</strong> {product.shop.fullName} (
+              {product.shop.username})
             </p>
             <p>
-              <strong>Liên hệ:</strong> {product.shop.phoneNumber} - {product.shop.email}
+              <strong>Liên hệ:</strong> {product.shop.phoneNumber} -{' '}
+              {product.shop.email}
             </p>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axiosInstance from '~/config/axiosConfig'; 
+import axiosInstance from '~/config/axiosConfig';
 
 const BASE_URL = 'http://localhost:8000/api/addresses';
 

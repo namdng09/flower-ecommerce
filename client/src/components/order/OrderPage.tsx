@@ -16,7 +16,7 @@
 //   const { addresses } = useSelector((state: RootState) => state.addresses);
 
 //   console.log(cart);
-  
+
 //   const [paymentMethod, setPaymentMethod] = React.useState<'cod' | 'banking'>('cod');
 //   const [shippingCost] = React.useState<number>(30000);
 //   const [note, setNote] = React.useState('');
@@ -176,9 +176,11 @@ const OrderPage: React.FC = () => {
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
 
-  const { currentOrder: order, loading, error } = useSelector(
-    (state: RootState) => state.orders
-  );
+  const {
+    currentOrder: order,
+    loading,
+    error
+  } = useSelector((state: RootState) => state.orders);
 
   useEffect(() => {
     if (orderId) {
@@ -186,9 +188,11 @@ const OrderPage: React.FC = () => {
     }
   }, [dispatch, orderId]);
 
-  if (loading) return <p className="text-center mt-10">Đang tải đơn hàng...</p>;
+  if (loading) return <p className='text-center mt-10'>Đang tải đơn hàng...</p>;
   if (error || !order)
-    return <p className="text-center mt-10 text-red-600">Không tìm thấy đơn hàng.</p>;
+    return (
+      <p className='text-center mt-10 text-red-600'>Không tìm thấy đơn hàng.</p>
+    );
 
   const {
     orderNumber,
@@ -197,69 +201,74 @@ const OrderPage: React.FC = () => {
     totalPrice,
     shipment,
     payment,
-    createdAt,
+    createdAt
   } = order;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 text-black mt-45">
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex items-center gap-3 text-green-600 mb-6">
+    <div className='max-w-4xl mx-auto px-4 py-8 text-black mt-45'>
+      <div className='bg-white shadow-md rounded-lg p-6'>
+        <div className='flex items-center gap-3 text-green-600 mb-6'>
           <FaCheckCircle size={26} />
-          <h1 className="text-2xl font-bold">Đặt hàng thành công!</h1>
+          <h1 className='text-2xl font-bold'>Đặt hàng thành công!</h1>
         </div>
 
-        <p className="mb-4">
-          Mã đơn hàng: <span className="font-semibold">{orderNumber}</span>
+        <p className='mb-4'>
+          Mã đơn hàng: <span className='font-semibold'>{orderNumber}</span>
         </p>
-        <p className="mb-4 text-sm text-gray-500">
+        <p className='mb-4 text-sm text-gray-500'>
           Ngày đặt: {new Date(createdAt).toLocaleString()}
         </p>
 
-        <h2 className="text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2">
-          <FiBox className="text-[#C4265B]" />
+        <h2 className='text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2'>
+          <FiBox className='text-[#C4265B]' />
           Sản phẩm
         </h2>
-        <ul className="mb-6 space-y-2">
+        <ul className='mb-6 space-y-2'>
           {items.map((item: any, idx: number) => (
-            <li key={idx} className="border-b py-2 flex justify-between">
-              <span>{item.variant?.title || 'Sản phẩm'} x {item.quantity}</span>
+            <li key={idx} className='border-b py-2 flex justify-between'>
+              <span>
+                {item.variant?.title || 'Sản phẩm'} x {item.quantity}
+              </span>
               <span>{(item.price * item.quantity).toLocaleString()}₫</span>
             </li>
           ))}
         </ul>
 
-        <h2 className="text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2">
-          <FiMapPin className="text-[#C4265B]" />
+        <h2 className='text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2'>
+          <FiMapPin className='text-[#C4265B]' />
           Địa chỉ giao hàng
         </h2>
-        <p className="mb-4">
-          <strong>{address.fullName}</strong> - {address.phone}<br />
+        <p className='mb-4'>
+          <strong>{address.fullName}</strong> - {address.phone}
+          <br />
           {address.street}, {address.ward}, {address.province}
         </p>
 
         {order.customization && (
-          <div className="mt-6 space-y-2">
-            <h2 className="text-lg font-semibold text-[#C4265B] flex items-center gap-2">
-              <FaGift className="text-[#C4265B] size-5" />
+          <div className='mt-6 space-y-2'>
+            <h2 className='text-lg font-semibold text-[#C4265B] flex items-center gap-2'>
+              <FaGift className='text-[#C4265B] size-5' />
               Tuỳ chọn đơn hàng
             </h2>
 
             {order.customization.giftMessage && (
-              <div className="text-gray-800">
+              <div className='text-gray-800'>
                 <strong>Lời chúc:</strong> {order.customization.giftMessage}
               </div>
             )}
 
             {order.customization.isAnonymous && (
-              <div className="text-gray-800">
+              <div className='text-gray-800'>
                 <strong>Người gửi:</strong> Ẩn danh
               </div>
             )}
 
             {order.customization.deliveryTimeRequested && (
-              <div className="text-gray-800">
+              <div className='text-gray-800'>
                 <strong>Thời gian giao hàng mong muốn:</strong>{' '}
-                {new Date(order.customization.deliveryTimeRequested).toLocaleString('vi-VN', {
+                {new Date(
+                  order.customization.deliveryTimeRequested
+                ).toLocaleString('vi-VN', {
                   hour: '2-digit',
                   minute: '2-digit',
                   day: '2-digit',
@@ -271,22 +280,26 @@ const OrderPage: React.FC = () => {
           </div>
         )}
 
-        <div className="space-y-2 mt-10">
-          <div className="flex justify-between">
+        <div className='space-y-2 mt-10'>
+          <div className='flex justify-between'>
             <span>Tạm tính:</span>
-            <span>{(totalPrice - shipment.shippingCost).toLocaleString()}₫</span>
-            </div>
-          <div className="flex justify-between">
+            <span>
+              {(totalPrice - shipment.shippingCost).toLocaleString()}₫
+            </span>
+          </div>
+          <div className='flex justify-between'>
             <span>Phí vận chuyển:</span>
             <span>{shipment.shippingCost.toLocaleString()}₫</span>
           </div>
-          <div className="flex justify-between font-bold text-lg text-[#C4265B]">
+          <div className='flex justify-between font-bold text-lg text-[#C4265B]'>
             <span>Tổng cộng:</span>
             <span>{totalPrice.toLocaleString()}₫</span>
           </div>
-          <div className="flex justify-between pt-2">
+          <div className='flex justify-between pt-2'>
             <span>Thanh toán:</span>
-            <span className="capitalize">{payment.method} - {payment.status}</span>
+            <span className='capitalize'>
+              {payment.method} - {payment.status}
+            </span>
           </div>
         </div>
 
