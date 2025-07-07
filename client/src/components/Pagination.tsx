@@ -2,9 +2,19 @@ interface PaginationProps {
   page: number;
   setPage: (page: number) => void;
   totalPages: number;
+  limit?: number;
+  setLimit?: (limit: number) => void;
+  totalItems?: number;
 }
 
-const Pagination = ({ page, setPage, totalPages }: PaginationProps) => {
+const Pagination = ({
+  page,
+  setPage,
+  totalPages,
+  limit = 10,
+  setLimit,
+  totalItems
+}: PaginationProps) => {
   const getVisiblePages = () => {
     if (totalPages <= 10) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -32,63 +42,105 @@ const Pagination = ({ page, setPage, totalPages }: PaginationProps) => {
   };
 
   return (
-    <div className='join text-black'>
-      <button
-        className={`join-item btn btn-outline ${
-          page === 1 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
-        }`}
-        onClick={() => page !== 1 && setPage(1)}
-        title='Go to first page'
-      >
-        First
-      </button>
+    <div className='flex flex-col sm:flex-row items-center gap-4'>
+      {/* Items per page selector */}
+      {setLimit && (
+        <div className='flex items-center gap-2'>
+          <span className='text-sm text-gray-600'>Items per page:</span>
+          <select
+            className='select select-bordered select-sm'
+            value={limit}
+            onChange={e => {
+              const newLimit = parseInt(e.target.value);
+              setLimit(newLimit);
+              // Reset to first page when changing limit
+              setPage(1);
+            }}
+          >
+            <option value={2}>2</option>
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </select>
+        </div>
+      )}
 
-      <button
-        className={`join-item btn btn-outline ${
-          page === 1 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
-        }`}
-        onClick={() => page !== 1 && setPage(page - 1)}
-        title='Go to previous page'
-      >
-        Prev
-      </button>
+      {/* Page info */}
+      {totalItems && (
+        <div className='text-sm text-gray-600'>
+          Showing {Math.min((page - 1) * limit + 1, totalItems)} to{' '}
+          {Math.min(page * limit, totalItems)} of {totalItems} items
+        </div>
+      )}
 
-      {getVisiblePages().map((pageNum, index) => (
+      {/* Pagination buttons */}
+      <div className='join text-black'>
         <button
-          key={`${pageNum}-${index}`}
           className={`join-item btn btn-outline ${
-            pageNum === page ? 'btn-active' : ''
-          } ${pageNum === '...' ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
-          onClick={() => typeof pageNum === 'number' && setPage(pageNum)}
-          title={pageNum === '...' ? 'More pages' : `Go to page ${pageNum}`}
+            page === 1
+              ? 'opacity-50 cursor-not-allowed pointer-events-none'
+              : ''
+          }`}
+          onClick={() => page !== 1 && setPage(1)}
+          title='Go to first page'
         >
-          {pageNum}
+          First
         </button>
-      ))}
 
-      <button
-        className={`join-item btn btn-outline ${
-          page === totalPages
-            ? 'opacity-50 cursor-not-allowed pointer-events-none'
-            : ''
-        }`}
-        onClick={() => page !== totalPages && setPage(page + 1)}
-        title='Go to next page'
-      >
-        Next
-      </button>
+        <button
+          className={`join-item btn btn-outline ${
+            page === 1
+              ? 'opacity-50 cursor-not-allowed pointer-events-none'
+              : ''
+          }`}
+          onClick={() => page !== 1 && setPage(page - 1)}
+          title='Go to previous page'
+        >
+          Prev
+        </button>
 
-      <button
-        className={`join-item btn btn-outline ${
-          page === totalPages
-            ? 'opacity-50 cursor-not-allowed pointer-events-none'
-            : ''
-        }`}
-        title='Go to last page'
-        onClick={() => page !== totalPages && setPage(totalPages)}
-      >
-        Last
-      </button>
+        {getVisiblePages().map((pageNum, index) => (
+          <button
+            key={`${pageNum}-${index}`}
+            className={`join-item btn btn-outline ${
+              pageNum === page ? 'btn-active' : ''
+            } ${
+              pageNum === '...'
+                ? 'opacity-50 cursor-not-allowed pointer-events-none'
+                : ''
+            }`}
+            onClick={() => typeof pageNum === 'number' && setPage(pageNum)}
+            title={pageNum === '...' ? 'More pages' : `Go to page ${pageNum}`}
+          >
+            {pageNum}
+          </button>
+        ))}
+
+        <button
+          className={`join-item btn btn-outline ${
+            page === totalPages
+              ? 'opacity-50 cursor-not-allowed pointer-events-none'
+              : ''
+          }`}
+          onClick={() => page !== totalPages && setPage(page + 1)}
+          title='Go to next page'
+        >
+          Next
+        </button>
+
+        <button
+          className={`join-item btn btn-outline ${
+            page === totalPages
+              ? 'opacity-50 cursor-not-allowed pointer-events-none'
+              : ''
+          }`}
+          title='Go to last page'
+          onClick={() => page !== totalPages && setPage(totalPages)}
+        >
+          Last
+        </button>
+      </div>
     </div>
   );
 };

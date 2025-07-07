@@ -45,7 +45,7 @@ const initialState: UserState = {
   totalUsers: 0,
   filters: {
     page: 1,
-    limit: 10,
+    limit: 2,
     search: '',
     role: '',
     sortBy: 'createdAt',
@@ -93,7 +93,7 @@ export const createUser = createAsyncThunk(
 export const updateUser = createAsyncThunk(
   'users/updateUser',
   async ({ id, userData }: { id: string; userData: UserFormData }) => {
-    const res = await axios.put(`/api/users/${id}/profile`, userData);
+    const res = await axios.put(`/api/users/${id}`, userData);
     return res.data.data;
   }
 );
