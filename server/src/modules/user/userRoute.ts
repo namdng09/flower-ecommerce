@@ -14,7 +14,7 @@ router.get('/', asyncHandler(userController.list));
 router.get('/:id', asyncHandler(userController.show));
 
 router.post('/', asyncHandler(userController.create));
-router.put('/:id/profile', asyncHandler(userController.update));
+router.put('/:id', asyncHandler(userController.update));
 router.patch('/:id/avatar', asyncHandler(userController.updateAvatarUrl));
 router.patch('/:id/cover', asyncHandler(userController.updateCoverUrl));
 router.delete('/:id', asyncHandler(userController.remove));
