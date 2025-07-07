@@ -17,69 +17,76 @@ const UserPage = () => {
   const { users, loading, error, totalPages, currentPage, totalUsers } =
     useAppSelector(state => state.users);
 
-  // Get filters from URL params
   const getFiltersFromParams = () => ({
     search: searchParams.get('search') || '',
-    role: searchParams.get('role') || '',
     sortBy: searchParams.get('sortBy') || 'createdAt',
     sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
-    page: parseInt(searchParams.get('page') || '1', 10)
+    page: parseInt(searchParams.get('page') || '1', 10),
+    limit: parseInt(searchParams.get('limit') || '2', 10)
   });
 
   const updateURLParams = (newFilters: {
     search: string;
-    role: string;
     sortBy: string;
     sortOrder: string;
     page: number;
+    limit: number;
   }) => {
     const params = new URLSearchParams();
 
     if (newFilters.search) params.set('search', newFilters.search);
-    if (newFilters.role) params.set('role', newFilters.role);
     if (newFilters.sortBy !== 'createdAt')
       params.set('sortBy', newFilters.sortBy);
     if (newFilters.sortOrder !== 'desc')
       params.set('sortOrder', newFilters.sortOrder);
     if (newFilters.page !== 1) params.set('page', newFilters.page.toString());
+    if (newFilters.limit !== 2)
+      params.set('limit', newFilters.limit.toString());
 
     setSearchParams(params);
   };
 
   const [localFilters, setLocalFilters] = useState(getFiltersFromParams);
 
-  // Load users only when URL params change
   useEffect(() => {
     const filters = getFiltersFromParams();
+    setLocalFilters(filters);
     dispatch(setFilters(filters));
     dispatch(fetchUsers(filters));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, dispatch]);
 
-  // Handle search input with debounce
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const currentFilters = getFiltersFromParams();
-      if (localFilters.search !== currentFilters.search) {
-        updateURLParams({ ...localFilters, page: 1 });
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localFilters.search]);
-
   const handleFilterChange = (key: string, value: string) => {
     const newFilters = { ...localFilters, [key]: value };
     setLocalFilters(newFilters);
+  };
 
-    if (key !== 'search') {
-      updateURLParams({ ...newFilters, page: 1 });
-    }
+  const handleApplyFilters = () => {
+    const newFilters = { ...localFilters, page: 1 };
+    setLocalFilters(newFilters);
+    updateURLParams(newFilters);
+  };
+
+  const handleResetFilters = () => {
+    const resetFilters = {
+      search: '',
+      sortBy: 'createdAt',
+      sortOrder: 'desc' as 'asc' | 'desc',
+      page: 1,
+      limit: localFilters.limit
+    };
+    setLocalFilters(resetFilters);
+    updateURLParams(resetFilters);
   };
 
   const handlePageChange = (page: number) => {
     const newFilters = { ...localFilters, page };
+    setLocalFilters(newFilters);
+    updateURLParams(newFilters);
+  };
+
+  const handleLimitChange = (limit: number) => {
+    const newFilters = { ...localFilters, limit, page: 1 };
     setLocalFilters(newFilters);
     updateURLParams(newFilters);
   };
@@ -208,7 +215,6 @@ const UserPage = () => {
         </Link>
       </div>
 
-      {/* Filters */}
       <div className='grid grid-cols-1 md:grid-cols-4 gap-4 mb-6'>
         <div className='form-control'>
           <label className='label'>
@@ -221,22 +227,6 @@ const UserPage = () => {
             value={localFilters.search}
             onChange={e => handleFilterChange('search', e.target.value)}
           />
-        </div>
-
-        <div className='form-control'>
-          <label className='label'>
-            <span className='label-text'>Role</span>
-          </label>
-          <select
-            className='select select-bordered'
-            value={localFilters.role}
-            onChange={e => handleFilterChange('role', e.target.value)}
-          >
-            <option value=''>All Roles</option>
-            <option value='admin'>Admin</option>
-            <option value='shop'>Shop</option>
-            <option value='customer'>Customer</option>
-          </select>
         </div>
 
         <div className='form-control'>
@@ -272,14 +262,29 @@ const UserPage = () => {
         </div>
       </div>
 
-      {/* Loading state */}
+      <div className='flex gap-4 mb-6'>
+        <button
+          onClick={handleApplyFilters}
+          className='btn btn-primary'
+          disabled={loading}
+        >
+          Apply Filters
+        </button>
+        <button
+          onClick={handleResetFilters}
+          className='btn btn-outline'
+          disabled={loading}
+        >
+          Reset Filters
+        </button>
+      </div>
+
       {loading && (
         <div className='flex justify-center my-8'>
           <span className='loading loading-spinner loading-lg'></span>
         </div>
       )}
 
-      {/* Users table */}
       {!loading && users.length > 0 && (
         <>
           <DynamicTable data={users} columns={columns} />
@@ -289,13 +294,15 @@ const UserPage = () => {
                 page={currentPage}
                 setPage={handlePageChange}
                 totalPages={totalPages}
+                limit={localFilters.limit}
+                setLimit={handleLimitChange}
+                totalItems={totalUsers}
               />
             </div>
           )}
         </>
       )}
 
-      {/* Empty state */}
       {!loading && users.length === 0 && (
         <div className='text-center py-12'>
           <p className='text-gray-500 text-lg'>No users found</p>
