@@ -9,8 +9,8 @@ router.get('/filter', asyncHandler(categoryController.filterCategories));
 router.get('/', asyncHandler(categoryController.list));
 router.post('/', asyncHandler(categoryController.create));
 
-router.get('/:id', asyncHandler(categoryController.show));
-router.put('/:id', asyncHandler(categoryController.update));
-router.delete('/:id', asyncHandler(categoryController.remove));
+router.get('/:categoryId', asyncHandler(categoryController.show));
+router.put('/:categoryId', asyncHandler(categoryController.update));
+router.delete('/:categoryId', asyncHandler(categoryController.delete));
 
 export default router as Router;

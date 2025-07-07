@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { Types } from 'mongoose';
-import FavouriteModel from './favouriteModel';
+import { favouriteService } from './favouriteService';
 import { apiResponse } from '~/types/apiResponse';
-import createHttpError from 'http-errors';
 
 export const favouriteController = {
   addFavouriteItem: async (req: Request, res: Response, next: NextFunction) => {
@@ -10,26 +8,10 @@ export const favouriteController = {
       const { userId } = req.params;
       const { productId } = req.body;
 
-      if (!userId) {
-        throw createHttpError(400, 'User is required');
-      }
-      if (!productId) {
-        throw createHttpError(400, 'Product is required');
-      }
-
-      let favourite = await FavouriteModel.findOne({ userId });
-
-      if (favourite) {
-        if (!favourite.products.some(id => id.equals(productId))) {
-          favourite.products.push(productId);
-          await favourite.save();
-        }
-      } else {
-        favourite = await FavouriteModel.create({
-          userId,
-          products: [productId]
-        });
-      }
+      const favourite = await favouriteService.addFavouriteItem(
+        userId,
+        productId
+      );
 
       return res
         .status(201)
@@ -48,19 +30,7 @@ export const favouriteController = {
     try {
       const { userId } = req.params;
 
-      if (!Types.ObjectId.isValid(userId)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
-
-      let favourite = await FavouriteModel.findOne({ userId }).populate(
-        'products'
-      );
-
-      if (!favourite) {
-        favourite = await FavouriteModel.create({
-          userId
-        });
-      }
+      const favourite = await favouriteService.listByUser(userId);
 
       return res
         .status(200)
@@ -79,28 +49,7 @@ export const favouriteController = {
       const { userId } = req.params;
       const { productId } = req.body;
 
-      if (!userId || !productId) {
-        throw createHttpError(400, 'Missing required fields');
-      }
-
-      let favourite = await FavouriteModel.findOne({ userId });
-      if (!favourite) {
-        favourite = await FavouriteModel.create({
-          userId
-        });
-        throw createHttpError(400, 'Favourite list is currently empty');
-      }
-
-      const initialLength = favourite.products.length;
-      favourite.products = favourite.products.filter(
-        id => !id.equals(productId)
-      );
-
-      if (favourite.products.length === initialLength) {
-        throw createHttpError(400, 'Product not found in favourite');
-      }
-
-      await favourite.save();
+      await favouriteService.removeFavouriteItem(userId, productId);
 
       return res
         .status(200)

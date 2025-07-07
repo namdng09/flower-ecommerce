@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import UserModel from '../user/userModel';
+import { authService } from './authService';
 import { generateToken, verifyRefreshToken } from '~/utils/jwt';
 import { comparePassword } from '~/utils/bcrypt';
 import { apiResponse } from '~/types/apiResponse';
@@ -7,6 +7,7 @@ import createHttpError from 'http-errors';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { sendMail } from '~/utils/mailer';
+import { IUser } from '../user/userModel';
 
 const authController = {
   async register(
@@ -15,51 +16,11 @@ const authController = {
     next: NextFunction
   ): Promise<Response | void> {
     try {
-      const { fullName, username, email, phoneNumber, role, password } =
-        req.body;
+      const userData: IUser = req.body;
 
-      if (
-        !fullName ||
-        !username ||
-        !email ||
-        !phoneNumber ||
-        !role ||
-        !password
-      ) {
-        throw createHttpError(400, 'Missing required fields');
-      }
+      const newUser = await authService.register(userData);
 
-      const existingUser = await UserModel.findOne({
-        $or: [{ email }, { username }, { phoneNumber }]
-      });
-      if (existingUser) {
-        if (existingUser.email === email) {
-          throw createHttpError(400, 'Email already exists');
-        }
-        if (existingUser.username === username) {
-          throw createHttpError(400, 'Username already exists');
-        }
-        if (existingUser.phoneNumber === phoneNumber) {
-          throw createHttpError(400, 'Phone number already exists');
-        }
-      }
-
-      const newUser = await UserModel.create({
-        fullName,
-        username,
-        email,
-        phoneNumber,
-        role,
-        password
-      });
-      if (!newUser) throw createHttpError(400, 'User creation failed');
-
-      const { accessToken, refreshToken } = generateToken({
-        id: newUser.id,
-        role: newUser.role
-      });
-
-      res.cookie('refreshToken', refreshToken, {
+      res.cookie('refreshToken', newUser.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
@@ -67,13 +28,13 @@ const authController = {
 
       return res.status(201).json(
         apiResponse.success('User created successfully', {
-          accessToken,
+          accessToken: newUser.accessToken,
           user: {
-            id: newUser.id,
-            fullName: newUser.fullName,
-            email: newUser.email,
-            username: newUser.username,
-            phoneNumber: newUser.phoneNumber
+            id: newUser.newUser.id,
+            fullName: newUser.newUser.fullName,
+            email: newUser.newUser.email,
+            username: newUser.newUser.username,
+            phoneNumber: newUser.newUser.phoneNumber
           }
         })
       );
@@ -89,21 +50,11 @@ const authController = {
     next: NextFunction
   ): Promise<Response | void> {
     try {
-      const { email, password } = req.body;
+      const userData: IUser = req.body;
 
-      const user = await UserModel.findOne({ email });
-      if (!user) throw createHttpError(400, 'Invalid email or password');
+      const user = await authService.login(userData);
 
-      const isPasswordValid = await comparePassword(password, user.password);
-      if (!isPasswordValid)
-        throw createHttpError(400, 'Invalid email or password');
-
-      const { accessToken, refreshToken } = generateToken({
-        id: user.id,
-        role: user.role
-      });
-
-      res.cookie('refreshToken', refreshToken, {
+      res.cookie('refreshToken', user.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
@@ -111,10 +62,10 @@ const authController = {
 
       return res.status(200).json(
         apiResponse.success('Login successful', {
-          accessToken,
+          accessToken: user.accessToken,
           user: {
-            id: user.id,
-            email: user.email
+            id: user.user.id,
+            email: user.user.email
           }
         })
       );
@@ -130,12 +81,21 @@ const authController = {
     next: NextFunction
   ): Promise<Response | void> {
     try {
+      const { refreshToken } = _req.cookies;
+
+      const result = await authService.logout(refreshToken);
+
       res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
       });
-      return res.status(200).json(apiResponse.success('Logout successful'));
+
+      return res.status(200).json(
+        apiResponse.success('Logout successful', {
+          message: result.message
+        })
+      );
     } catch (error) {
       next(error);
     }
@@ -149,16 +109,8 @@ const authController = {
   ): Promise<Response | void> {
     try {
       const { refreshToken } = req.cookies;
-      if (!refreshToken)
-        throw createHttpError(401, 'No refresh token provided');
 
-      const decoded = verifyRefreshToken(refreshToken);
-      const id = typeof decoded === 'string' ? decoded : decoded.id;
-
-      const { accessToken } = generateToken({
-        id: id,
-        role: (decoded as { role: string }).role
-      });
+      const accessToken = await authService.refreshToken(refreshToken);
 
       return res.status(200).json(
         apiResponse.success('Token refreshed successfully', {
@@ -178,34 +130,14 @@ const authController = {
     try {
       const { email } = req.body as { email: string };
 
-      const user = await UserModel.findOne({ email });
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      const newPasswordPlain = crypto
-        .randomBytes(8)
-        .toString('base64')
-        .replace(/[^a-zA-Z0-9]/g, '')
-        .slice(0, 10);
-
-      user.password = newPasswordPlain;
-
-      await user.save();
-
-      await sendMail({
-        to: email,
-        subject: 'Mật khẩu mới cho tài khoản IMS',
-        html: `
-          <p>Xin chào ${user.fullName ?? ''},</p>
-          <p>Mật khẩu mới của bạn là: <strong>${newPasswordPlain}</strong></p>
-          <p>Hãy đăng nhập và đổi mật khẩu ngay.</p>
-        `,
-        text: `Mật khẩu mới: ${newPasswordPlain}`
-      });
+      const newPasswordPlain = await authService.resetPassword(email);
 
       return res.json({
-        message: 'New password has been generated and emailed to you.'
+        message: 'New password has been generated and emailed to you.',
+        user: {
+          email: email,
+          newPassword: newPasswordPlain
+        }
       });
     } catch (error) {
       next(error);

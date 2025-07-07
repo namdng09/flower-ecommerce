@@ -1,9 +1,20 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '~/config/axiosConfig';
 
-const BASE_URL = '/api/carts'; // Đã dùng axiosInstance, không cần domain
+const BASE_URL = '/api/carts';
 
-// ✅ Thêm sản phẩm vào giỏ hàng
+export const fetchCartByUserId = createAsyncThunk(
+  'cart/fetchCartByUserId',
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.get(`${BASE_URL}/${userId}`);
+      return res.data.data.items;
+    } catch (err: any) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async (
@@ -26,7 +37,6 @@ export const addToCart = createAsyncThunk(
   }
 );
 
-// ✅ Cập nhật số lượng sản phẩm trong giỏ hàng
 export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
   async (
@@ -49,7 +59,6 @@ export const updateCartItem = createAsyncThunk(
   }
 );
 
-// ✅ Xóa sản phẩm khỏi giỏ hàng
 export const removeFromCart = createAsyncThunk(
   'cart/removeFromCart',
   async (
@@ -67,18 +76,39 @@ export const removeFromCart = createAsyncThunk(
   }
 );
 
-// ✅ Slice
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
-    items: [] as Array<{ variantId: string; quantity: number }>,
+    items: [] as Array<{
+      variantId: {
+        _id: string;
+        title: string;
+        variantCode: string;
+        image: string;
+        salePrice: number;
+        listPrice: number;
+      };
+      quantity: number;
+    }>,
     loading: false,
     error: null as string | null
   },
   reducers: {},
   extraReducers: builder => {
     builder
-      // Thêm sản phẩm
+      .addCase(fetchCartByUserId.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCartByUserId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchCartByUserId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
       .addCase(addToCart.pending, state => {
         state.loading = true;
         state.error = null;
@@ -86,7 +116,7 @@ const cartSlice = createSlice({
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
         const existing = state.items.find(
-          item => item.variantId === action.payload.variantId
+          item => item.variantId._id === action.payload.variantId._id
         );
         if (existing) {
           existing.quantity += action.payload.quantity;
@@ -99,23 +129,21 @@ const cartSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // Cập nhật sản phẩm
       .addCase(updateCartItem.fulfilled, (state, action) => {
-        const item = state.items.find(
-          i => i.variantId === action.payload.variantId
-        );
+        const { variantId, quantity } = action.payload;
+        const item = state.items.find(i => i.variantId._id === variantId);
         if (item) {
-          item.quantity = action.payload.quantity;
+          item.quantity = quantity;
         }
       })
+
       .addCase(updateCartItem.rejected, (state, action) => {
         state.error = action.payload as string;
       })
 
-      // Xóa sản phẩm
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.items = state.items.filter(
-          item => item.variantId !== action.payload
+          item => item.variantId._id !== action.payload
         );
       })
       .addCase(removeFromCart.rejected, (state, action) => {

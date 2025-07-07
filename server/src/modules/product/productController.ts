@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import mongoose, { Types } from 'mongoose';
-import ProductModel from './productModel';
+import ProductModel, { IProduct } from './productModel';
 import VariantModel from '../variant/variantModel';
 import { apiResponse } from '~/types/apiResponse';
 import UserModel from '../user/userModel';
 import CategoryModel from '../category/categoryModel';
 import createHttpError from 'http-errors';
 import { generateSKU } from '~/utils/generateSKU';
+import { productService } from './productService';
 
 /**
  * productController.ts
@@ -24,9 +25,8 @@ export const productController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const products = await ProductModel.find().populate(
-        'categories shop variants'
-      );
+      const products = await productService.list();
+
       return res
         .status(200)
         .json(apiResponse.success('Product listed successfully', products));
@@ -51,149 +51,31 @@ export const productController = {
         minPrice,
         maxPrice,
         province,
-        district,
         ward
-      } = req.query;
-
-      const matchStage: any = {};
-
-      if (title) {
-        matchStage.title = { $regex: title, $options: 'i' };
-      }
-
-      if (category) {
-        const categoryIds = (category as string)
-          .split(',')
-          .map(id => new mongoose.Types.ObjectId(id));
-        matchStage.categories = { $all: categoryIds };
-      }
-
-      const min = minPrice ? parseFloat(minPrice as string) : null;
-      const max = maxPrice ? parseFloat(maxPrice as string) : null;
-
-      const aggregate = ProductModel.aggregate([
-        { $match: matchStage },
-        {
-          $sort: {
-            [sortBy as string]: sortOrder === 'asc' ? 1 : -1
-          }
-        },
-        {
-          $lookup: {
-            from: 'users',
-            let: { shopId: '$shop' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      { $eq: ['$_id', '$$shopId'] },
-                      { $eq: ['$role', 'shop'] }
-                    ]
-                  }
-                }
-              },
-              {
-                $project: {
-                  password: 0
-                }
-              }
-            ],
-            as: 'shop'
-          }
-        },
-        { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
-        {
-          $lookup: {
-            from: 'variants',
-            localField: 'variants',
-            foreignField: '_id',
-            as: 'variants'
-          }
-        },
-        {
-          $lookup: {
-            from: 'addresses',
-            let: { shopId: '$shop._id' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      { $eq: ['$userId', '$$shopId'] },
-                      { $eq: ['$isDefault', true] }
-                    ]
-                  }
-                }
-              },
-              { $project: { __v: 0 } }
-            ],
-            as: 'address'
-          }
-        },
-        { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
-        // 4. Match theo salePrice sau khi có variants
-        ...(min != null || max != null
-          ? [
-              {
-                $match: {
-                  $expr: {
-                    $and: [
-                      ...(min != null
-                        ? [
-                            {
-                              $gte: [
-                                { $arrayElemAt: ['$variants.salePrice', 0] },
-                                min
-                              ]
-                            }
-                          ]
-                        : []),
-                      ...(max != null
-                        ? [
-                            {
-                              $lte: [
-                                { $arrayElemAt: ['$variants.salePrice', 0] },
-                                max
-                              ]
-                            }
-                          ]
-                        : [])
-                    ]
-                  }
-                }
-              }
-            ]
-          : []),
-
-        // 5. Match theo địa chỉ sau khi có address
-        ...(province || district || ward
-          ? [
-              {
-                $match: {
-                  ...(province && {
-                    'address.province': { $regex: province, $options: 'i' }
-                  }),
-                  ...(district && {
-                    'address.district': { $regex: district, $options: 'i' }
-                  }),
-                  ...(ward && {
-                    'address.ward': { $regex: ward, $options: 'i' }
-                  })
-                }
-              }
-            ]
-          : [])
-      ]);
-
-      const options = {
-        page: parseInt(page as string) || 1,
-        limit: parseInt(limit as string) || 10
+      } = req.query as {
+        page?: string;
+        limit?: string;
+        sortBy?: string;
+        sortOrder?: 'asc' | 'desc';
+        title?: string;
+        category?: string;
+        minPrice?: string;
+        maxPrice?: string;
+        province?: string;
+        ward?: string;
       };
 
-      const result = await (ProductModel as any).aggregatePaginate(
-        aggregate,
-        options
+      const result = await productService.filterProducts(
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        title,
+        category,
+        minPrice,
+        maxPrice,
+        province,
+        ward
       );
 
       return res.status(200).json(
@@ -217,13 +99,8 @@ export const productController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      if (!Types.ObjectId.isValid(id))
-        throw createHttpError(400, 'Invalid product id');
 
-      const product = await ProductModel.findById(id).populate(
-        'categories shop variants'
-      );
-      if (!product) throw createHttpError(404, 'Product not found');
+      const product = await productService.show(id);
 
       return res
         .status(200)
@@ -243,107 +120,9 @@ export const productController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const {
-        title,
-        shop,
-        status,
-        thumbnailImage,
-        description,
-        image,
-        weight,
-        dimension = {},
-        categories = [],
-        variants = []
-      } = req.body;
+      const productData: IProduct = req.body;
 
-      if (
-        !title ||
-        !shop ||
-        !categories ||
-        !thumbnailImage ||
-        !image ||
-        !weight ||
-        typeof dimension !== 'object' ||
-        !dimension.length ||
-        !dimension.width ||
-        !dimension.height
-      ) {
-        throw createHttpError(400, 'Missing required fields');
-      }
-
-      if (!Types.ObjectId.isValid(shop))
-        throw createHttpError(400, 'Invalid shop id');
-
-      const shopExists = await UserModel.findOne({ _id: shop, role: 'shop' });
-      if (!shopExists) throw createHttpError(404, 'Shop not found');
-
-      // if (!Types.ObjectId.isValid(category))
-      //   throw createHttpError(400, 'Invalid category id');
-      //
-      // const categoryExists = await CategoryModel.findById(category);
-      // if (!categoryExists) throw createHttpError(404, 'Category not found');
-
-      if (weight <= 0) throw createHttpError(400, 'Weight must be > 0');
-      if (
-        dimension.length <= 0 ||
-        dimension.width <= 0 ||
-        dimension.height <= 0
-      )
-        throw createHttpError(400, 'Dimension values must be > 0');
-
-      const createdVariants: Types.ObjectId[] = [];
-
-      for (const variant of variants) {
-        const { title, listPrice, salePrice, image, inventory = 0 } = variant;
-
-        if (!title || typeof title !== 'string' || title.trim() === '') {
-          throw createHttpError(400, 'Variant title is required');
-        }
-
-        if (salePrice > listPrice) {
-          throw createHttpError(400, 'Sale Price cannot exceed List Price');
-        }
-
-        let variantCode = generateSKU();
-        while (await VariantModel.findOne({ variantCode })) {
-          variantCode = generateSKU();
-        }
-
-        try {
-          const newVariant = await VariantModel.create([
-            {
-              variantCode,
-              title,
-              listPrice,
-              salePrice,
-              image,
-              inventory
-            }
-          ]);
-          createdVariants.push(newVariant[0]._id);
-        } catch (error) {
-          next(error);
-        }
-      }
-
-      let productCode = generateSKU();
-      while (await ProductModel.findOne({ skuCode: productCode })) {
-        productCode = generateSKU();
-      }
-
-      const product = await ProductModel.create({
-        title,
-        shop,
-        skuCode: productCode,
-        categories,
-        status,
-        thumbnailImage,
-        description,
-        image,
-        weight,
-        dimension,
-        variants: createdVariants
-      });
+      const product = await productService.create(productData);
 
       return res
         .status(201)
@@ -364,91 +143,10 @@ export const productController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      const {
-        title,
-        categories,
-        status,
-        thumbnailImage,
-        description,
-        image,
-        weight,
-        dimension,
-        variants
-      } = req.body;
+      const productData: IProduct = req.body;
 
-      if (!Types.ObjectId.isValid(id))
-        throw createHttpError(400, 'Invalid product id');
+      const updated = await productService.update(id, productData);
 
-      const product = await ProductModel.findById(id);
-      if (!product) throw createHttpError(404, 'Product not found');
-
-      if (
-        !title ||
-        !categories ||
-        !thumbnailImage ||
-        !image ||
-        !weight ||
-        !dimension.length ||
-        !dimension.width ||
-        !dimension.height
-      ) {
-        throw createHttpError(400, 'Missing required fields');
-      }
-
-      if (weight <= 0) throw createHttpError(400, 'Weight must be > 0');
-      if (
-        dimension.length <= 0 ||
-        dimension.width <= 0 ||
-        dimension.height <= 0
-      ) {
-        throw createHttpError(400, 'Dimension values must be > 0');
-      }
-
-      if (variants !== undefined) {
-        if (!Array.isArray(variants))
-          throw createHttpError(400, 'Variants must be an array');
-
-        const createdVariants: Types.ObjectId[] = [];
-
-        for (const variant of variants) {
-          const { title, listPrice, salePrice, image, inventory = 0 } = variant;
-
-          if (!title || typeof title !== 'string' || title.trim() === '') {
-            throw createHttpError(400, 'Variant title is required');
-          }
-
-          if (salePrice > listPrice)
-            throw createHttpError(400, 'Sale Price cannot exceed List Price');
-
-          let variantCode = generateSKU();
-          while (await VariantModel.findOne({ variantCode })) {
-            variantCode = generateSKU();
-          }
-
-          const newVariant = await VariantModel.create({
-            variantCode,
-            title,
-            listPrice,
-            salePrice,
-            image,
-            inventory
-          });
-          createdVariants.push(newVariant._id);
-        }
-
-        product.variants = createdVariants;
-      }
-
-      product.title = title;
-      product.categories = categories;
-      product.status = status;
-      product.thumbnailImage = thumbnailImage;
-      product.description = description;
-      product.image = image;
-      product.weight = weight;
-      product.dimension = dimension;
-
-      const updated = await product.save();
       return res
         .status(200)
         .json(apiResponse.success('Product updated', updated));
@@ -468,15 +166,12 @@ export const productController = {
   ): Promise<Response | void> => {
     try {
       const { id } = req.params;
-      if (!Types.ObjectId.isValid(id))
-        throw createHttpError(400, 'Invalid product id');
 
-      const deleted = await ProductModel.findByIdAndDelete(id);
-      if (!deleted) throw createHttpError(404, 'Product not found');
+      const deleted = await productService.remove(id);
 
       return res
         .status(200)
-        .json(apiResponse.success('Product deleted successfully'));
+        .json(apiResponse.success('Product deleted successfully', deleted));
     } catch (error) {
       next(error);
     }
@@ -490,12 +185,9 @@ export const productController = {
   ): Promise<Response | void> => {
     try {
       const { shopId } = req.params;
-      if (!Types.ObjectId.isValid(shopId))
-        throw createHttpError(400, 'Invalid shop id');
 
-      const products = await ProductModel.find({ shop: shopId }).populate(
-        'categories'
-      );
+      const products = await productService.getByShop(shopId);
+
       return res
         .status(200)
         .json(apiResponse.success('Shop products', products));
@@ -513,12 +205,8 @@ export const productController = {
     try {
       const { categoryId } = req.params;
 
-      if (!Types.ObjectId.isValid(categoryId))
-        throw createHttpError(400, 'Invalid category id');
+      const products = await productService.getByCategory(categoryId);
 
-      const products = await ProductModel.find({
-        categories: categoryId
-      }).populate('shop');
       return res
         .status(200)
         .json(apiResponse.success('Category products', products));

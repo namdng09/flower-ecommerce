@@ -1,27 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router';
 import { useDispatch } from 'react-redux';
 import { getProductById } from '~/store/slices/productDetailSlice';
-import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchVariants } from '~/store/slices/variantSlice';
+import { addToCart } from '~/store/slices/cartSlice';
+import { useAppSelector } from '~/hooks/useAppSelector';
+import { AuthContext } from '~/contexts/authContext';
 
 const ProductPage = () => {
   const { id } = useParams();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<any>();
+  const { user } = useContext(AuthContext);
+  const [quantity, setQuantity] = useState(1);
+
   const { product, loading, error } = useAppSelector(
     state => state?.productDetail
   );
-  const {
-    items: variants,
-    loading: variantsLoading,
-    error: variantsError
-  } = useAppSelector(state => state?.variants);
+  const { items: variants } = useAppSelector(state => state?.variants);
 
-  const [selectedVariant, setSelectedVariant] = useState(
-    product?.variants[0] || null
-  );
-
+  const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [mainImage, setMainImage] = useState<string>('');
+
   useEffect(() => {
     if (id) {
       dispatch(getProductById(id));
@@ -31,16 +30,40 @@ const ProductPage = () => {
   useEffect(() => {
     if (product) {
       setMainImage(product.thumbnailImage);
-    }
-    if (product && product.variants.length > 0) {
-      setSelectedVariant(product.variants[0]);
-      setMainImage(product.thumbnailImage);
+      if (product.variants.length > 0) {
+        setSelectedVariant(product.variants[0]);
+      }
     }
   }, [product]);
 
   useEffect(() => {
     dispatch(fetchVariants());
   }, [dispatch]);
+
+  const handleAddToCart = async () => {
+    if (!user || !user.id) {
+      alert('Bạn cần đăng nhập để thêm vào giỏ hàng!');
+      return;
+    }
+
+    if (!selectedVariant) {
+      alert('Vui lòng chọn phiên bản sản phẩm!');
+      return;
+    }
+
+    try {
+      await dispatch(
+        addToCart({
+          userId: user.id,
+          variantId: selectedVariant._id,
+          quantity
+        })
+      );
+      alert('✅ Đã thêm vào giỏ hàng!');
+    } catch (err) {
+      alert('❌ Có lỗi khi thêm vào giỏ hàng!');
+    }
+  };
 
   if (loading)
     return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
@@ -51,6 +74,7 @@ const ProductPage = () => {
   return (
     <div className='container mx-auto px-4 pt-[200px] text-black mb-5'>
       <div className='flex flex-col lg:flex-row gap-10'>
+        {/* Hình ảnh sản phẩm */}
         <div className='lg:w-1/3'>
           <img
             src={mainImage}
@@ -59,7 +83,6 @@ const ProductPage = () => {
           />
 
           <div className='flex gap-4'>
-            {/* Ảnh chính */}
             <img
               src={product.thumbnailImage}
               alt='main-thumbnail'
@@ -74,7 +97,6 @@ const ProductPage = () => {
               }`}
             />
 
-            {/* Ảnh variants */}
             {product.variants.map(variant => (
               <img
                 key={variant._id}
@@ -94,6 +116,7 @@ const ProductPage = () => {
           </div>
         </div>
 
+        {/* Thông tin sản phẩm */}
         <div className='lg:w-1/2 space-y-4'>
           <h1 className='text-2xl font-bold'>{product.title}</h1>
           <p className='text-sm text-gray-600'>
@@ -129,15 +152,20 @@ const ProductPage = () => {
             )}
           </div>
 
-          <div className='flex gap-4 mt-4'>
+          {/* Thêm vào giỏ hàng */}
+          <div className='flex gap-4 mt-4 items-center'>
             <span>Số lượng: </span>
             <input
               type='number'
               min='1'
-              defaultValue='1'
-              className='w-16 border rounded px-2 py-1'
+              value={quantity}
+              onChange={e => setQuantity(Number(e.target.value))}
+              className='w-16 border rounded px-2 py-1 text-black'
             />
-            <button className='bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700'>
+            <button
+              onClick={handleAddToCart}
+              className='bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700'
+            >
               Thêm vào giỏ
             </button>
             <button className='bg-yellow-400 px-6 py-2 rounded hover:bg-yellow-500 text-black font-semibold'>

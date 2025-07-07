@@ -2,10 +2,10 @@ import { Outlet } from 'react-router';
 
 const AdminLayout = () => {
   return (
-    <div className=' min-h-screen'>
-      <div className='mx-auto p-4'>
+    <div className='bg-white min-h-screen flex flex-col'>
+      <main className='flex-1'>
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 };

@@ -9,7 +9,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/playground',
-    Component: lazy(() => import('../layouts/mainLayout')),
+    Component: lazy(() => import('../layouts/homepageLayout')),
     children: [
       {
         index: true,
@@ -62,6 +62,30 @@ const router = createBrowserRouter([
       {
         path: 'profile/:id',
         Component: lazy(() => import('../app/home/profile/[id]/page'))
+      },
+      {
+        path: 'cart',
+        Component: lazy(() => import('../app/home/cart/page'))
+      },
+      {
+        path: 'orders/:orderId',
+        Component: lazy(() => import('../app/home/order/[orderId]/page'))
+      },
+      {
+        path: 'order-success/:orderId',
+        Component: lazy(
+          () => import('../app/home/order-success/[orderId]/page')
+        )
+      },
+      {
+        path: 'order-tracking/:orderId',
+        Component: lazy(
+          () => import('../app/home/order-tracking/[orderId]/page')
+        )
+      },
+      {
+        path: 'order-fail',
+        Component: lazy(() => import('../app/home/order-fail/page'))
       }
     ]
   },
@@ -116,6 +140,10 @@ const router = createBrowserRouter([
       {
         path: 'user',
         Component: lazy(() => import('../app/(admin)/user/page'))
+      },
+      {
+        path: 'user/create',
+        Component: lazy(() => import('../app/(admin)/user/create/page'))
       },
       {
         path: 'user/:id',

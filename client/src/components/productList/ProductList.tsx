@@ -1,83 +1,82 @@
-import { useAppSelector } from '~/hooks/useAppSelector';
+import { useEffect, useState, useContext } from 'react';
 import { useDispatch } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchProducts } from '~/store/slices/productSlice';
-import banner from '../../../src/assets/banner1.webp';
+import { addToCart } from '~/store/slices/cartSlice';
+import ListCategory from '~/components/listcategory/ListCategory';
+import { AuthContext } from '~/contexts/authContext';
+import banner from '~/assets/banner1.webp';
 import { Link } from 'react-router';
-import ListCategory from '~/components/listcategory/ListCategory'; // Ensure this path is correct
+
 const ProductList = () => {
-  const [sortBy, setSortBy] = useState('A-Z');
   const dispatch = useDispatch();
+  const auth = useContext(AuthContext);
+  const userId = auth?.user?.id;
+
   const {
     items: products,
     loading,
     error
   } = useAppSelector(state => state.products);
 
+  const [sortBy, setSortBy] = useState('A-Z');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
+
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-  const sortedProducts = [...products].sort((a, b) => {
-    const aVariant = a.variants?.[0];
-    const bVariant = b.variants?.[0];
+  console.log(products);
 
+  const filteredProducts = selectedCategoryId
+    ? products.filter(
+        p =>
+          Array.isArray(p.categories) &&
+          p.categories.some(cat => cat._id === selectedCategoryId)
+      )
+    : products;
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    const aVar = a.variants?.[0];
+    const bVar = b.variants?.[0];
     if (sortBy === 'A-Z') return a.title.localeCompare(b.title);
     if (sortBy === 'Z-A') return b.title.localeCompare(a.title);
-    if (sortBy === 'PriceLowHigh') {
-      if (!aVariant || !bVariant) return 0;
-      return aVariant.salePrice - bVariant.salePrice;
-    }
+    if (sortBy === 'PriceLowHigh')
+      return (aVar?.salePrice ?? 0) - (bVar?.salePrice ?? 0);
     return 0;
   });
+
+  const handleAddToCart = (variantId: string) => {
+    if (!userId) return alert('Vui lòng đăng nhập để thêm vào giỏ hàng.');
+    dispatch(addToCart({ userId, variantId, quantity: 1 }));
+  };
 
   return (
     <div className='container mx-auto px-4 pt-[200px] mb-5'>
       <div className='flex flex-col lg:flex-row gap-8'>
-        <div className='lg:w-1/5 lg:order-1 space-y-6 text-black'>
-          <div>
-            <h3 className='font-semibold mb-2'>Tình trạng</h3>
-            <label className='block'>
-              <input type='checkbox' className='mr-2' /> Còn hàng (41)
-            </label>
-            <label className='block'>
-              <input type='checkbox' className='mr-2' /> Hết hàng (5)
-            </label>
-          </div>
-
-          <div>
-            <h3 className='font-semibold mb-2'>Khoảng giá</h3>
-            <div className='flex items-center gap-2 mb-2'>
-              <input
-                type='number'
-                placeholder='0'
-                className='border p-1 w-20'
-              />
-              <span>đến</span>
-              <input
-                type='number'
-                placeholder='150000'
-                className='border p-1 w-24'
-              />
-            </div>
-            <button className='bg-black text-white px-4 py-1'>Lọc</button>
-          </div>
-
+        {/* Sidebar */}
+        <div className='lg:w-1/5 space-y-6 text-black'>
           <div>
             <h3 className='font-semibold mb-2'>Loại sản phẩm</h3>
-            <ListCategory />
+            <ListCategory
+              onFilter={setSelectedCategoryId}
+              selectedCategoryId={selectedCategoryId}
+            />
           </div>
         </div>
 
-        <div className='flex-1 lg:order-2'>
+        {/* Content */}
+        <div className='flex-1'>
           <div className='mb-6'>
-            <img src={banner} alt='New Collection' className='w-full rounded' />
+            <img src={banner} alt='Banner' className='w-full rounded' />
           </div>
 
           <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-4 text-black gap-4'>
             <p>
-              Hiển thị 1–{sortedProducts.length} trong {sortedProducts.length}{' '}
-              sản phẩm
+              Hiển thị {sortedProducts.length} sản phẩm
+              {selectedCategoryId && ` theo danh mục đã chọn`}
             </p>
             <div>
               <label className='mr-2'>Sắp xếp theo</label>
@@ -86,9 +85,9 @@ const ProductList = () => {
                 onChange={e => setSortBy(e.target.value)}
                 className='border border-gray-300 px-4 py-2 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-500'
               >
-                <option value='A-Z'>Alphabetically, A-Z</option>
-                <option value='Z-A'>Alphabetically, Z-A</option>
-                <option value='PriceLowHigh'>Price, low to high</option>
+                <option value='A-Z'>A-Z</option>
+                <option value='Z-A'>Z-A</option>
+                <option value='PriceLowHigh'>Giá: Thấp đến Cao</option>
               </select>
             </div>
           </div>
@@ -116,14 +115,17 @@ const ProductList = () => {
                         <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
                           Mua ngay
                         </button>
-                        <button className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'>
+                        <button
+                          onClick={() => handleAddToCart(variant?._id)}
+                          className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'
+                        >
                           Thêm vào giỏ hàng
                         </button>
                       </div>
                     </div>
 
                     <Link to={`/home/products/${product._id}`}>
-                      <h4 className='font-medium mb-1 text-black mt-5 hover:text-pink-600 transition'>
+                      <h4 className='font-medium mt-5 mb-1 text-black hover:text-pink-600 transition'>
                         {product.title}
                       </h4>
                     </Link>
@@ -140,9 +142,7 @@ const ProductList = () => {
                         </p>
                       </>
                     ) : (
-                      <p className='text-gray-500 italic'>
-                        Chưa có thông tin giá
-                      </p>
+                      <p className='text-gray-500 italic'>Chưa có giá</p>
                     )}
                   </div>
                 );
