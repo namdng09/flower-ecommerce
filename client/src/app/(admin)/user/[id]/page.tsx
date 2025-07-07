@@ -31,7 +31,6 @@ const UserUpdatePage = () => {
     resolver: zodResolver(userFormSchema)
   });
 
-  // Load user data
   useEffect(() => {
     if (id) {
       dispatch(fetchUserById(id));
@@ -41,7 +40,6 @@ const UserUpdatePage = () => {
     };
   }, [dispatch, id]);
 
-  // Reset form when user data is loaded or when switching modes
   useEffect(() => {
     if (currentUser) {
       reset({
@@ -59,7 +57,6 @@ const UserUpdatePage = () => {
 
     try {
       await dispatch(updateUser({ id, userData: data })).unwrap();
-      // Show success message or navigate back
       navigate('/admin/user');
     } catch (error) {
       console.error('Failed to update user:', error);
@@ -221,9 +218,9 @@ const UserUpdatePage = () => {
 
         {/* Profile Info */}
         <div className='relative px-6 pb-6'>
-          <div className='flex items-end gap-6 -mt-16'>
+          <div className='flex items-start gap-6 -mt-8'>
             <div className='relative'>
-              <div className='w-32 h-32 rounded-full border-4 border-white bg-gray-300 flex items-center justify-center overflow-hidden'>
+              <div className='w-32 h-32 rounded-full border-4 border-white bg-gray-300 flex items-center justify-center overflow-hidden shadow-lg'>
                 {currentUser.avatarUrl ? (
                   <img
                     src={currentUser.avatarUrl}
@@ -252,7 +249,7 @@ const UserUpdatePage = () => {
                 📷
               </button>
             </div>
-            <div className='flex-1 mt-4'>
+            <div className='flex-1 pt-10'>
               <h2 className='text-2xl font-bold'>{currentUser.fullName}</h2>
               <p className='text-gray-600'>@{currentUser.username}</p>
               <span
