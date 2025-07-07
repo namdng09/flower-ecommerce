@@ -168,7 +168,8 @@ import { useParams, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrderById } from '~/store/slices/orderSlice';
 import type { RootState } from '~/store';
-import { FaCheckCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaGift } from 'react-icons/fa';
+import { FiBox, FiMapPin } from 'react-icons/fi';
 
 const OrderPage: React.FC = () => {
   const { orderId } = useParams();
@@ -214,7 +215,10 @@ const OrderPage: React.FC = () => {
           Ngày đặt: {new Date(createdAt).toLocaleString()}
         </p>
 
-        <h2 className="text-lg font-semibold mb-2 text-[#C4265B]">📦 Sản phẩm</h2>
+        <h2 className="text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2">
+          <FiBox className="text-[#C4265B]" />
+          Sản phẩm
+        </h2>
         <ul className="mb-6 space-y-2">
           {items.map((item: any, idx: number) => (
             <li key={idx} className="border-b py-2 flex justify-between">
@@ -224,7 +228,10 @@ const OrderPage: React.FC = () => {
           ))}
         </ul>
 
-        <h2 className="text-lg font-semibold mb-2 text-[#C4265B]">🏠 Địa chỉ giao hàng</h2>
+        <h2 className="text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2">
+          <FiMapPin className="text-[#C4265B]" />
+          Địa chỉ giao hàng
+        </h2>
         <p className="mb-4">
           <strong>{address.fullName}</strong> - {address.phone}<br />
           {address.street}, {address.ward}, {address.province}
@@ -232,7 +239,10 @@ const OrderPage: React.FC = () => {
 
         {order.customization && (
           <div className="mt-6 space-y-2">
-            <h2 className="text-lg font-semibold text-[#C4265B]">🎁 Tuỳ chọn đơn hàng</h2>
+            <h2 className="text-lg font-semibold text-[#C4265B] flex items-center gap-2">
+              <FaGift className="text-[#C4265B] size-5" />
+              Tuỳ chọn đơn hàng
+            </h2>
 
             {order.customization.giftMessage && (
               <div className="text-gray-800">
