@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '~/store/hooks';
 import { createUser, clearError } from '~/store/slices/userSlice';
-import { userFormSchema, type UserFormData } from '~/types/userSchema';
+import { userFormSchema, type UserFormData } from '~/types/user';
 import { SuccessToast, ErrorToast } from '~/components/Toasts';
 
 const CreateUserPage = () => {

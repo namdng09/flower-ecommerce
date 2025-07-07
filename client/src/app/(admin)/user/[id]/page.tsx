@@ -12,7 +12,7 @@ import {
   clearCurrentUser,
   clearError
 } from '~/store/slices/userSlice';
-import { userFormSchema, type UserFormData } from '~/types/userSchema';
+import { userFormSchema, type UserFormData } from '~/types/user';
 import uploadAssets from '~/utils/uploadAssets';
 import { ConfirmModal } from '~/components/ConfirmModal';
 import { SuccessToast, ErrorToast } from '~/components/Toasts';

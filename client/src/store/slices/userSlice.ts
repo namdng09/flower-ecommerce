@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from '~/config/axiosConfig';
-import type { UserFormData } from '~/types/userSchema';
+import type { UserFormData } from '~/types/user';
 
 export interface User {
   _id: string;
