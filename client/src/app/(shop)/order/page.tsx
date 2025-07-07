@@ -11,7 +11,11 @@ import { Link } from 'react-router';
 
 const Page = () => {
   const dispatch = useDispatch();
-  const { orders = [], loading, error } = useSelector((state: RootState) => state.orders);
+  const {
+    orders = [],
+    loading,
+    error
+  } = useSelector((state: RootState) => state.orders);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -43,84 +47,97 @@ const Page = () => {
       accessorKey: 'orderNumber',
       header: 'Order',
       render: (v: string) => (
-        <div className="font-semibold text-blue-700">{v}</div>
-      ),
+        <div className='font-semibold text-blue-700'>{v}</div>
+      )
     },
     {
       accessorKey: 'totalQuantity',
-      header: 'Qty',
+      header: 'Qty'
     },
     {
       accessorKey: 'totalPrice',
       header: 'Total',
-      render: (v: number) => `${v.toLocaleString()}đ`,
+      render: (v: number) => `${v.toLocaleString()}đ`
     },
     {
       accessorKey: 'status',
       header: 'Status',
       render: (v: string) => (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${v === 'pending'
-          ? 'bg-yellow-100 text-yellow-800'
-          : v === 'completed'
-            ? 'bg-green-100 text-green-700'
-            : 'bg-gray-200 text-gray-700'
-        }`}>
+        <span
+          className={`text-xs font-medium px-2 py-1 rounded-full ${
+            v === 'pending'
+              ? 'bg-yellow-100 text-yellow-800'
+              : v === 'completed'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-200 text-gray-700'
+          }`}
+        >
           {v}
         </span>
-      ),
+      )
     },
     {
       accessorKey: 'payment',
       header: 'Payment',
       render: (v: any) => (
-        <div className="text-xs text-gray-600">
-          <div><b>{v.method.toUpperCase()}</b></div>
-          <div className={`${v.status === 'unpaid' ? 'text-red-500' : 'text-green-600'}`}>{v.status}</div>
+        <div className='text-xs text-gray-600'>
+          <div>
+            <b>{v.method.toUpperCase()}</b>
+          </div>
+          <div
+            className={`${v.status === 'unpaid' ? 'text-red-500' : 'text-green-600'}`}
+          >
+            {v.status}
+          </div>
         </div>
-      ),
+      )
     },
     {
       accessorKey: 'shipment',
       header: 'Shipment',
       render: (v: any) => (
-        <div className="text-xs text-gray-600">
-          <div>Status: <b>{v.status}</b></div>
+        <div className='text-xs text-gray-600'>
+          <div>
+            Status: <b>{v.status}</b>
+          </div>
           <div>Ship: {v.shippingCost?.toLocaleString()}đ</div>
         </div>
-      ),
+      )
     },
     {
       accessorKey: 'createdAt',
       header: 'Created At',
-      render: (v: string) => new Date(v).toLocaleString(),
+      render: (v: string) => new Date(v).toLocaleString()
     },
     {
       accessorKey: 'action',
       header: 'Action',
       render: (_: any, row: any) => (
-        <div className="flex gap-2 justify-center text-gray-500">
-          <Link to={`/shop/order/${row._id}`} title="View">
-            <FiEye size={16} className="hover:text-blue-600 cursor-pointer" />
+        <div className='flex gap-2 justify-center text-gray-500'>
+          <Link to={`/shop/order/${row._id}`} title='View'>
+            <FiEye size={16} className='hover:text-blue-600 cursor-pointer' />
           </Link>
           <button
-            title="Delete"
+            title='Delete'
             onClick={() => handleDelete(row._id)}
-            className="hover:text-red-600"
+            className='hover:text-red-600'
           >
             <FiTrash2 size={16} />
           </button>
         </div>
-      ),
-    },
+      )
+    }
   ];
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-sm">
+    <div className='p-6 bg-white rounded-lg shadow-sm'>
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-bold">Orders</h1>
-        <div className="flex gap-2">
-          <button className="px-3 py-2 text-sm border rounded hover:bg-gray-100">Filter</button>
+      <div className='flex justify-between items-center mb-6'>
+        <h1 className='text-xl font-bold'>Orders</h1>
+        <div className='flex gap-2'>
+          <button className='px-3 py-2 text-sm border rounded hover:bg-gray-100'>
+            Filter
+          </button>
         </div>
       </div>
 
@@ -128,13 +145,13 @@ const Page = () => {
       {loading ? (
         <p>Loading...</p>
       ) : error ? (
-        <p className="text-red-500">{error}</p>
+        <p className='text-red-500'>{error}</p>
       ) : (
         <DynamicTable data={paginatedOrders} columns={columns} />
       )}
 
       {/* Pagin */}
-      <div className="mt-6">
+      <div className='mt-6'>
         <Pagination
           page={page}
           setPage={setPage}
@@ -149,8 +166,8 @@ const Page = () => {
       <ConfirmModal
         show={showConfirm}
         setShow={setShowConfirm}
-        title="Delete Order"
-        message="Are you sure you want to delete this order?"
+        title='Delete Order'
+        message='Are you sure you want to delete this order?'
         onConfirm={confirmDelete}
       />
     </div>
