@@ -19,6 +19,7 @@ const UserPage = () => {
 
   const getFiltersFromParams = () => ({
     search: searchParams.get('search') || '',
+    role: searchParams.get('role') || '',
     sortBy: searchParams.get('sortBy') || 'createdAt',
     sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
     page: parseInt(searchParams.get('page') || '1', 10),
@@ -27,6 +28,7 @@ const UserPage = () => {
 
   const updateURLParams = (newFilters: {
     search: string;
+    role: string;
     sortBy: string;
     sortOrder: string;
     page: number;
@@ -35,14 +37,13 @@ const UserPage = () => {
     const params = new URLSearchParams();
 
     if (newFilters.search) params.set('search', newFilters.search);
+    if (newFilters.role) params.set('role', newFilters.role);
     if (newFilters.sortBy !== 'createdAt')
       params.set('sortBy', newFilters.sortBy);
     if (newFilters.sortOrder !== 'desc')
       params.set('sortOrder', newFilters.sortOrder);
     if (newFilters.page !== 1) params.set('page', newFilters.page.toString());
-    if (newFilters.limit !== 2)
-      params.set('limit', newFilters.limit.toString());
-
+    params.set('limit', newFilters.limit.toString());
     setSearchParams(params);
   };
 
@@ -70,6 +71,7 @@ const UserPage = () => {
   const handleResetFilters = () => {
     const resetFilters = {
       search: '',
+      role: '',
       sortBy: 'createdAt',
       sortOrder: 'desc' as 'asc' | 'desc',
       page: 1,
@@ -231,6 +233,22 @@ const UserPage = () => {
 
         <div className='form-control'>
           <label className='label'>
+            <span className='label-text'>Role</span>
+          </label>
+          <select
+            className='select select-bordered'
+            value={localFilters.role}
+            onChange={e => handleFilterChange('role', e.target.value)}
+          >
+            <option value=''>All Roles</option>
+            <option value='admin'>Admin</option>
+            <option value='shop'>Shop</option>
+            <option value='customer'>Customer</option>
+          </select>
+        </div>
+
+        <div className='form-control'>
+          <label className='label'>
             <span className='label-text'>Sort By</span>
           </label>
           <select
@@ -288,18 +306,16 @@ const UserPage = () => {
       {!loading && users.length > 0 && (
         <>
           <DynamicTable data={users} columns={columns} />
-          {totalPages > 1 && (
-            <div className='flex justify-center mt-6'>
-              <Pagination
-                page={currentPage}
-                setPage={handlePageChange}
-                totalPages={totalPages}
-                limit={localFilters.limit}
-                setLimit={handleLimitChange}
-                totalItems={totalUsers}
-              />
-            </div>
-          )}
+          <div className='flex justify-center mt-6'>
+            <Pagination
+              page={currentPage}
+              setPage={handlePageChange}
+              totalPages={totalPages}
+              limit={localFilters.limit}
+              setLimit={handleLimitChange}
+              totalItems={totalUsers}
+            />
+          </div>
         </>
       )}
 

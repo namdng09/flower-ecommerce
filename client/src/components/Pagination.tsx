@@ -11,7 +11,7 @@ const Pagination = ({
   page,
   setPage,
   totalPages,
-  limit = 10,
+  limit = 2,
   setLimit,
   totalItems
 }: PaginationProps) => {
@@ -42,19 +42,19 @@ const Pagination = ({
   };
 
   return (
-    <div className='flex flex-col sm:flex-row items-center gap-4'>
+    <div className='flex flex-col lg:flex-row items-center gap-4'>
       {/* Items per page selector */}
       {setLimit && (
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 whitespace-nowrap'>
           <span className='text-sm text-gray-600'>Items per page:</span>
           <select
-            className='select select-bordered select-sm'
+            className='select select-bordered select-sm min-w-16'
             value={limit}
             onChange={e => {
               const newLimit = parseInt(e.target.value);
-              setLimit(newLimit);
-              // Reset to first page when changing limit
-              setPage(1);
+              if (setLimit) {
+                setLimit(newLimit);
+              }
             }}
           >
             <option value={2}>2</option>
@@ -66,7 +66,6 @@ const Pagination = ({
         </div>
       )}
 
-      {/* Page info */}
       {totalItems && (
         <div className='text-sm text-gray-600'>
           Showing {Math.min((page - 1) * limit + 1, totalItems)} to{' '}
