@@ -129,7 +129,7 @@ const CustomizationSchema = new Schema<ICustomization>(
     giftMessage: { type: String, trim: true, maxlength: 500 },
     isAnonymous: { type: Boolean },
     deliveryTimeRequested: { type: Date },
-    notes: { type: String, trime: true }
+    notes: { type: String, trim: true }
   },
   { _id: false }
 );

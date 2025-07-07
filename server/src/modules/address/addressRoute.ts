@@ -7,8 +7,8 @@ const router: Router = express.Router();
 router.get('/', asyncHandler(addressController.list));
 router.post('/', asyncHandler(addressController.create));
 
-router.get('/:id', asyncHandler(addressController.show));
-router.put('/:id', asyncHandler(addressController.update));
-router.delete('/:id', asyncHandler(addressController.remove));
+router.get('/:addressId', asyncHandler(addressController.show));
+router.put('/:addressId', asyncHandler(addressController.update));
+router.delete('/:addressId', asyncHandler(addressController.delete));
 
 export default router as Router;
