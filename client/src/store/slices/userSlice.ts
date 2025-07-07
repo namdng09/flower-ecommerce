@@ -47,7 +47,6 @@ const initialState: UserState = {
     page: 1,
     limit: 2,
     search: '',
-    role: '',
     sortBy: 'createdAt',
     sortOrder: 'desc'
   }
@@ -62,7 +61,6 @@ export const fetchUsers = createAsyncThunk(
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.search) queryParams.append('search', params.search);
-    if (params.role) queryParams.append('role', params.role);
     if (params.sortBy) queryParams.append('sortBy', params.sortBy);
     if (params.sortOrder) queryParams.append('sortOrder', params.sortOrder);
 
