@@ -304,6 +304,8 @@ import { AuthContext } from '~/contexts/authContext';
 import { FaShoppingCart, FaTrashAlt } from 'react-icons/fa';
 import { HiOutlineReceiptRefund } from 'react-icons/hi';
 import { FiMapPin, FiPlus } from 'react-icons/fi';
+import { FiGift, FiCalendar, FiClock } from 'react-icons/fi';
+import { FaUserSecret, FaRegSmile, FaMoneyBillWave } from 'react-icons/fa';
 import type { RootState } from '~/store';
 import {
   fetchCartByUserId,
@@ -591,7 +593,7 @@ const CartItemsTable: React.FC = () => {
           </div>
 
           {/* Tùy chọn thêm */}
-          <div className='bg-white shadow-md p-6 rounded-xl mb-6'>
+          {/* <div className='bg-white shadow-md p-6 rounded-xl mb-6'>
             <h2 className='text-xl font-bold mb-4 border-b pb-2 flex items-center gap-2 text-[#C4265B]'>
               🎁 Tuỳ chọn thêm
             </h2>
@@ -643,6 +645,85 @@ const CartItemsTable: React.FC = () => {
                   value={paymentMethod}
                   onChange={e => setPaymentMethod(e.target.value as 'cod' | 'banking')}
                   className='w-full border p-2 mt-1 rounded text-black'
+                >
+                  <option value='cod'>Thanh toán khi nhận hàng (COD)</option>
+                  <option value='banking'>Chuyển khoản ngân hàng</option>
+                </select>
+              </label>
+            </div>
+          </div> */}
+
+          <div className='bg-white shadow-md p-6 rounded-xl mb-6'>
+            <h2 className='text-xl font-bold mb-4 border-b pb-2 flex items-center gap-2 text-[#C4265B]'>
+              <FiGift size={22} className='text-pink-500' />
+              Tuỳ chọn thêm
+            </h2>
+
+            <div className='space-y-4 text-sm'>
+              {/* Lời chúc */}
+              <label className='block'>
+                <div className='flex items-center gap-2 mb-1'>
+                  <FaRegSmile className='text-yellow-500' size={18} />
+                  <span className='text-gray-800'>Lời chúc:</span>
+                </div>
+                <input
+                  value={giftMessage}
+                  onChange={e => setGiftMessage(e.target.value)}
+                  className='w-full border p-2 rounded text-black'
+                  placeholder='VD: Chúc mừng sinh nhật...'
+                />
+              </label>
+
+              {/* Gửi ẩn danh */}
+              <label className='flex items-center gap-2'>
+                <FaUserSecret className='text-purple-600' size={18} />
+                <input
+                  type='checkbox'
+                  checked={isAnonymous}
+                  onChange={e => setIsAnonymous(e.target.checked)}
+                />
+                <span className='text-gray-800'>Gửi ẩn danh</span>
+              </label>
+
+              {/* Ngày và giờ giao hàng */}
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                <label className='block'>
+                  <div className='flex items-center gap-2 text-sm text-gray-800'>
+                    <FiCalendar className='text-green-600' size={18} />
+                    Ngày giao hàng mong muốn
+                  </div>
+                  <input
+                    type='date'
+                    value={ngayGiaoHang}
+                    onChange={e => setNgayGiaoHang(e.target.value)}
+                    className='w-full border p-2 rounded mt-1 text-black appearance-auto'
+                  />
+                </label>
+
+                <label className='block'>
+                  <div className='flex items-center gap-2 text-sm text-gray-800'>
+                    <FiClock className='text-blue-600' size={18} />
+                    Giờ giao hàng mong muốn
+                  </div>
+                  <input
+                    type='time'
+                    value={gioGiaoHang}
+                    onChange={e => setGioGiaoHang(e.target.value)}
+                    className='w-full border p-2 rounded mt-1 text-black appearance-auto'
+                  />
+                </label>
+              </div>
+
+              {/* Phương thức thanh toán */}
+              <label className='block'>
+                <div className='flex items-center gap-2 text-sm text-gray-800 mb-1'>
+                  <FaMoneyBillWave className='text-emerald-600' size={18} />
+                  Phương thức thanh toán
+                </div>
+                <select
+                  value={paymentMethod}
+                  onChange={e => setPaymentMethod(e.target.value as 'cod' | 'banking')}
+                  className='w-full border p-2 rounded text-black'
                 >
                   <option value='cod'>Thanh toán khi nhận hàng (COD)</option>
                   <option value='banking'>Chuyển khoản ngân hàng</option>
