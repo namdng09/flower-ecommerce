@@ -293,7 +293,7 @@ const CartItemsTable: React.FC = () => {
           </div>
 
           {/* Tùy chọn thêm */}
-          <div className='bg-white shadow-md p-6 rounded-xl mb-6'>
+          <div className='bg-white shadow-md p-6 rounded-xl mb-6 text-black'>
             <h2 className='text-xl font-bold mb-4 border-b pb-2 flex items-center gap-2 text-[#C4265B]'>
               <FiGift size={22} className='text-pink-500' />
               Tuỳ chọn thêm
@@ -326,7 +326,7 @@ const CartItemsTable: React.FC = () => {
               </label>
 
               {/* Ngày và giờ giao hàng */}
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-4 text-black'>
                 <label className='block'>
                   <div className='flex items-center gap-2 text-sm text-gray-800'>
                     <FiCalendar className='text-green-600' size={18} />
