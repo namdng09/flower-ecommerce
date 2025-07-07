@@ -62,7 +62,7 @@ export const favouriteService = {
 
         const initialLength = favourite.products.length;
         favourite.products = favourite.products.filter(
-            id => !id.equals(productId)
+            id => !id.equals(new Types.ObjectId(productId))
         );
 
         if (favourite.products.length === initialLength) {
