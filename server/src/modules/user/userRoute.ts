@@ -11,12 +11,12 @@ router.patch(
 );
 
 router.get('/', asyncHandler(userController.list));
-router.get('/:id', asyncHandler(userController.show));
+router.get('/:userId', asyncHandler(userController.show));
 
 router.post('/', asyncHandler(userController.create));
-router.put('/:id', asyncHandler(userController.update));
-router.patch('/:id/avatar', asyncHandler(userController.updateAvatarUrl));
-router.patch('/:id/cover', asyncHandler(userController.updateCoverUrl));
-router.delete('/:id', asyncHandler(userController.remove));
+router.patch('/:userId/avatar', asyncHandler(userController.updateAvatarUrl));
+router.patch('/:userId/cover', asyncHandler(userController.updateCoverUrl));
+router.put('/:userId', asyncHandler(userController.update));
+router.delete('/:userId', asyncHandler(userController.remove));
 
 export default router as Router;
