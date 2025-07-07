@@ -35,7 +35,7 @@ const UserPage = () => {
     parseInt(searchParams.get('page') || '1', 10)
   );
   const [limit, setLimit] = useState(() =>
-    parseInt(searchParams.get('limit') || '2', 10)
+    parseInt(searchParams.get('limit') || '10', 10)
   );
 
   // Modal and Toast states
