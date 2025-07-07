@@ -117,15 +117,6 @@ const CategoryPage = () => {
       )
     },
     {
-      accessorKey: 'parentId',
-      header: 'Parent',
-      render: (_: any, row: any) => (
-        <span className='text-sm italic text-gray-500'>
-          {row._isChild ? `Child of ${row._parentTitle}` : '—'}
-        </span>
-      )
-    },
-    {
       accessorKey: 'status',
       header: 'Status',
       render: (v: string) => (
@@ -174,7 +165,7 @@ const CategoryPage = () => {
           </button>
           <button
             onClick={() => navigate('/admin/category/create')}
-            className='bg-blue-500 text-white px-4 py-2 text-sm rounded hover:bg-blue-600'
+            className='bg-green-500 text-white px-4 py-2 text-sm rounded hover:bg-blue-600'
           >
             + Add Category
           </button>
