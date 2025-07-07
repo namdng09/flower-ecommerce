@@ -136,7 +136,7 @@ export const userController = {
       const { userId } = req.params;
       const userData: IUser = req.body;
 
-      const resUser = await userService.update(userId, userData)
+      const resUser = await userService.update(userId, userData);
 
       return res
         .status(200)
@@ -227,7 +227,11 @@ export const userController = {
       const { email } = req.params;
       const { oldPassword, newPassword } = req.body;
 
-      const user = await userService.updatePassword(email, oldPassword, newPassword);
+      const user = await userService.updatePassword(
+        email,
+        oldPassword,
+        newPassword
+      );
 
       return res
         .status(200)
