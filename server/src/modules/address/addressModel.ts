@@ -1,13 +1,13 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IAddress extends Document {
-  userId: mongoose.Types.ObjectId;
+  user: mongoose.Types.ObjectId;
   fullName: string;
   phone: string;
   province: string;
-  district: string;
   ward: string;
   street: string;
+  plusCode: string;
   location?: {
     type: 'Point';
     coordinates: [number, number];
@@ -20,7 +20,7 @@ export interface IAddress extends Document {
 
 const AddressSchema = new Schema<IAddress>(
   {
-    userId: {
+    user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true
@@ -39,9 +39,9 @@ const AddressSchema = new Schema<IAddress>(
       }
     },
     province: { type: String, required: true, trim: true },
-    district: { type: String, required: true, trim: true },
     ward: { type: String, required: true, trim: true },
     street: { type: String, required: true, trim: true },
+    plusCode: { type: String, trim: true },
     location: {
       type: {
         type: String,
@@ -75,8 +75,7 @@ const AddressSchema = new Schema<IAddress>(
   { timestamps: true }
 );
 
-// Tạo index 2dsphere cho location nếu bạn muốn tìm kiếm theo vị trí
-// AddressSchema.index({ location: '2dsphere' });
+AddressSchema.index({ location: '2dsphere' });
 
 const AddressModel: Model<IAddress> = mongoose.model<IAddress>(
   'Address',

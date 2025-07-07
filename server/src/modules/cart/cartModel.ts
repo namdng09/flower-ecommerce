@@ -14,7 +14,7 @@ const CartItemSchema = new Schema<ICartItem>(
     quantity: { type: Number, required: true, min: 1, default: 1 },
     price: { type: Number, required: true, min: 0, default: 0 }
   },
-  { timestamps: true }
+  { _id: false, timestamps: true }
 );
 
 export interface ICart extends Document {

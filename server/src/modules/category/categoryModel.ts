@@ -1,4 +1,7 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Document, Schema, Model } from 'mongoose';
+import paginate from 'mongoose-paginate-v2';
+import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import { PaginateModel, PaginateOptions, PaginateResult } from 'mongoose';
 
 export interface ICategory extends Document {
   title: string;
@@ -29,9 +32,13 @@ const CategorySchema = new Schema<ICategory>(
   { timestamps: true }
 );
 
-const CategoryModel: Model<ICategory> = mongoose.model<ICategory>(
-  'Category',
-  CategorySchema
-);
+CategorySchema.plugin(aggregatePaginate);
+export interface CategoryDocument extends mongoose.Document, ICategory {}
+export type CategoryPaginateModel = mongoose.PaginateModel<CategoryDocument>;
+
+const CategoryModel = mongoose.model<
+  CategoryDocument,
+  PaginateModel<CategoryDocument>
+>('Category', CategorySchema);
 
 export default CategoryModel;

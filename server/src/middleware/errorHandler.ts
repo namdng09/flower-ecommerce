@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import { Request, Response, ErrorRequestHandler, NextFunction } from 'express';
 import { apiResponse } from '~/types/apiResponse';
 
 export const errorHandler: ErrorRequestHandler = (
@@ -7,7 +7,7 @@ export const errorHandler: ErrorRequestHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  const status = err.status || 500;
+  const status = err.status || err.statusCode || 500;
 
   if (status >= 400 && status < 500) {
     const message = err.message || 'Client Error';
@@ -16,9 +16,9 @@ export const errorHandler: ErrorRequestHandler = (
   }
 
   const message =
-    process.env.NODE_ENV === 'production' && err instanceof Error
+    process.env.NODE_ENV === 'production'
       ? 'Internal Server Error'
-      : err.message;
+      : err.message || 'Something went wrong';
 
   res.status(500).json(apiResponse.error(message));
 };

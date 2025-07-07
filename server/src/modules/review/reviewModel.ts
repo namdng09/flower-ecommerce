@@ -1,18 +1,20 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IReview extends Document {
+export interface IReviewRequest {
   userId: mongoose.Types.ObjectId;
   productId: mongoose.Types.ObjectId;
   targetType: string;
   rating: number;
-  description: string;
-  status: string;
+  description?: string;
+  status: 'active' | 'inactive';
+  images?: string[];
+}
+export interface IReview extends IReviewRequest, Document {
   createdAt: Date;
   updatedAt: Date;
-  images: string[];
 }
 
-const ReviewSchema = new Schema<IReview>(
+const ReviewSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -24,8 +26,17 @@ const ReviewSchema = new Schema<IReview>(
       ref: 'Product',
       required: true
     },
-    targetType: { type: String, required: true, trim: true },
-    rating: { type: Number, required: true, trim: true },
+    targetType: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5
+    },
     description: { type: String, default: '', trim: true },
     status: {
       type: String,
@@ -37,9 +48,6 @@ const ReviewSchema = new Schema<IReview>(
   { timestamps: true }
 );
 
-const ReviewModel: Model<IReview> = mongoose.model<IReview>(
-  'Review',
-  ReviewSchema
-);
+const ReviewModel = mongoose.model<IReview>('Review', ReviewSchema);
 
 export default ReviewModel;

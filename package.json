@@ -3,15 +3,30 @@
   "version": "1.0.0",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx,.js,.mjs",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js,.mjs --fix",
+    "check": "npm run check:client && npm run check:server",
+    "check:client": "cd client && tsc -p tsconfig.app.json --noEmit",
+    "check:server": "cd server && tsc --noEmit",
     "format": "prettier --write .",
     "prepare": "husky",
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
-    "*.ts": [
+    "client/**/*.{ts,tsx}": [
+      "tsc-files --noEmit -p client/tsconfig.app.json",
+      "git add"
+    ],
+    "server/**/*.{ts,tsx}": [
+      "npx tsc-files --noEmit -p server/tsconfig.json",
+      "git add"
+    ],
+    "*.{js,mjs}": [
       "npm run lint",
       "npm run format",
       "git add"
+    ],
+    "package.json": [
+      "npm run lint"
     ]
   },
   "keywords": [],
@@ -32,6 +47,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.0.0",
     "prettier": "^3.5.3",
+    "tsc-files": "^1.1.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0"
   }

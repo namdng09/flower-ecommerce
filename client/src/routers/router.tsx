@@ -1,13 +1,18 @@
 import { lazy } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 // import PrivateRoutes from '../components/privateRoutes';
 
 const router = createBrowserRouter([
   {
+    path: '/',
+    element: <Navigate to='/home' replace />
+  },
+  {
+    path: '/playground',
     Component: lazy(() => import('../layouts/mainLayout')),
     children: [
       {
-        path: '',
+        index: true,
         Component: lazy(() => import('../app/page'))
       }
     ]
@@ -36,37 +41,155 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        Component: lazy(() => import('../app/home/homepage/Homepage'))
+        Component: lazy(() => import('../app/home/page'))
       },
       {
         path: 'shop',
-        Component: lazy(
-          () => import('../app/home/homepage/productList/ProductList')
-        )
+        Component: lazy(() => import('../app/home/shop/page'))
       },
       {
         path: 'products/:id',
-        Component: lazy(
-          () => import('../app/home/homepage/productList/ProductPage')
-        )
+        Component: lazy(() => import('../app/home/products/[id]/page'))
       },
       {
         path: 'about',
-        Component: lazy(() => import('../app/home/homepage/about-us/AboutC'))
-      },
-      {
-        path: 'cart',
-        Component: lazy(() => import('../app/home/homepage/Cart/CartDetails'))
+        Component: lazy(() => import('../app/home/about/page'))
       },
       {
         path: 'checkout',
-        Component: lazy(
-          () => import('../app/home/homepage/check-out/CheckoutPage')
-        )
+        Component: lazy(() => import('../app/home/checkout/page'))
       },
       {
         path: 'profile/:id',
-        Component: lazy(() => import('../app/home/homepage/profile/ProfileC'))
+        Component: lazy(() => import('../app/home/profile/[id]/page'))
+      },
+      {
+        path: 'cart',
+        Component: lazy(() => import('../app/home/cart/page'))
+      },
+      {
+        path: 'orders/:orderId',
+        Component: lazy(() => import('../app/home/order/[orderId]/page'))
+      },
+      {
+        path: 'order-success/:orderId',
+        Component: lazy(
+          () => import('../app/home/order-success/[orderId]/page')
+        )
+      },
+      {
+        path: 'order-tracking/:orderId',
+        Component: lazy(
+          () => import('../app/home/order-tracking/[orderId]/page')
+        )
+      },
+      {
+        path: 'order-fail',
+        Component: lazy(() => import('../app/home/order-fail/page'))
+      }
+    ]
+  },
+  {
+    path: '/admin',
+    Component: lazy(() => import('../layouts/adminLayout')),
+    children: [
+      {
+        index: true,
+        Component: lazy(() => import('../app/(admin)/dashboard/page'))
+      },
+      {
+        path: 'login',
+        Component: lazy(() => import('../app/(admin)/login/page'))
+      },
+      {
+        path: 'dashboard',
+        Component: lazy(() => import('../app/(admin)/dashboard/page'))
+      },
+      {
+        path: 'category',
+        Component: lazy(() => import('../app/(admin)/category/page'))
+      },
+      {
+        path: 'category/:id',
+        Component: lazy(() => import('../app/(admin)/category/[id]/page'))
+      },
+      {
+        path: 'order',
+        Component: lazy(() => import('../app/(admin)/order/page'))
+      },
+      {
+        path: 'order/:id',
+        Component: lazy(() => import('../app/(admin)/order/[id]/page'))
+      },
+      {
+        path: 'product',
+        Component: lazy(() => import('../app/(admin)/product/page'))
+      },
+      {
+        path: 'product/:id',
+        Component: lazy(() => import('../app/(admin)/product/[id]/page'))
+      },
+      {
+        path: 'product/create',
+        Component: lazy(() => import('../app/(admin)/product/create/page'))
+      },
+      {
+        path: 'review',
+        Component: lazy(() => import('../app/(admin)/review/page'))
+      },
+      {
+        path: 'user',
+        Component: lazy(() => import('../app/(admin)/user/page'))
+      },
+      {
+        path: 'user/:id',
+        Component: lazy(() => import('../app/(admin)/user/[id]/page'))
+      }
+    ]
+  },
+  {
+    path: '/shop',
+    Component: lazy(() => import('../layouts/shopLayout')),
+    children: [
+      {
+        index: true,
+        Component: lazy(() => import('../app/(shop)/dashboard/page'))
+      },
+      {
+        path: 'login',
+        Component: lazy(() => import('../app/(shop)/login/page'))
+      },
+      {
+        path: 'register',
+        Component: lazy(() => import('../app/(shop)/register/page'))
+      },
+      {
+        path: 'dashboard',
+        Component: lazy(() => import('../app/(shop)/dashboard/page'))
+      },
+      {
+        path: 'order',
+        Component: lazy(() => import('../app/(shop)/order/page'))
+      },
+      {
+        path: 'order/:id',
+        Component: lazy(() => import('../app/(shop)/order/[id]/page'))
+      },
+      {
+        path: 'product',
+        Component: lazy(() => import('../app/(shop)/product/page'))
+      },
+      {
+        path: 'product/:id',
+        Component: lazy(() => import('../app/(shop)/product/[id]/page'))
+      },
+      {
+        path: 'product/create',
+        Component: lazy(() => import('../app/(shop)/product/create/page'))
+      },
+      {
+        path: 'review',
+        Component: lazy(() => import('../app/(shop)/review/page'))
       }
     ]
   }
