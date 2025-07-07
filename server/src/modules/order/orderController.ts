@@ -14,8 +14,7 @@ export const orderController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const orders = await orderService.list();;
-
+      const orders = await orderService.list();
       return res
         .status(200)
         .json(apiResponse.success('Orders listed successfully', orders));
