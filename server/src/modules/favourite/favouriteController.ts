@@ -8,7 +8,10 @@ export const favouriteController = {
       const { userId } = req.params;
       const { productId } = req.body;
 
-      const favourite = await favouriteService.addFavouriteItem(userId, productId);
+      const favourite = await favouriteService.addFavouriteItem(
+        userId,
+        productId
+      );
 
       return res
         .status(201)

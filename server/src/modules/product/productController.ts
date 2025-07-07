@@ -62,7 +62,7 @@ export const productController = {
         minPrice?: string;
         maxPrice?: string;
         province?: string;
-        ward?: string
+        ward?: string;
       };
 
       const result = await productService.filterProducts(

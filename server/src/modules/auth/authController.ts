@@ -18,7 +18,7 @@ const authController = {
     try {
       const userData: IUser = req.body;
 
-      const newUser = await authService.register(userData)
+      const newUser = await authService.register(userData);
 
       res.cookie('refreshToken', newUser.refreshToken, {
         httpOnly: true,
