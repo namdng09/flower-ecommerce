@@ -110,7 +110,10 @@ export const variantController = {
       const { variantId } = req.params;
       const variantData: IVariant = req.body;
 
-      const updatedVariant = await variantService.update(variantId, variantData);
+      const updatedVariant = await variantService.update(
+        variantId,
+        variantData
+      );
 
       return res
         .status(200)

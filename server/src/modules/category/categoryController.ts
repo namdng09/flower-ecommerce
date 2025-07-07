@@ -37,10 +37,7 @@ export const categoryController = {
    * GET /categories/filter
    * categoryController.filterCategories()
    */
-  filterCategories: async (
-    req: Request,
-    res: Response
-  ): Promise<Response> => {
+  filterCategories: async (req: Request, res: Response): Promise<Response> => {
     const {
       page = '1',
       limit = '10',
@@ -65,7 +62,9 @@ export const categoryController = {
 
     return res
       .status(200)
-      .json(apiResponse.success('Categories filtered successfully', categories));
+      .json(
+        apiResponse.success('Categories filtered successfully', categories)
+      );
   },
   /**
    * POST /categories
@@ -128,7 +127,9 @@ export const categoryController = {
       const parents = await categoryService.parents();
       return res
         .status(200)
-        .json(apiResponse.success('Parent categories listed successfully', parents));
+        .json(
+          apiResponse.success('Parent categories listed successfully', parents)
+        );
     } catch (error) {
       next(error);
     }
@@ -151,7 +152,9 @@ export const categoryController = {
       const children = await categoryService.children(parentId);
       return res
         .status(200)
-        .json(apiResponse.success('Subcategories listed successfully', children));
+        .json(
+          apiResponse.success('Subcategories listed successfully', children)
+        );
     } catch (error) {
       next(error);
     }
