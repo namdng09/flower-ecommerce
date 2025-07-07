@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,8 @@ import {
 } from '~/store/slices/userSlice';
 import { userFormSchema, type UserFormData } from '~/types/userSchema';
 import uploadAssets from '~/utils/uploadAssets';
+import { ConfirmModal } from '~/components/ConfirmModal';
+import { SuccessToast, ErrorToast } from '~/components/Toasts';
 
 const UserUpdatePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +23,12 @@ const UserUpdatePage = () => {
 
   const dispatch = useAppDispatch();
   const { currentUser, loading, error } = useAppSelector(state => state.users);
+
+  // Modal and Toast states
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const {
     register,
@@ -57,26 +65,35 @@ const UserUpdatePage = () => {
 
     try {
       await dispatch(updateUser({ id, userData: data })).unwrap();
-      navigate('/admin/user');
+      setToastMessage('User updated successfully!');
+      setShowSuccessToast(true);
     } catch (error) {
+      setToastMessage('Failed to update user. Please try again.');
+      setShowErrorToast(true);
       console.error('Failed to update user:', error);
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setShowConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
     if (!id) return;
 
-    if (
-      window.confirm(
-        'Are you sure you want to delete this user? This action cannot be undone.'
-      )
-    ) {
-      try {
-        await dispatch(deleteUser(id)).unwrap();
+    try {
+      await dispatch(deleteUser(id)).unwrap();
+      setToastMessage('User deleted successfully!');
+      setShowSuccessToast(true);
+
+      // Navigate after a short delay
+      setTimeout(() => {
         navigate('/admin/user');
-      } catch (error) {
-        console.error('Failed to delete user:', error);
-      }
+      }, 1500);
+    } catch (error) {
+      setToastMessage('Failed to delete user. Please try again.');
+      setShowErrorToast(true);
+      console.error('Failed to delete user:', error);
     }
   };
 
@@ -94,8 +111,12 @@ const UserUpdatePage = () => {
         await dispatch(
           updateUserAvatar({ id, avatarUrl: result.url })
         ).unwrap();
+        setToastMessage('Avatar updated successfully!');
+        setShowSuccessToast(true);
       }
     } catch (error) {
+      setToastMessage('Failed to update avatar. Please try again.');
+      setShowErrorToast(true);
       console.error('Failed to update avatar:', error);
     }
   };
@@ -112,8 +133,12 @@ const UserUpdatePage = () => {
       );
       if (!Array.isArray(result)) {
         await dispatch(updateUserCover({ id, coverUrl: result.url })).unwrap();
+        setToastMessage('Cover photo updated successfully!');
+        setShowSuccessToast(true);
       }
     } catch (error) {
+      setToastMessage('Failed to update cover photo. Please try again.');
+      setShowErrorToast(true);
       console.error('Failed to update cover:', error);
     }
   };
@@ -164,7 +189,7 @@ const UserUpdatePage = () => {
           <p className='text-gray-600'>Edit user information</p>
         </div>
         <div className='flex gap-2'>
-          <button onClick={handleDelete} className='btn btn-error'>
+          <button onClick={handleDeleteClick} className='btn btn-error'>
             Delete User
           </button>
           <button
@@ -438,6 +463,33 @@ const UserUpdatePage = () => {
           </div>
         </form>
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        show={showConfirmModal}
+        setShow={setShowConfirmModal}
+        title='Delete User'
+        message={
+          currentUser
+            ? `Are you sure you want to delete "${currentUser.fullName}"? This action cannot be undone.`
+            : 'Are you sure you want to delete this user? This action cannot be undone.'
+        }
+        onConfirm={confirmDelete}
+        confirmText='Delete'
+        cancelText='Cancel'
+      />
+
+      {/* Toast Notifications */}
+      <SuccessToast
+        message={toastMessage}
+        show={showSuccessToast}
+        setShow={setShowSuccessToast}
+      />
+      <ErrorToast
+        message={toastMessage}
+        show={showErrorToast}
+        setShow={setShowErrorToast}
+      />
     </div>
   );
 };

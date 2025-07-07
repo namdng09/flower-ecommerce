@@ -12,6 +12,8 @@ import {
 import { Link, useSearchParams } from 'react-router';
 import DynamicTable from '~/components/DynamicTable';
 import Pagination from '~/components/Pagination';
+import { ConfirmModal } from '~/components/ConfirmModal';
+import { SuccessToast, ErrorToast } from '~/components/Toasts';
 import type { User } from '~/types/user';
 
 const filterSchema = z.object({
@@ -35,6 +37,13 @@ const UserPage = () => {
   const [limit, setLimit] = useState(() =>
     parseInt(searchParams.get('limit') || '2', 10)
   );
+
+  // Modal and Toast states
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const { register, handleSubmit, watch, reset, setValue } =
     useForm<FilterFormData>({
@@ -119,20 +128,34 @@ const UserPage = () => {
     updateURLParams(currentFilters, 1, newLimit);
   };
 
-  const handleDelete = async (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await dispatch(deleteUser(userId)).unwrap();
-        const currentFilters = watch();
-        const filters = {
-          ...currentFilters,
-          page,
-          limit
-        };
-        dispatch(fetchUsers(filters));
-      } catch (error) {
-        console.error('Failed to delete user:', error);
-      }
+  const handleDelete = (user: User) => {
+    setUserToDelete(user);
+    setShowConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+
+    try {
+      await dispatch(deleteUser(userToDelete._id)).unwrap();
+      setToastMessage(
+        `User "${userToDelete.fullName}" has been deleted successfully`
+      );
+      setShowSuccessToast(true);
+
+      const currentFilters = watch();
+      const filters = {
+        ...currentFilters,
+        page,
+        limit
+      };
+      dispatch(fetchUsers(filters));
+    } catch (error) {
+      setToastMessage('Failed to delete user. Please try again.');
+      setShowErrorToast(true);
+      console.error('Failed to delete user:', error);
+    } finally {
+      setUserToDelete(null);
     }
   };
 
@@ -212,7 +235,7 @@ const UserPage = () => {
             Edit
           </Link>
           <button
-            onClick={() => handleDelete(row._id)}
+            onClick={() => handleDelete(row)}
             className='btn btn-sm btn-outline btn-error'
           >
             Delete
@@ -344,6 +367,33 @@ const UserPage = () => {
           </Link>
         </div>
       )}
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        show={showConfirmModal}
+        setShow={setShowConfirmModal}
+        title='Delete User'
+        message={
+          userToDelete
+            ? `Are you sure you want to delete "${userToDelete.fullName}"? This action cannot be undone.`
+            : ''
+        }
+        onConfirm={confirmDelete}
+        confirmText='Delete'
+        cancelText='Cancel'
+      />
+
+      {/* Toast Notifications */}
+      <SuccessToast
+        message={toastMessage}
+        show={showSuccessToast}
+        setShow={setShowSuccessToast}
+      />
+      <ErrorToast
+        message={toastMessage}
+        show={showErrorToast}
+        setShow={setShowErrorToast}
+      />
     </div>
   );
 };

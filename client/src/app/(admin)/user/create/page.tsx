@@ -1,19 +1,27 @@
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '~/store/hooks';
 import { createUser, clearError } from '~/store/slices/userSlice';
 import { userFormSchema, type UserFormData } from '~/types/userSchema';
+import { SuccessToast, ErrorToast } from '~/components/Toasts';
 
 const CreateUserPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector(state => state.users);
 
+  // Toast states
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
   const {
     register,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    reset
   } = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
@@ -28,8 +36,12 @@ const CreateUserPage = () => {
   const onSubmit = async (data: UserFormData) => {
     try {
       await dispatch(createUser(data)).unwrap();
-      navigate('/admin/user');
+      setToastMessage('User created successfully!');
+      setShowSuccessToast(true);
+      reset();
     } catch (error) {
+      setToastMessage('Failed to create user. Please try again.');
+      setShowErrorToast(true);
       console.error('Failed to create user:', error);
     }
   };
@@ -209,6 +221,18 @@ const CreateUserPage = () => {
           the user about their login credentials after account creation.
         </p>
       </div>
+
+      {/* Toast Notifications */}
+      <SuccessToast
+        message={toastMessage}
+        show={showSuccessToast}
+        setShow={setShowSuccessToast}
+      />
+      <ErrorToast
+        message={toastMessage}
+        show={showErrorToast}
+        setShow={setShowErrorToast}
+      />
     </div>
   );
 };
