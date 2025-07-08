@@ -321,6 +321,8 @@ const EditProfile: React.FC = () => {
 
     try {
       await dispatch(removeFavouriteItem({ userId, productId })).unwrap();
+
+      await dispatch(fetchFavouritesByUser(userId));
     } catch (error) {
       console.error('Lỗi khi xóa sản phẩm khỏi yêu thích:', error);
     }
