@@ -263,7 +263,7 @@ export const userService = {
 
   changePassword: async (userId: string, newPassword: string) => {
     if (!userId || !newPassword) {
-      throw createHttpError(400, 'Email and new password are required');
+      throw createHttpError(400, 'User ID and new password are required');
     }
     if (!Types.ObjectId.isValid(userId)) {
       throw createHttpError(400, 'Invalid user id');
