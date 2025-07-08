@@ -23,20 +23,20 @@ router.get(
 );
 
 router.get(
-  '/google-dashbroad',
-  passport.authenticate('google-dashbroad', {
+  '/google-dashboard',
+  passport.authenticate('google-dashboard', {
     scope: ['profile', 'email'],
     session: false
   })
 );
 
 router.get(
-  '/google-dashbroad/callback',
-  passport.authenticate('google-dashbroad', {
+  '/google-dashboard/callback',
+  passport.authenticate('google-dashboard', {
     session: false,
     failureRedirect: '/login'
   }),
-  asyncHandler(auth.loginDashbroadWithGoogle)
+  asyncHandler(auth.loginDashboardWithGoogle)
 );
 
 router.post('/register', asyncHandler(auth.register));
