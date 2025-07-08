@@ -7,121 +7,160 @@ import { sendMail } from '~/utils/mailer';
 import crypto from 'crypto';
 
 export const authService = {
-    register: async (userData: IUser) => {
-        const { fullName, username, email, phoneNumber, role, password } = userData;
+  register: async (userData: IUser) => {
+    const { fullName, username, email, phoneNumber, role, password } = userData;
 
-        if (!fullName || !username || !email || !phoneNumber || !role || !password) {
-            throw createHttpError(400, 'Missing required fields');
-        }
+    if (
+      !fullName ||
+      !username ||
+      !email ||
+      !phoneNumber ||
+      !role ||
+      !password
+    ) {
+      throw createHttpError(400, 'Missing required fields');
+    }
 
-        const existingUser = await UserModel.findOne({
-            $or: [{ email }, { username }, { phoneNumber }]
-        });
+    const existingUser = await UserModel.findOne({
+      $or: [{ email }, { username }, { phoneNumber }]
+    });
 
-        if (existingUser) {
-            if (existingUser.email === email) {
-                throw createHttpError(400, 'Email already exists');
-            }
-            if (existingUser.username === username) {
-                throw createHttpError(400, 'Username already exists');
-            }
-            if (existingUser.phoneNumber === phoneNumber) {
-                throw createHttpError(400, 'Phone number already exists');
-            }
-        }
+    if (existingUser) {
+      if (existingUser.email === email) {
+        throw createHttpError(400, 'Email already exists');
+      }
+      if (existingUser.username === username) {
+        throw createHttpError(400, 'Username already exists');
+      }
+      if (existingUser.phoneNumber === phoneNumber) {
+        throw createHttpError(400, 'Phone number already exists');
+      }
+    }
 
-        const newUser = await UserModel.create({
-            fullName,
-            username,
-            email,
-            phoneNumber,
-            role,
-            password
-        });
-        if (!newUser) throw createHttpError(400, 'User creation failed');
+    const createdUser = await UserModel.create({
+      fullName,
+      username,
+      email,
+      phoneNumber,
+      role,
+      password
+    });
+    if (!createdUser) throw createHttpError(400, 'User creation failed');
 
-        const { accessToken, refreshToken } = generateToken({
-            id: newUser.id,
-            role: newUser.role
-        });
+    const { accessToken, refreshToken } = generateToken({
+      id: createdUser.id,
+      role: createdUser.role
+    });
 
-        return { newUser, accessToken, refreshToken };
-    },
+    return { createdUser, accessToken, refreshToken };
+  },
 
-    login: async (userData: IUser) => {
-        const { email, password } = userData;
+  login: async (userData: IUser) => {
+    const { email, password } = userData;
 
-        const user = await UserModel.findOne({ email });
-        if (!user) throw createHttpError(400, 'Invalid email or password');
+    const user = await UserModel.findOne({ email });
+    if (!user) throw createHttpError(400, 'Invalid email or password');
 
-        const isPasswordValid = await comparePassword(password, user.password);
-        if (!isPasswordValid)
-            throw createHttpError(400, 'Invalid email or password');
+    const isPasswordValid = await comparePassword(password, user.password);
+    if (!isPasswordValid)
+      throw createHttpError(400, 'Invalid email or password');
 
-        const { accessToken, refreshToken } = generateToken({
-            id: user.id,
-            role: user.role
-        });
+    const { accessToken, refreshToken } = generateToken({
+      id: user.id,
+      role: user.role
+    });
 
-        return { user, accessToken, refreshToken };
-    },
+    return { user, accessToken, refreshToken };
+  },
 
-    logout: async (refreshToken?: string) => {
-        if (!refreshToken) {
-            throw createHttpError(401, 'No refresh token provided');
-        }
+  loginWithGoogle: async (googleUser: {
+    googleId: string;
+    email: string;
+    fullName: string;
+    avatarUrl?: string;
+  }) => {
+    console.log('fuck it wor');
+    
+    let user = await UserModel.findOne({
+      $or: [{ googleId: googleUser.googleId }, { email: googleUser.email }]
+    }).select('-password');
 
-        const decoded = verifyRefreshToken(refreshToken);
-        const userId = typeof decoded === 'string' ? decoded : decoded.id;
+    if (!user) {
+      user = await UserModel.create({
+        googleId: googleUser.googleId,
+        email: googleUser.email,
+        fullName: googleUser.fullName,
+        avatarUrl: googleUser.avatarUrl,
+        role: 'customer'
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleUser.googleId;
+      await user.save();
+    }
 
-        return {
-            userId: userId,
-            message: 'User logged out successfully'
-        };
-    },
+    const { accessToken, refreshToken } = generateToken({
+      id: user.id,
+      role: user.role
+    });
 
-    refreshToken: async (refreshToken: string) => {
-        if (!refreshToken)
-            throw createHttpError(401, 'No refresh token provided');
+    return { user, accessToken, refreshToken };
+  },
 
-        const decoded = verifyRefreshToken(refreshToken);
-        const id = typeof decoded === 'string' ? decoded : decoded.id;
+  logout: async (refreshToken?: string) => {
+    if (!refreshToken) {
+      throw createHttpError(401, 'No refresh token provided');
+    }
 
-        const { accessToken } = generateToken({
-            id: id,
-            role: (decoded as { role: string }).role
-        });
+    const decoded = verifyRefreshToken(refreshToken);
+    const userId = typeof decoded === 'string' ? decoded : decoded.id;
 
-        return accessToken;
-    },
+    return {
+      userId: userId,
+      message: 'User logged out successfully'
+    };
+  },
 
-    resetPassword: async (email?: string) => {
-        const user = await UserModel.findOne({ email });
-        if (!user) {
-            throw createHttpError(404, 'User not found');
-        }
+  refreshToken: async (refreshToken: string) => {
+    if (!refreshToken) throw createHttpError(401, 'No refresh token provided');
 
-        const newPasswordPlain = crypto
-            .randomBytes(8)
-            .toString('base64')
-            .replace(/[^a-zA-Z0-9]/g, '')
-            .slice(0, 10);
+    const decoded = verifyRefreshToken(refreshToken);
+    const id = typeof decoded === 'string' ? decoded : decoded.id;
 
-        user.password = newPasswordPlain;
+    const { accessToken } = generateToken({
+      id: id,
+      role: (decoded as { role: string }).role
+    });
 
-        await user.save();
+    return accessToken;
+  },
 
-        await sendMail({
-            to: email,
-            subject: 'Mật khẩu mới cho tài khoản IMS',
-            html: `
+  resetPassword: async (email?: string) => {
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+      throw createHttpError(404, 'User not found');
+    }
+
+    const newPasswordPlain = crypto
+      .randomBytes(8)
+      .toString('base64')
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .slice(0, 10);
+
+    user.password = newPasswordPlain;
+
+    await user.save();
+
+    await sendMail({
+      to: email,
+      subject: 'Mật khẩu mới cho tài khoản IMS',
+      html: `
           <p>Xin chào ${user.fullName ?? ''},</p>
           <p>Mật khẩu mới của bạn là: <strong>${newPasswordPlain}</strong></p>
           <p>Hãy đăng nhập và đổi mật khẩu ngay.</p>
         `,
-            text: `Mật khẩu mới: ${newPasswordPlain}`
-        });
+      text: `Mật khẩu mới: ${newPasswordPlain}`
+    });
 
-        return newPasswordPlain;
-    }
+    return newPasswordPlain;
+  }
 };
