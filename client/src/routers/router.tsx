@@ -60,6 +60,10 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/home/checkout/page'))
       },
       {
+        path: 'privacy',
+        Component: lazy(() => import('../app/home/privacy/page'))
+      },
+      {
         path: 'profile/:id',
         Component: lazy(() => import('../app/home/profile/[id]/page'))
       },
