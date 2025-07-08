@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router';
-import axios from 'axios';
+import React, { useEffect, useState, useContext } from 'react';
+import { useNavigate } from 'react-router';
 import defaultAva from '../../../src/assets/no-user.jpg';
+import { AuthContext } from '~/contexts/authContext';
+import axiosInstance from '~/config/axiosConfig';
+import { useDispatch } from 'react-redux';
+import { useAppSelector } from '~/hooks/useAppSelector';
+import { fetchFavouritesByUser } from '~/store/slices/favouriteSlice';
+import { Link } from 'react-router';
 
 interface UserProfile {
   fullName: string;
@@ -14,9 +19,10 @@ interface UserProfile {
 }
 
 const EditProfile: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const token = sessionStorage.getItem('accessToken');
+  const dispatch = useDispatch<any>();
+  const { user, accessToken } = useContext(AuthContext);
+  const userId = user?.id;
 
   const [form, setForm] = useState<UserProfile>({
     fullName: '',
@@ -27,31 +33,38 @@ const EditProfile: React.FC = () => {
     role: ''
   });
 
-  useEffect(() => {
-    if (!id || !token) return;
+  const { items: favourites, loading: favLoading } = useAppSelector(
+    state => state.favourites
+  );
 
-    axios
-      .get(`http://localhost:8000/api/users/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then(res => {
-        if (res.data.status === 'success') {
-          const user = res.data.data;
-          setForm({
-            fullName: user.fullName || '',
-            username: user.username || '',
-            email: user.email || '',
-            phoneNumber: user.phoneNumber?.toString() || '',
-            avatarUrl: user.avatarUrl || '',
-            role: user.role || '',
-            createdAt: user.createdAt || ''
-          });
-        }
-      })
-      .catch(() => alert('Không thể lấy dữ liệu người dùng'));
-  }, [id, token]);
+  // Fetch user info
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!userId || !accessToken) return;
+      try {
+        const res = await axiosInstance.get(`/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        const u = res.data.data;
+        setForm({
+          fullName: u.fullName || '',
+          username: u.username || '',
+          email: u.email || '',
+          phoneNumber: u.phoneNumber?.toString() || '',
+          avatarUrl: u.avatarUrl || '',
+          role: u.role || '',
+          createdAt: u.createdAt || ''
+        });
+      } catch {
+        alert('Không thể lấy dữ liệu người dùng');
+      }
+    };
+
+    if (userId) {
+      fetchProfile();
+      dispatch(fetchFavouritesByUser(userId));
+    }
+  }, [userId, accessToken, dispatch]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -61,11 +74,11 @@ const EditProfile: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id || !token) return;
+    if (!userId || !accessToken) return;
 
     try {
-      await axios.put(
-        `http://localhost:8000/api/users/${id}`,
+      await axiosInstance.put(
+        `/api/users/${userId}`,
         {
           fullName: form.fullName,
           username: form.username,
@@ -76,12 +89,12 @@ const EditProfile: React.FC = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${accessToken}`
           }
         }
       );
       alert('Cập nhật thành công!');
-      navigate(`/home/profile/${id}`);
+      navigate(`/home/profile/${userId}`);
     } catch (err) {
       alert('Cập nhật thất bại!');
     }
@@ -93,99 +106,96 @@ const EditProfile: React.FC = () => {
   };
 
   return (
-    <div className='max-w-4xl mx-auto p-6 pt-auto border bg-white rounded-lg shadow text-black mt-50 mb-4'>
-      <h2 className='text-xl font-bold mb-6 text-center'>Cập nhật thông tin</h2>
-      <form onSubmit={handleSubmit} className='space-y-4'>
-        <img
-          src={
-            form.avatarUrl && form.avatarUrl.trim() !== ''
-              ? form.avatarUrl
-              : defaultAva
-          }
-          alt='Avatar'
-          className='w-24 h-24 rounded-full mx-auto mb-2 object-cover border border-lime-400'
-        />
+    <div className="max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-50">
+      {/* USER INFO */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-bold text-center mb-6">👤 Thông tin tài khoản</h2>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="md:col-span-2 text-center">
+            <img
+              src={form.avatarUrl?.trim() !== '' ? form.avatarUrl : defaultAva}
+              alt="Avatar"
+              className="w-24 h-24 rounded-full object-cover mx-auto border border-lime-500 shadow-sm"
+            />
+          </div>
 
-        <div>
-          <label className='block text-sm font-medium'>Họ và tên</label>
-          <input
-            type='text'
-            name='fullName'
-            value={form.fullName}
-            onChange={handleChange}
-            className='w-full border px-3 py-2 rounded mt-1'
-          />
-        </div>
+          <div>
+            <label className="text-sm font-medium">Họ và tên</label>
+            <input type="text" name="fullName" value={form.fullName} onChange={handleChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
+          </div>
 
-        <div>
-          <label className='block text-sm font-medium'>Tên đăng nhập</label>
-          <input
-            type='text'
-            name='username'
-            value={form.username}
-            onChange={handleChange}
-            className='w-full border px-3 py-2 rounded mt-1'
-          />
-        </div>
+          <div>
+            <label className="text-sm font-medium">Tên đăng nhập</label>
+            <input type="text" name="username" value={form.username} onChange={handleChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
+          </div>
 
-        <div>
-          <label className='block text-sm font-medium'>Email</label>
-          <input
-            type='email'
-            name='email'
-            value={form.email}
-            disabled
-            className='w-full border px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500'
-          />
-        </div>
+          <div>
+            <label className="text-sm font-medium">Email</label>
+            <input type="email" name="email" value={form.email} disabled
+              className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
+          </div>
 
-        <div>
-          <label className='block text-sm font-medium'>Số điện thoại</label>
-          <input
-            type='text'
-            name='phoneNumber'
-            value={form.phoneNumber}
-            onChange={handleChange}
-            className='w-full border px-3 py-2 rounded mt-1'
-          />
-        </div>
-        <div>
-          <label className='block text-sm font-medium'>
-            Ngày tạo tài khoản
-          </label>
-          <input
-            type='text'
-            value={
-              form.createdAt
-                ? new Date(form.createdAt).toLocaleDateString('vi-VN')
-                : ''
-            }
-            disabled
-            className='w-full border px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500'
-          />
-        </div>
+          <div>
+            <label className="text-sm font-medium">Số điện thoại</label>
+            <input type="text" name="phoneNumber" value={form.phoneNumber} onChange={handleChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
+          </div>
 
-        <div className='text-center pt-4'>
-          <button
-            type='submit'
-            className='bg-lime-600 hover:bg-lime-700 text-white px-6 py-2 rounded'
-          >
-            Cập nhật
-          </button>
-        </div>
+          <div>
+            <label className="text-sm font-medium">Vai trò</label>
+            <input type="text" value={form.role} disabled
+              className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
+          </div>
 
-        <div className='mt-6 text-center'>
-          <button
-            type='button'
-            onClick={handleLogout}
-            className='bg-[#B9205A] hover:bg-[#A3184D] text-white px-6 py-2 rounded-lg transition'
-          >
-            Đăng xuất
-          </button>
-        </div>
-      </form>
+          <div>
+            <label className="text-sm font-medium">Ngày tạo tài khoản</label>
+            <input type="text"
+              value={form.createdAt ? new Date(form.createdAt).toLocaleDateString('vi-VN') : ''}
+              disabled className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
+          </div>
+
+          <div className="md:col-span-2 flex justify-center gap-4 pt-4">
+            <button type="submit"
+              className="bg-lime-600 hover:bg-lime-700 text-white px-6 py-2 rounded shadow">
+              Cập nhật
+            </button>
+            <button type="button" onClick={handleLogout}
+              className="bg-[#B9205A] hover:bg-[#A3184D] text-white px-6 py-2 rounded shadow">
+              Đăng xuất
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* FAVOURITE LIST */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 w-full">
+        <h3 className="text-lg font-bold mb-4 text-pink-600">💖 Danh sách yêu thích</h3>
+
+        {favLoading ? (
+          <p className="text-gray-500 italic">Đang tải...</p>
+        ) : favourites.length === 0 ? (
+          <p className="text-gray-500 italic">Bạn chưa yêu thích sản phẩm nào.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {favourites.map((product: any) => (
+              <Link to={`/home/products/${product._id}`} key={product._id}
+                className="border border-gray-200 rounded-lg hover:shadow-md transition bg-white overflow-hidden hover:-translate-y-1 duration-150">
+                <img src={product.thumbnailImage} alt={product.title}
+                  className="w-full h-40 object-cover" />
+                <div className="p-3">
+                  <h4 className="text-sm font-semibold line-clamp-1">{product.title}</h4>
+                  <p className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
+
 };
 
 export default EditProfile;
