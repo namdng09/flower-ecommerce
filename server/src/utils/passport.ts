@@ -32,10 +32,10 @@ const configurePassport = () => {
     session: false
   };
 
-  const googleDashbroadOpts = {
+  const googleDashboardOpts = {
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: '/api/auth/google-dashbroad/callback',
+    callbackURL: '/api/auth/google-dashboard/callback',
     session: false
   };
 
