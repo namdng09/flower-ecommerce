@@ -86,6 +86,10 @@ const router = createBrowserRouter([
       {
         path: 'order-fail',
         Component: lazy(() => import('../app/home/order-fail/page'))
+      },
+      {
+        path: 'shop-profile/:shopId',
+        Component: lazy(() => import('../app/home/shopProfile/[shopId]/page'))
       }
     ]
   },
