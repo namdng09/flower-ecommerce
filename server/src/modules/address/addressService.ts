@@ -4,7 +4,7 @@ import { Types } from 'mongoose';
 import UserModel from '../user/userModel';
 
 export const addressService = {
-  list: async (userId: string) => {
+  listByUserId: async (userId: string) => {
     if (!userId || !Types.ObjectId.isValid(userId as string)) {
       throw createHttpError(400, 'Invalid user id');
     }
