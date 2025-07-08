@@ -157,7 +157,7 @@ export const authService = {
   },
 
   requestResetPassword: async (email: string) => {
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ email }).select('-password');
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
