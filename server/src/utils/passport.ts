@@ -50,9 +50,9 @@ const configurePassport = () => {
   );
 
   passport.use(
-    'google-dashbroad',
+    'google-dashboard',
     new GoogleStrategy(
-      googleDashbroadOpts,
+      googleDashboardOpts,
       async (accessToken, refreshToken, profile, done) => {
         return done(null, profile);
       }

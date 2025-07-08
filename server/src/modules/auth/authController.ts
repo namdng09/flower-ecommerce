@@ -115,7 +115,7 @@ const authController = {
   },
 
   /** POST /auth/google/callback */
-  async loginDashbroadWithGoogle(
+  async loginDashboardWithGoogle(
     req: Request,
     res: Response,
     next: NextFunction

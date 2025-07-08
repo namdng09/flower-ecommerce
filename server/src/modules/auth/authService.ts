@@ -106,7 +106,7 @@ export const authService = {
     return { user, accessToken, refreshToken };
   },
 
-  loginDashbroadWithGoogle: async (googleUser: {
+  loginDashboardWithGoogle: async (googleUser: {
     googleId: string;
     email: string;
   }) => {
