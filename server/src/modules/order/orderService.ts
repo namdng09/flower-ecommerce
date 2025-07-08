@@ -295,7 +295,6 @@ export const orderService = {
       })) as any;
 
     const plainPopulatedOrder = populatedOrder.toObject();
-    console.log(plainPopulatedOrder.user.fullName);
 
     if (plainPopulatedOrder) {
       await mailService.sendOrderSuccessToCustomer(
