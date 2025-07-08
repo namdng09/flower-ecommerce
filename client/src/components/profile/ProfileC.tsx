@@ -215,7 +215,7 @@ import { AuthContext } from '~/contexts/authContext';
 import axiosInstance from '~/config/axiosConfig';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
-import { fetchFavouritesByUser, removeFavouriteItem,  } from '~/store/slices/favouriteSlice';
+import { fetchFavouritesByUser, removeFavouriteItem, } from '~/store/slices/favouriteSlice';
 import { Link } from 'react-router';
 import { FaUserCircle, FaHeart, FaTimes } from 'react-icons/fa';
 
@@ -327,7 +327,7 @@ const EditProfile: React.FC = () => {
       console.error('Lỗi khi xóa sản phẩm khỏi yêu thích:', error);
     }
   };
-  
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-40">
       {/* USER INFO */}
