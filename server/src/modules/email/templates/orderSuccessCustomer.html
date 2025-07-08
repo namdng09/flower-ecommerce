@@ -1,0 +1,180 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo đơn hàng thành công!</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; color: #222;">
+    <h2>Xin chào {{customerName}},</h2>
+    <p>
+        Cảm ơn bạn đã đặt hàng tại <b>Flaura</b>! Đơn hàng của bạn đã được tạo thành công với mã đơn:
+        <b>{{orderNumber}}</b>.
+    </p>
+    <h3>Thông tin đơn hàng</h3>
+    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each items}}
+            <tr>
+                <td>{{variant}}</td>
+                <td>{{quantity}}</td>
+                <td>{{price}} VND</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    <p><b>Tổng số lượng:</b> {{totalQuantity}}</p>
+    <p><b>Phí vận chuyển:</b> {{shippingCost}} VND</p>
+    <p><b>Tổng thanh toán:</b> <span style="color: #e53935;">{{totalPrice}} VND</span></p>
+    <h3>Thông tin giao hàng</h3>
+    <ul>
+        <li><b>Địa chỉ:</b> {{addressDetail}}</li>
+        <li><b>Phương thức thanh toán:</b> {{paymentMethod}}</li>
+        <li><b>Ghi chú:</b> {{notes}}</li>
+        <li><b>Thời gian giao dự kiến:</b> {{deliveryTimeRequested}}</li>
+        {{#if giftMessage}}
+        <li><b>Lời nhắn:</b> {{giftMessage}}</li>
+        {{/if}}
+    </ul>
+    <p>Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ <b>flauraECommerce@gmail.com</b>.</p>
+    <p>Trân trọng,<br />Flaura</p>
+</body>
+
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo đơn hàng thành công!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #222;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background: #fff;
+            max-width: 600px;
+            margin: 32px auto;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+        }
+
+        h2 {
+            color: #388e3c;
+        }
+
+        h3 {
+            color: #1976d2;
+            margin-top: 32px;
+        }
+
+        table {
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        th,
+        td {
+            padding: 10px 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #f1f8e9;
+            color: #388e3c;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        ul {
+            padding-left: 18px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        .total {
+            color: #e53935;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .footer {
+            margin-top: 32px;
+            font-size: 0.95em;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Xin chào {{customerName}},</h2>
+        <p>
+            Cảm ơn bạn đã đặt hàng tại <b>Flaura</b>! Đơn hàng của bạn đã được tạo thành công với mã đơn:
+            <b>{{orderNumber}}</b>.
+        </p>
+        <h3>Thông tin đơn hàng</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Đơn giá</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr>
+                    <td>{{variant}}</td>
+                    <td>{{quantity}}</td>
+                    <td>{{price}} VND</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        <p><b>Tổng số lượng:</b> {{totalQuantity}}</p>
+        <p><b>Phí vận chuyển:</b> {{shippingCost}} VND</p>
+        <p><b>Tổng thanh toán:</b> <span class="total">{{totalPrice}} VND</span></p>
+        <h3>Thông tin giao hàng</h3>
+        <ul>
+            <li><b>Địa chỉ:</b> {{addressDetail}}</li>
+            <li><b>Phương thức thanh toán:</b> {{paymentMethod}}</li>
+            <li><b>Ghi chú:</b> {{notes}}</li>
+            <li><b>Thời gian giao dự kiến:</b> {{deliveryTimeRequested}}</li>
+            {{#if giftMessage}}
+            <li><b>Lời nhắn:</b> {{giftMessage}}</li>
+            {{/if}}
+        </ul>
+        <p class="footer">Nếu bạn có bất kỳ thắc mắc nào, vui lòng liên hệ <b>flauraECommerce@gmail.com</b>.</p>
+        <p class="footer">Trân trọng,<br />Flaura</p>
+    </div>
+</body>
+
+</html>
