@@ -1,11 +1,14 @@
 import { Outlet } from 'react-router';
+import SidebarAdmin from '~/components/admin/SidebarAdmin';
 
 const AdminLayout = () => {
   return (
-    <div className=' min-h-screen'>
-      <div className='mx-auto p-4'>
+    <div className='bg-white min-h-screen flex'>
+      <SidebarAdmin />
+
+      <main className='flex-1 p-6 overflow-y-auto'>
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 };

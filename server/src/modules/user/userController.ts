@@ -46,6 +46,7 @@ export const userController = {
         fullName,
         username,
         email,
+        role,
         phoneNumber
       } = req.query as {
         page?: string;
@@ -55,6 +56,7 @@ export const userController = {
         fullName?: string;
         username?: string;
         email?: string;
+        role?: string;
         phoneNumber?: string;
       };
 
@@ -66,6 +68,7 @@ export const userController = {
         fullName,
         username,
         email,
+        role,
         phoneNumber
       );
 
@@ -136,7 +139,7 @@ export const userController = {
       const { userId } = req.params;
       const userData: IUser = req.body;
 
-      const resUser = await userService.update(userId, userData)
+      const resUser = await userService.update(userId, userData);
 
       return res
         .status(200)
@@ -227,7 +230,11 @@ export const userController = {
       const { email } = req.params;
       const { oldPassword, newPassword } = req.body;
 
-      const user = await userService.updatePassword(email, oldPassword, newPassword);
+      const user = await userService.updatePassword(
+        email,
+        oldPassword,
+        newPassword
+      );
 
       return res
         .status(200)
