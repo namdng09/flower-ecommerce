@@ -97,7 +97,7 @@ function FeaturedProductsC() {
               </div>
 
               <Link to={`/home/products/${product._id}`}>
-                <h3 className='text-black font-medium text-sm text-center mt-3'>
+                <h3 className='text-black font-medium text-sm text-center mt-3 hover:text-pink-600 transition'>
                   {product.title}
                 </h3>
               </Link>
