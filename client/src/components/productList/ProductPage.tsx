@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { useDispatch } from 'react-redux';
 import { getProductById } from '~/store/slices/productDetailSlice';
 import { fetchVariants } from '~/store/slices/variantSlice';
@@ -203,6 +203,41 @@ const ProductPage = () => {
             <p><strong>Người bán:</strong> {product.shop.fullName} ({product.shop.username})</p>
             <p><strong>Liên hệ:</strong> {product.shop.phoneNumber} - {product.shop.email}</p>
           </div>
+
+          {/* <p>
+            <strong>Người bán:</strong>{' '}
+            <Link
+              to={`/home/shop-profile/${product.shop._id}`}
+              className="text-blue-600 hover:underline"
+            >
+              {product.shop.fullName} ({product.shop.username})
+            </Link>
+          </p> */}
+
+          <div className="flex items-center gap-4 p-4 border rounded-lg shadow-sm bg-gray-50 mt-4">
+            <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-xl font-bold">
+              {product.shop.fullName?.charAt(0).toUpperCase()}
+            </div>
+
+            <div className="flex-1">
+              <p className="text-sm text-gray-600">Người bán:</p>
+              <Link
+                to={`/home/shop-profile/${product.shop._id}`}
+                className="text-md font-medium text-pink-600 hover:underline"
+              >
+                {product.shop.fullName} ({product.shop.username})
+              </Link>
+            </div>
+
+            <Link
+              to={`/home/shop-profile/${product.shop._id}`}
+              className="text-sm px-4 py-1 bg-pink-100 text-pink-700 font-medium rounded hover:bg-pink-200 transition"
+            >
+              Xem shop
+            </Link>
+          </div>
+
+
         </div>
       </div>
     </div>
