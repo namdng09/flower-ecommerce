@@ -61,6 +61,13 @@ export const authService = {
     const user = await UserModel.findOne({ email });
     if (!user) throw createHttpError(400, 'Invalid email or password');
 
+    if (!user.password) {
+      throw createHttpError(
+        400,
+        'This account was created via Google. Please login using Google'
+      );
+    }
+
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid)
       throw createHttpError(400, 'Invalid email or password');
