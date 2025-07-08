@@ -175,7 +175,10 @@ const EditProfile: React.FC = () => {
 
       {/* FAVOURITE LIST */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 w-full">
-        <h3 className="text-lg font-bold mb-4 text-pink-600">💖 Danh sách yêu thích</h3>
+        <h3 className="text-lg font-bold mb-4 flex items-center text-pink-600 gap-2">
+          <FaHeart className="text-xl" />
+          Danh sách yêu thích
+        </h3>
 
         {favLoading ? (
           <p className="text-gray-500 italic">Đang tải...</p>
