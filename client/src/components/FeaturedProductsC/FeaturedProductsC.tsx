@@ -3,7 +3,7 @@ import { useAppSelector } from '~/hooks/useAppSelector';
 import { useEffect, useContext } from 'react';
 import { fetchProducts } from '~/store/slices/productSlice';
 import { addToCart } from '~/store/slices/cartSlice';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import { AuthContext } from '~/contexts/authContext';
 
@@ -71,24 +71,43 @@ function FeaturedProductsC() {
           {products.map(product => (
             <div
               key={product._id}
-              className='min-w-[250px] max-w-[250px] bg-[#f9f9f9] p-4 rounded-lg relative group flex-shrink-0 flex flex-col items-center'
+              className='min-w-[250px] max-w-[250px] bg-[#f9f9f9] p-4 rounded-lg flex-shrink-0 flex flex-col items-center'
             >
-              <img
-                src={product.thumbnailImage}
-                alt={product.title}
-                className='w-80 h-80 object-bottom mb-4'
-              />
-              <h3 className='text-black font-medium text-sm text-center'>
-                {product.title}
-              </h3>
+              <div className='relative w-full h-[320px] group'>
+                <img
+                  src={product.thumbnailImage}
+                  alt={product.title}
+                  className='w-full h-full object-cover rounded'
+                />
+
+                <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded'>
+                  <button
+                    onClick={() => handleBuyNow(product)}
+                    className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'
+                  >
+                    Mua ngay
+                  </button>
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'
+                  >
+                    Thêm vào giỏ hàng
+                  </button>
+                </div>
+              </div>
+
+              <Link to={`/home/products/${product._id}`}>
+                <h3 className='text-black font-medium text-sm text-center mt-3 hover:text-pink-600 transition'>
+                  {product.title}
+                </h3>
+              </Link>
 
               {product.variants?.[0] ? (
-                <div className='flex space-x-2 text-sm mb-2'>
+                <div className='flex space-x-2 text-sm mb-2 mt-1'>
                   <span className='text-black font-semibold'>
                     {product.variants[0].salePrice.toLocaleString()}đ
                   </span>
-                  {product.variants[0].listPrice >
-                    product.variants[0].salePrice && (
+                  {product.variants[0].listPrice > product.variants[0].salePrice && (
                     <span className='line-through text-red-500'>
                       {product.variants[0].listPrice.toLocaleString()}đ
                     </span>
@@ -97,22 +116,8 @@ function FeaturedProductsC() {
               ) : (
                 <p className='text-gray-500 italic text-sm'>Chưa có giá</p>
               )}
-
-              <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
-                <button
-                  onClick={() => handleBuyNow(product)}
-                  className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'
-                >
-                  Mua ngay
-                </button>
-                <button
-                  onClick={() => handleAddToCart(product)}
-                  className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'
-                >
-                  Thêm vào giỏ hàng
-                </button>
-              </div>
             </div>
+
           ))}
         </div>
       )}
