@@ -122,7 +122,7 @@ const authController = {
     }
   },
 
-  async resetPassword(
+  async requestResetPassword(
     req: Request,
     res: Response,
     next: NextFunction
@@ -130,13 +130,13 @@ const authController = {
     try {
       const { email } = req.body as { email: string };
 
-      const newPasswordPlain = await authService.resetPassword(email);
+      const user = await authService.requestResetPassword(email);
 
       return res.json({
-        message: 'New password has been generated and emailed to you.',
-        user: {
+        message: 'Reset password email sent successfully.',
+        data: {
           email: email,
-          newPassword: newPasswordPlain
+          user: user
         }
       });
     } catch (error) {
