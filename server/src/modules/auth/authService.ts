@@ -5,6 +5,7 @@ import { comparePassword } from '~/utils/bcrypt';
 import { generateToken, verifyRefreshToken } from '~/utils/jwt';
 import { sendMail } from '~/utils/mailer';
 import crypto from 'crypto';
+import { mailService } from '../email/emailService';
 
 export const authService = {
   register: async (userData: IUser) => {
@@ -155,33 +156,20 @@ export const authService = {
     return accessToken;
   },
 
-  resetPassword: async (email?: string) => {
-    const user = await UserModel.findOne({ email });
+  requestResetPassword: async (email: string) => {
+    const user = await UserModel.findOne({ email }).select('-password');
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
 
-    const newPasswordPlain = crypto
-      .randomBytes(8)
-      .toString('base64')
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .slice(0, 10);
+    const resetLink = "http://localhost:5173/auth/change-password"
 
-    user.password = newPasswordPlain;
+    // Gửi email qua emailService với template động
+    await mailService.sendResetPassword(email, resetLink, user.fullName);
 
-    await user.save();
-
-    await sendMail({
-      to: email,
-      subject: 'Mật khẩu mới cho tài khoản IMS',
-      html: `
-          <p>Xin chào ${user.fullName ?? ''},</p>
-          <p>Mật khẩu mới của bạn là: <strong>${newPasswordPlain}</strong></p>
-          <p>Hãy đăng nhập và đổi mật khẩu ngay.</p>
-        `,
-      text: `Mật khẩu mới: ${newPasswordPlain}`
-    });
-
-    return newPasswordPlain;
+    return {
+      message: 'Reset password email sent successfully',
+      user: user,
+    };
   }
 };

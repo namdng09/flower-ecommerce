@@ -32,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: 'reset-password',
         Component: lazy(() => import('../app/auth/reset-password/page'))
+      },
+      {
+        path: 'change-password',
+        Component: lazy(() => import('../app/auth/change-password/page'))
       }
     ]
   },

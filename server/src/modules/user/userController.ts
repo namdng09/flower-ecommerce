@@ -242,5 +242,28 @@ export const userController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  /**
+   * PUT /users/:email/password
+   * userController.changePassword()
+   */
+  changePassword: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { userId } = req.params;
+      const { newPassword } = req.body;
+
+      const user = await userService.changePassword(userId, newPassword);
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Password updated successfully', user));
+    } catch (error) {
+      next(error);
+    }
   }
 };
