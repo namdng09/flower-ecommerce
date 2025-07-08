@@ -3,7 +3,7 @@ import { useAppSelector } from '~/hooks/useAppSelector';
 import { useEffect, useContext } from 'react';
 import { fetchProducts } from '~/store/slices/productSlice';
 import { addToCart } from '~/store/slices/cartSlice';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import { AuthContext } from '~/contexts/authContext';
 
@@ -96,9 +96,11 @@ function FeaturedProductsC() {
                 </div>
               </div>
 
-              <h3 className='text-black font-medium text-sm text-center mt-3'>
-                {product.title}
-              </h3>
+              <Link to={`/home/products/${product._id}`}>
+                <h3 className='text-black font-medium text-sm text-center mt-3'>
+                  {product.title}
+                </h3>
+              </Link>
 
               {product.variants?.[0] ? (
                 <div className='flex space-x-2 text-sm mb-2 mt-1'>
