@@ -5,11 +5,17 @@ import { type LoginFormFields, loginSchema } from '~/types/login';
 import { AuthContext } from '~/contexts/authContext';
 import backgroundlogin1 from '../../assets/backgroundlogin1.jpg';
 import googlelogo from '../../assets/Googlelogo.svg.webp';
-// import { NavLink } from 'react-router';
 import { useNavigate } from 'react-router';
-// import { n } from 'node_modules/react-router/dist/development/lib-B8x_tOvL.d.mts';
 
-const LoginForm: React.FC = () => {
+interface LoginFormProps {
+  title?: string;
+  redirectUrl?: string;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({
+  title = 'Đăng nhập',
+  redirectUrl = '/home'
+}) => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const {
@@ -23,10 +29,10 @@ const LoginForm: React.FC = () => {
 
   const onSubmit = async (data: LoginFormFields) => {
     try {
-      await login(data);
+      await login({ ...data });
       alert('Login successful! Redirecting to dashboard...');
       reset();
-      navigate('/home'); // Redirect to home page after successful login
+      navigate(redirectUrl);
     } catch {
       alert('Login failed. Please check your credentials and try again.');
     }
@@ -42,7 +48,7 @@ const LoginForm: React.FC = () => {
       <div className='absolute bg-black opacity-60 inset-0 z-0'></div>
       <div className='max-w-md w-full space-y-8 p-10 bg-white rounded-xl z-10'>
         <div className='text-center'>
-          <h2 className='mt-6 text-3xl font-bold text-gray-900'>Đăng nhập </h2>
+          <h2 className='mt-6 text-3xl font-bold text-gray-900'>{title}</h2>
         </div>
         <button
           type='button'
@@ -117,7 +123,6 @@ const LoginForm: React.FC = () => {
             </div>
           </div>
           <div>
-            {/* <NavLink to ='/home'> */}
             <button
               type='submit'
               className='w-full flex justify-center bg-rose-400 text-gray-100 p-4 rounded-full tracking-wide font-semibold focus:outline-none focus:shadow-outline hover:bg-rose-600 shadow-lg cursor-pointer transition ease-in duration-300'
@@ -125,7 +130,6 @@ const LoginForm: React.FC = () => {
             >
               {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
-            {/* </NavLink> */}
           </div>
           <p className='flex flex-col items-center justify-center mt-10 text-center text-md text-gray-500'>
             <span>Chưa có tài khoản?</span>

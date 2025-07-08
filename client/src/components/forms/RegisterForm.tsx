@@ -1,3 +1,4 @@
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { type RegisterFormFields, registerSchema } from '~/types/register';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,7 +7,18 @@ import { AuthContext } from '~/contexts/authContext';
 import backgroundlogin1 from '../../assets/backgroundlogin1.jpg';
 import googlelogo from '../../assets/Googlelogo.svg.webp';
 import { useNavigate } from 'react-router';
-const RegisterForm = () => {
+
+interface RegisterFormProps {
+  title?: string;
+  role?: 'customer' | 'shop';
+  redirectUrl?: string;
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({
+  title = 'Đăng ký',
+  role = 'customer',
+  redirectUrl = '/home'
+}) => {
   const { signUp } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -18,7 +30,7 @@ const RegisterForm = () => {
   } = useForm<RegisterFormFields>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      role: 'customer'
+      role: role
     }
   });
 
@@ -29,7 +41,7 @@ const RegisterForm = () => {
         'Registration successful! Please check your email to verify your account.'
       );
       reset();
-      navigate('/home'); // Redirect to login page after successful registration
+      navigate(redirectUrl);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: Error | unknown) {
       alert('Registration failed. Please try again later.');
@@ -46,7 +58,7 @@ const RegisterForm = () => {
       <div className='absolute bg-black opacity-60 inset-0 z-0'></div>
       <div className='w-full max-w-3xl max-h-[90vh] overflow-auto bg-white rounded-2xl z-10 p-10 flex flex-col items-center shadow-lg'>
         <div className='text-center w-full'>
-          <h2 className='mt-2 text-3xl font-bold text-gray-900'>Đăng ký</h2>
+          <h2 className='mt-2 text-3xl font-bold text-gray-900'>{title}</h2>
         </div>
         <button
           type='button'
