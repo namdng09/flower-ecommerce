@@ -204,16 +204,6 @@ const ProductPage = () => {
             <p><strong>Liên hệ:</strong> {product.shop.phoneNumber} - {product.shop.email}</p>
           </div>
 
-          {/* <p>
-            <strong>Người bán:</strong>{' '}
-            <Link
-              to={`/home/shop-profile/${product.shop._id}`}
-              className="text-blue-600 hover:underline"
-            >
-              {product.shop.fullName} ({product.shop.username})
-            </Link>
-          </p> */}
-
           <div className="flex items-center gap-4 p-4 border rounded-lg shadow-sm bg-gray-50 mt-4">
             <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-xl font-bold">
               {product.shop.fullName?.charAt(0).toUpperCase()}
