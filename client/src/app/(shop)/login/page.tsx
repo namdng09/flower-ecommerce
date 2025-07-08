@@ -1,7 +1,7 @@
-import React from 'react';
-
-const Page = () => {
-  return <div>Page</div>;
+import LoginForm from '~/components/forms/LoginForm';
+import ShopLoginForm from '~/components/shop/sidebar/ShopLoginForm';
+const Login = () => {
+  return <ShopLoginForm />;
 };
 
-export default Page;
+export default Login;

@@ -37,6 +37,15 @@ export const deleteProduct = createAsyncThunk(
   }
 );
 
+// Fetch products by shop ID
+export const fetchProductsByShop = createAsyncThunk(
+  'products/fetchProductsByShop',
+  async (shopId: string) => {
+    const res = await axios.get(`/api/products/shop/${shopId}`);
+    return res.data.data;
+  }
+);
+
 const productSlice = createSlice({
   name: 'products',
   initialState: {
@@ -47,7 +56,7 @@ const productSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder
-      // Fetch
+      // Fetch all
       .addCase(fetchProducts.pending, state => {
         state.loading = true;
         state.error = null;
@@ -101,6 +110,20 @@ const productSlice = createSlice({
         state.items = state.items.filter(item => item._id !== action.payload);
       })
       .addCase(deleteProduct.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      // Fetch products by shop
+      .addCase(fetchProductsByShop.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProductsByShop.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchProductsByShop.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       });

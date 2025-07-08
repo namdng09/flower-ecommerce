@@ -1,6 +1,6 @@
 import { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
-// import PrivateRoutes from '../components/privateRoutes';
+import PrivateRoutes from '../components/privateRoutes';
 
 const router = createBrowserRouter([
   {
