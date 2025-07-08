@@ -123,7 +123,7 @@ const authController = {
     try {
       const profile = req.user as passport.Profile;
 
-      const result = await authService.loginDashbroadWithGoogle({
+      const result = await authService.loginDashboardWithGoogle({
         googleId: profile.id,
         email: profile.emails?.[0]?.value || ''
       });
