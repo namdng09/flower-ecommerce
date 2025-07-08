@@ -7,6 +7,7 @@ import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchFavouritesByUser } from '~/store/slices/favouriteSlice';
 import { Link } from 'react-router';
+import { FaUserCircle, FaHeart } from 'react-icons/fa';
 
 interface UserProfile {
   fullName: string;
@@ -109,7 +110,10 @@ const EditProfile: React.FC = () => {
     <div className="max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-50">
       {/* USER INFO */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-center mb-6">👤 Thông tin tài khoản</h2>
+        <h2 className="text-xl font-bold text-center mb-6 flex items-center justify-center gap-2">
+          <FaUserCircle className="text-lime-600 text-2xl" />
+          Thông tin tài khoản
+        </h2>
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2 text-center">
             <img
