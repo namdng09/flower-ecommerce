@@ -106,6 +106,27 @@ export const authService = {
     return { user, accessToken, refreshToken };
   },
 
+  loginDashbroadWithGoogle: async (googleUser: {
+    googleId: string;
+    email: string;
+  }) => {
+    let user = await UserModel.findOne({ email: googleUser.email });
+
+    if (!user || !['shop', 'admin'].includes(user.role)) {
+      throw createHttpError(401, 'Account not found or not permitted');
+    } else if (!user.googleId) {
+      user.googleId = googleUser.googleId;
+      await user.save();
+    }
+
+    const { accessToken, refreshToken } = generateToken({
+      id: user.id,
+      role: user.role
+    });
+
+    return { user, accessToken, refreshToken };
+  },
+
   logout: async (refreshToken?: string) => {
     if (!refreshToken) {
       throw createHttpError(401, 'No refresh token provided');

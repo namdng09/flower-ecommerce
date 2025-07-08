@@ -26,14 +26,33 @@ const configurePassport = () => {
   );
 
   const googleOpts = {
-    clientID: process.env.GOOGLE_CLIENT_ID || '',
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    callbackURL: '/api/auth/google/callback'
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: '/api/auth/google/callback',
+    session: false
+  };
+
+  const googleDashbroadOpts = {
+    clientID: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    callbackURL: '/api/auth/google-dashbroad/callback',
+    session: false
   };
 
   passport.use(
+    'google',
     new GoogleStrategy(
       googleOpts,
+      async (accessToken, refreshToken, profile, done) => {
+        return done(null, profile);
+      }
+    )
+  );
+
+  passport.use(
+    'google-dashbroad',
+    new GoogleStrategy(
+      googleDashbroadOpts,
       async (accessToken, refreshToken, profile, done) => {
         return done(null, profile);
       }

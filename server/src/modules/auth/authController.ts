@@ -19,7 +19,7 @@ const authController = {
     try {
       const userData: IUser = req.body;
 
-      const newUser = await authService.register(userData)
+      const newUser = await authService.register(userData);
 
       res.cookie('refreshToken', newUser.refreshToken, {
         httpOnly: true,
@@ -84,14 +84,14 @@ const authController = {
     try {
       const profile = req.user as passport.Profile;
 
-      const email = profile.emails?.[0]?.value || ''; 
+      const email = profile.emails?.[0]?.value || '';
 
       const result = await authService.loginWithGoogle({
         googleId: profile.id,
-        email   : email,
-        fullName    : profile.displayName,
-        username    : email.split('@')[0],
-        avatarUrl  : profile.photos?.[0]?.value
+        email: email,
+        fullName: profile.displayName,
+        username: email.split('@')[0],
+        avatarUrl: profile.photos?.[0]?.value
       });
 
       res.cookie('refreshToken', result.refreshToken, {
@@ -113,6 +113,41 @@ const authController = {
       next(error);
     }
   },
+
+  /** POST /auth/google/callback */
+  async loginDashbroadWithGoogle(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> {
+    try {
+      const profile = req.user as passport.Profile;
+
+      const result = await authService.loginDashbroadWithGoogle({
+        googleId: profile.id,
+        email: profile.emails?.[0]?.value || ''
+      });
+
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+      });
+
+      return res.status(200).json(
+        apiResponse.success('Login successful', {
+          accessToken: result.accessToken,
+          user: {
+            id: result.user.id,
+            email: result.user.email
+          }
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  },
+
   /** POST /auth/logout */
   async logout(
     _req: Request,

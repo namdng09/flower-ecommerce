@@ -22,6 +22,23 @@ router.get(
   asyncHandler(auth.loginWithGoogle)
 );
 
+router.get(
+  '/google-dashbroad',
+  passport.authenticate('google-dashbroad', {
+    scope: ['profile', 'email'],
+    session: false
+  })
+);
+
+router.get(
+  '/google-dashbroad/callback',
+  passport.authenticate('google-dashbroad', {
+    session: false,
+    failureRedirect: '/login'
+  }),
+  asyncHandler(auth.loginDashbroadWithGoogle)
+);
+
 router.post('/register', asyncHandler(auth.register));
 router.post('/login', asyncHandler(auth.login));
 router.post('/refresh-token', asyncHandler(auth.refreshToken));
