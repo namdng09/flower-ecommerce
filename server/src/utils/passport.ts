@@ -28,7 +28,7 @@ const configurePassport = () => {
   const googleOpts = {
     clientID: process.env.GOOGLE_CLIENT_ID || '',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-    callbackURL: '/auth/google/callback'
+    callbackURL: '/api/auth/google/callback'
   };
 
   passport.use(

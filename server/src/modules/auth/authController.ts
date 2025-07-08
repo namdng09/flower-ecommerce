@@ -84,11 +84,13 @@ const authController = {
     try {
       const profile = req.user as passport.Profile;
 
-      console.log('profile', profile)
+      const email = profile.emails?.[0]?.value || ''; 
+
       const result = await authService.loginWithGoogle({
         googleId: profile.id,
-        email   : profile.emails?.[0]?.value || '',
+        email   : email,
         fullName    : profile.displayName,
+        username    : email.split('@')[0],
         avatarUrl  : profile.photos?.[0]?.value
       });
 

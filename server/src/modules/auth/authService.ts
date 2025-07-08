@@ -77,10 +77,9 @@ export const authService = {
     googleId: string;
     email: string;
     fullName: string;
+    username: string;
     avatarUrl?: string;
   }) => {
-    console.log('fuck it wor');
-    
     let user = await UserModel.findOne({
       $or: [{ googleId: googleUser.googleId }, { email: googleUser.email }]
     }).select('-password');
@@ -90,6 +89,7 @@ export const authService = {
         googleId: googleUser.googleId,
         email: googleUser.email,
         fullName: googleUser.fullName,
+        username: googleUser.username,
         avatarUrl: googleUser.avatarUrl,
         role: 'customer'
       });

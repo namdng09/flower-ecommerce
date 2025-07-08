@@ -41,12 +41,10 @@ const UserSchema = new Schema<IUser>(
     },
     phoneNumber: {
       type: String,
-      required: true,
       match: [/^\d{10,11}$/, 'Please enter a valid phone number']
     },
     password: {
       type: String,
-      required: true,
       minlength: [6, 'Password must be more than 6 characters long']
     },
     role: {
