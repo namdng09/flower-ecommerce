@@ -6,6 +6,12 @@ import { fetchVariants } from '~/store/slices/variantSlice';
 import { addToCart } from '~/store/slices/cartSlice';
 import { useAppSelector } from '~/hooks/useAppSelector';
 import { AuthContext } from '~/contexts/authContext';
+import {
+  fetchFavouritesByUser,
+  addFavouriteItem,
+  removeFavouriteItem
+} from '~/store/slices/favouriteSlice';
+import { FaHeart, FaRegHeart } from 'react-icons/fa';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -13,25 +19,22 @@ const ProductPage = () => {
   const { user } = useContext(AuthContext);
   const [quantity, setQuantity] = useState(1);
 
-  const { product, loading, error } = useAppSelector(
-    state => state?.productDetail
-  );
-  const { items: variants } = useAppSelector(state => state?.variants);
+  const { product, loading, error } = useAppSelector(state => state.productDetail);
+  const { items: favourites } = useAppSelector(state => state.favourites); // FavouriteItem[]
 
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [mainImage, setMainImage] = useState<string>('');
+  const [isFavourited, setIsFavourited] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      dispatch(getProductById(id));
-    }
+    if (id) dispatch(getProductById(id));
   }, [dispatch, id]);
 
   useEffect(() => {
     if (product) {
       if (product.variants.length > 0) {
         setSelectedVariant(product.variants[0]);
-        setMainImage(product.variants[0].image); // Sửa ở đây
+        setMainImage(product.variants[0].image);
       } else {
         setMainImage(product.thumbnailImage);
         setSelectedVariant(null);
@@ -43,122 +46,138 @@ const ProductPage = () => {
     dispatch(fetchVariants());
   }, [dispatch]);
 
-  const handleAddToCart = async () => {
-    if (!user || !user.id) {
-      alert('Bạn cần đăng nhập để thêm vào giỏ hàng!');
-      return;
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchFavouritesByUser(user.id));
     }
+  }, [dispatch, user]);
 
-    if (!selectedVariant) {
-      alert('Vui lòng chọn phiên bản sản phẩm!');
-      return;
+  useEffect(() => {
+    if (product && Array.isArray(favourites)) {
+      const isFav = favourites.some(f => f.productId === product._id || f.productId?._id === product._id);
+      setIsFavourited(isFav);
     }
+  }, [favourites, product]);
+
+  const handleAddToCart = async () => {
+    if (!user?.id) return alert('Bạn cần đăng nhập để thêm vào giỏ hàng!');
+    if (!selectedVariant) return alert('Vui lòng chọn phiên bản sản phẩm!');
 
     try {
-      await dispatch(
-        addToCart({
-          userId: user.id,
-          variantId: selectedVariant._id,
-          quantity
-        })
-      );
+      await dispatch(addToCart({
+        userId: user.id,
+        variantId: selectedVariant._id,
+        quantity
+      }));
       alert('✅ Đã thêm vào giỏ hàng!');
-    } catch (err) {
+    } catch {
       alert('❌ Có lỗi khi thêm vào giỏ hàng!');
     }
   };
 
-  if (loading)
-    return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
-  if (error)
-    return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
+  const handleToggleFavourite = async () => {
+    if (!user?.id || !product) return alert('Bạn cần đăng nhập để sử dụng mục yêu thích!');
+    try {
+      if (isFavourited) {
+        await dispatch(removeFavouriteItem({ userId: user.id, productId: product._id }));
+        setIsFavourited(false);
+      } else {
+        await dispatch(addFavouriteItem({ userId: user.id, productId: product._id }));
+        setIsFavourited(true);
+      }
+    } catch (err) {
+      console.error('Lỗi khi xử lý yêu thích:', err);
+    }
+  };
+
+  if (loading) return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
+  if (error) return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
   if (!product) return null;
 
   return (
     <div className='container mx-auto px-4 pt-[200px] text-black mb-5'>
       <div className='flex flex-col lg:flex-row gap-10'>
-        {/* Hình ảnh sản phẩm */}
         <div className='lg:w-1/3'>
           <img
             src={mainImage}
             alt={product.title}
             className='w-[650px] h-[650px] object-cover rounded-lg shadow mb-4'
           />
-
           <div className='flex gap-4'>
             <img
               src={product.thumbnailImage}
-              alt='main-thumbnail'
               onClick={() => {
                 setMainImage(product.thumbnailImage);
                 setSelectedVariant(null);
               }}
-              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
-                mainImage === product.thumbnailImage && !selectedVariant
-                  ? 'border-pink-600 border-2'
-                  : 'border-gray-300'
-              }`}
+              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${mainImage === product.thumbnailImage && !selectedVariant
+                ? 'border-pink-600 border-2'
+                : 'border-gray-300'
+                }`}
             />
-
             {product.variants.map(variant => (
               <img
                 key={variant._id}
                 src={variant.image}
-                alt={variant.title}
                 onClick={() => {
                   setMainImage(variant.image);
                   setSelectedVariant(variant);
                 }}
-                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
-                  selectedVariant?._id === variant._id
-                    ? 'border-pink-600 border-2'
-                    : 'border-gray-300'
-                }`}
+                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${selectedVariant?._id === variant._id
+                  ? 'border-pink-600 border-2'
+                  : 'border-gray-300'
+                  }`}
               />
             ))}
           </div>
         </div>
 
-        {/* Thông tin sản phẩm */}
         <div className='lg:w-1/2 space-y-4'>
-          <h1 className='text-2xl font-bold'>{product.title}</h1>
-          <p className='text-sm text-gray-600'>
-            {product.description.replace(/"/g, '')}
-          </p>
-
-          <div>
-            {product.variants.map(v => (
-              <div
-                key={v._id}
-                className={`border p-4 rounded mb-3 shadow-sm cursor-pointer ${selectedVariant?._id === v._id ? 'border-pink-600 border-2' : ''}`}
-                onClick={() => {
-                  setSelectedVariant(v);
-                  setMainImage(v.image);
-                }}
-              >
-                <p className='text-md font-medium'>{v.title}</p>
-                <p className='text-sm text-gray-500'>(Kho: {v.inventory})</p>
-              </div>
-            ))}
+          <div className='flex justify-between items-center'>
+            <h1 className='text-2xl font-bold'>{product.title}</h1>
+            <button
+              onClick={handleToggleFavourite}
+              className='text-2xl'
+              title={isFavourited ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+            >
+              {isFavourited ? (
+                <FaHeart className='text-pink-600' />
+              ) : (
+                <FaRegHeart className='text-gray-400 hover:text-pink-600' />
+              )}
+            </button>
           </div>
 
-          <div className='mt-4'>
-            {selectedVariant && (
-              <div>
-                <span>Thành tiền: </span>
-                {selectedVariant.listPrice > selectedVariant.salePrice && (
-                  <span className='line-through text-gray-400 text-sm mr-2'>
-                    {selectedVariant.listPrice.toLocaleString()}đ
-                  </span>
-                )}
-                <span className='text-pink-600 text-2xl font-bold'>
-                  {selectedVariant.salePrice.toLocaleString()}đ
+          <p className='text-sm text-gray-600'>{product.description.replace(/"/g, '')}</p>
+
+          {product.variants.map(v => (
+            <div
+              key={v._id}
+              className={`border p-4 rounded mb-3 shadow-sm cursor-pointer ${selectedVariant?._id === v._id ? 'border-pink-600 border-2' : ''}`}
+              onClick={() => {
+                setSelectedVariant(v);
+                setMainImage(v.image);
+              }}
+            >
+              <p className='text-md font-medium'>{v.title}</p>
+              <p className='text-sm text-gray-500'>(Kho: {v.inventory})</p>
+            </div>
+          ))}
+
+          {selectedVariant && (
+            <div className='mt-4'>
+              <span>Thành tiền: </span>
+              {selectedVariant.listPrice > selectedVariant.salePrice && (
+                <span className='line-through text-gray-400 text-sm mr-2'>
+                  {selectedVariant.listPrice.toLocaleString()}đ
                 </span>
-              </div>
-            )}
-          </div>
+              )}
+              <span className='text-pink-600 text-2xl font-bold'>
+                {selectedVariant.salePrice.toLocaleString()}đ
+              </span>
+            </div>
+          )}
 
-          {/* Thêm vào giỏ hàng */}
           <div className='flex gap-4 mt-4 items-center'>
             <span>Số lượng: </span>
             <input
@@ -180,18 +199,9 @@ const ProductPage = () => {
           </div>
 
           <div className='pt-6 text-sm space-y-1'>
-            <p>
-              <strong>Danh mục:</strong>{' '}
-              {product.categories.map(cat => cat.title).join(', ')}
-            </p>
-            <p>
-              <strong>Người bán:</strong> {product.shop.fullName} (
-              {product.shop.username})
-            </p>
-            <p>
-              <strong>Liên hệ:</strong> {product.shop.phoneNumber} -{' '}
-              {product.shop.email}
-            </p>
+            <p><strong>Danh mục:</strong> {product.categories.map(c => c.title).join(', ')}</p>
+            <p><strong>Người bán:</strong> {product.shop.fullName} ({product.shop.username})</p>
+            <p><strong>Liên hệ:</strong> {product.shop.phoneNumber} - {product.shop.email}</p>
           </div>
         </div>
       </div>
@@ -200,3 +210,4 @@ const ProductPage = () => {
 };
 
 export default ProductPage;
+
