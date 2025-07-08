@@ -206,13 +206,11 @@ const authController = {
 
       const user = await authService.requestResetPassword(email);
 
-      return res.json({
-        message: 'Reset password email sent successfully.',
-        data: {
-          email: email,
+      return res.status(200).json(
+        apiResponse.success('Reset password email sent successfully', {
           user: user
-        }
-      });
+        })
+      );
     } catch (error) {
       next(error);
     }
