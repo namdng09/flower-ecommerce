@@ -32,10 +32,10 @@ const ProductList = () => {
 
   const filteredProducts = selectedCategoryId
     ? products.filter(
-        p =>
-          Array.isArray(p.categories) &&
-          p.categories.some(cat => cat._id === selectedCategoryId)
-      )
+      p =>
+        Array.isArray(p.categories) &&
+        p.categories.some(cat => cat._id === selectedCategoryId)
+    )
     : products;
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -103,7 +103,7 @@ const ProductList = () => {
                 return (
                   <div
                     key={product._id}
-                    className='border rounded p-4 text-center bg-white'
+                    className='border border-gray-100 rounded p-4 text-center bg-white'
                   >
                     <div className='relative group overflow-hidden rounded'>
                       <img
