@@ -6,6 +6,7 @@ import CartModel from '../cart/cartModel';
 import FavouriteModel from '../favourite/favouriteModel';
 
 export interface IUser extends Document {
+  googleId?: string;
   fullName: string;
   username: string;
   email: string;
@@ -20,6 +21,7 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
+    googleId: { type: String },
     fullName: { type: String, required: true },
     username: {
       type: String,
@@ -39,12 +41,10 @@ const UserSchema = new Schema<IUser>(
     },
     phoneNumber: {
       type: String,
-      required: true,
       match: [/^\d{10,11}$/, 'Please enter a valid phone number']
     },
     password: {
       type: String,
-      required: true,
       minlength: [6, 'Password must be more than 6 characters long']
     },
     role: {

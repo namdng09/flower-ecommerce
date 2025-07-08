@@ -37,7 +37,7 @@ export const authService = {
       }
     }
 
-    const newUser = await UserModel.create({
+    const createdUser = await UserModel.create({
       fullName,
       username,
       email,
@@ -45,14 +45,14 @@ export const authService = {
       role,
       password
     });
-    if (!newUser) throw createHttpError(400, 'User creation failed');
+    if (!createdUser) throw createHttpError(400, 'User creation failed');
 
     const { accessToken, refreshToken } = generateToken({
-      id: newUser.id,
-      role: newUser.role
+      id: createdUser.id,
+      role: createdUser.role
     });
 
-    return { newUser, accessToken, refreshToken };
+    return { createdUser, accessToken, refreshToken };
   },
 
   login: async (userData: IUser) => {
@@ -64,6 +64,60 @@ export const authService = {
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid)
       throw createHttpError(400, 'Invalid email or password');
+
+    const { accessToken, refreshToken } = generateToken({
+      id: user.id,
+      role: user.role
+    });
+
+    return { user, accessToken, refreshToken };
+  },
+
+  loginWithGoogle: async (googleUser: {
+    googleId: string;
+    email: string;
+    fullName: string;
+    username: string;
+    avatarUrl?: string;
+  }) => {
+    let user = await UserModel.findOne({
+      $or: [{ googleId: googleUser.googleId }, { email: googleUser.email }]
+    }).select('-password');
+
+    if (!user) {
+      user = await UserModel.create({
+        googleId: googleUser.googleId,
+        email: googleUser.email,
+        fullName: googleUser.fullName,
+        username: googleUser.username,
+        avatarUrl: googleUser.avatarUrl,
+        role: 'customer'
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleUser.googleId;
+      await user.save();
+    }
+
+    const { accessToken, refreshToken } = generateToken({
+      id: user.id,
+      role: user.role
+    });
+
+    return { user, accessToken, refreshToken };
+  },
+
+  loginDashboardWithGoogle: async (googleUser: {
+    googleId: string;
+    email: string;
+  }) => {
+    let user = await UserModel.findOne({ email: googleUser.email });
+
+    if (!user || !['shop', 'admin'].includes(user.role)) {
+      throw createHttpError(401, 'Account not found or not permitted');
+    } else if (!user.googleId) {
+      user.googleId = googleUser.googleId;
+      await user.save();
+    }
 
     const { accessToken, refreshToken } = generateToken({
       id: user.id,
