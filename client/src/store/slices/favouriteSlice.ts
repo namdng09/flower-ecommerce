@@ -34,7 +34,7 @@ export const addFavouriteItem = createAsyncThunk(
   }
 );
 
-// DELETE /favourites/:userId/items/:productId
+// DELETE /favourites/:userId/items
 export const removeFavouriteItem = createAsyncThunk(
   'favourites/removeItem',
   async (
@@ -42,15 +42,18 @@ export const removeFavouriteItem = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      await axiosInstance.delete(`${BASE_URL}/${userId}/items`, {
+      await axiosInstance.delete(`/api/favourites/${userId}/items`, {
         data: { productId }
       });
       return productId;
     } catch (err: any) {
-      return rejectWithValue(err.response?.data?.message || 'Remove failed');
+      return rejectWithValue(
+        err.response?.data?.message || 'Remove failed'
+      );
     }
   }
 );
+
 
 // Slice
 const favouriteSlice = createSlice({
