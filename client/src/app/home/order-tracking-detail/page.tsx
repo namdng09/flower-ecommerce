@@ -21,9 +21,17 @@ const OrderListByUserPage: React.FC = () => {
         }
     }, [dispatch, userId]);
 
-    if (loading) return <p className="text-center mt-10">Đang tải danh sách đơn hàng...</p>;
-    if (error || !userOrders.length) return <p className="text-center mt-10 text-red-600">Không tìm thấy đơn hàng.</p>;
 
+    if (loading) return <p className="text-center mt-10">Đang tải danh sách đơn hàng...</p>;
+    if (error || !userOrders.length || !userId) {
+        return (
+            <div className="text-center mt-50 text-red-600">
+                <p>Không tìm thấy đơn hàng.</p>
+                <p className="text-gray-500 mt-2">Vui lòng đăng nhập hoặc kiểm tra lại thông tin.</p>
+            </div>
+        );
+    }
+  
     const getVariantDetails = (variantId: string) => {
         return variants.find((v: any) => v._id === variantId);
     };
