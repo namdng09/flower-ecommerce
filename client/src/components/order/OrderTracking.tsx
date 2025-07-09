@@ -110,7 +110,6 @@ const OrderTrackingPage: React.FC = () => {
               <tr key={item.variant?._id || index} className='text-left'>
                 <td className='p-3'>{index + 1}</td>
 
-                {/* Mã biến thể */}
                 <td className='p-3'>
                   {item.variant?.variantCode || 'Không rõ'}
                 </td>
