@@ -98,6 +98,10 @@ const router = createBrowserRouter([
       {
         path: 'shop-profile/:shopId',
         Component: lazy(() => import('../app/home/shopProfile/[shopId]/page'))
+      },
+      {
+        path: 'order-tracking-detail',
+        Component: lazy(() => import('../app/home/order-tracking-detail/page'))
       }
     ]
   },
