@@ -14,8 +14,8 @@ export const addressController = {
    * addressController.list()
    */
   list: async (req: Request, res: Response): Promise<Response> => {
-    const userId = req.query.userId as string;
-    const addresses = await addressService.list(userId);
+    const { userId } = req.params;
+    const addresses = await addressService.listByUserId(userId);
 
     return res
       .status(200)

@@ -46,6 +46,7 @@ export const productController = {
         limit = '10',
         sortBy = 'createdAt',
         sortOrder = 'desc',
+        shop,
         title,
         category,
         minPrice,
@@ -57,6 +58,7 @@ export const productController = {
         limit?: string;
         sortBy?: string;
         sortOrder?: 'asc' | 'desc';
+        shop?: string;
         title?: string;
         category?: string;
         minPrice?: string;
@@ -70,6 +72,7 @@ export const productController = {
         limit,
         sortBy,
         sortOrder,
+        shop,
         title,
         category,
         minPrice,
