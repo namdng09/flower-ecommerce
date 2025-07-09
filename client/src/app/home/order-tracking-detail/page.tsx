@@ -5,6 +5,7 @@ import type { RootState } from '~/store';
 import { FaStore, FaCalendarAlt, FaMoneyBillWave, FaShippingFast, FaClipboardCheck, FaExclamationCircle } from 'react-icons/fa';
 import { fetchVariants } from '~/store/slices/variantSlice';
 import { AuthContext } from '~/contexts/authContext';
+import { Link } from 'react-router';
 
 const OrderListByUserPage: React.FC = () => {
     const dispatch = useDispatch<any>();
@@ -84,7 +85,7 @@ const OrderListByUserPage: React.FC = () => {
                                 </div>
                             </div>
                             <button className="bg-pink-100 text-[#C4265B] px-3 py-1 rounded text-sm font-medium hover:bg-pink-200">
-                                Xem shop
+                                <Link to={`/home/shop-profile/${order.shop}`}> Xem shop</Link>
                             </button>
                         </div>
 
