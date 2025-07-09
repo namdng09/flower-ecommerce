@@ -64,6 +64,10 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/home/checkout/page'))
       },
       {
+        path: 'privacy',
+        Component: lazy(() => import('../app/home/privacy/page'))
+      },
+      {
         path: 'profile/:id',
         Component: lazy(() => import('../app/home/profile/[id]/page'))
       },
@@ -90,6 +94,10 @@ const router = createBrowserRouter([
       {
         path: 'order-fail',
         Component: lazy(() => import('../app/home/order-fail/page'))
+      },
+      {
+        path: 'shop-profile/:shopId',
+        Component: lazy(() => import('../app/home/shopProfile/[shopId]/page'))
       }
     ]
   },
