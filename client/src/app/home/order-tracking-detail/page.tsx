@@ -2,7 +2,7 @@ import React, { useEffect, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrdersByUser } from '~/store/slices/orderSlice';
 import type { RootState } from '~/store';
-import { FaStore, FaCalendarAlt, FaMoneyBillWave, FaShippingFast, FaClipboardCheck } from 'react-icons/fa';
+import { FaStore, FaCalendarAlt, FaMoneyBillWave, FaShippingFast, FaClipboardCheck, FaExclamationCircle } from 'react-icons/fa';
 import { fetchVariants } from '~/store/slices/variantSlice';
 import { AuthContext } from '~/contexts/authContext';
 
@@ -22,11 +22,13 @@ const OrderListByUserPage: React.FC = () => {
     }, [dispatch, userId]);
 
 
+
     if (loading) return <p className="text-center mt-10">Đang tải danh sách đơn hàng...</p>;
     if (error || !userOrders.length || !userId) {
         return (
-            <div className="text-center mt-50 text-red-600">
-                <p>Không tìm thấy đơn hàng.</p>
+            <div className="flex flex-col items-center justify-center mt-20 text-red-600">
+                <FaExclamationCircle className="text-4xl mb-3 text-red-500" />
+                <p className="text-lg font-semibold">Không tìm thấy đơn hàng.</p>
                 <p className="text-gray-500 mt-2">Vui lòng đăng nhập hoặc kiểm tra lại thông tin.</p>
             </div>
         );
