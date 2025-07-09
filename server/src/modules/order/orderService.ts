@@ -415,23 +415,38 @@ export const orderService = {
       orders.push(order);
     }
 
-    // Populate để lấy được email của shops
-    // const populatedOrder = (await OrderModel.findById(newOrder._id)
-    //   .populate('address')
-    //   .populate('user')
-    //   .populate({
-    //     path: 'items.variant',
-    //     populate: {
-    //       path: 'product',
-    //       select: 'title skuCode thumbnailImage shop',
-    //       populate: {
-    //         path: 'shop',
-    //         select: 'fullName email role'
-    //       }
-    //     }
-    //   })) as any;
-    //
-    // const plainPopulatedOrder = populatedOrder.toObject();
+    // Helper function to send email notifications to shops
+    async function sendEmailNotifications(orders: IOrder[]) {
+      for (const order of orders) {
+        const populatedOrder = await OrderModel.findById(order._id)
+          .populate('address')
+          .populate('user')
+          .populate({
+            path: 'items.variant',
+            populate: {
+              path: 'product',
+              select: 'title skuCode thumbnailImage shop',
+              populate: {
+                path: 'shop',
+                select: 'fullName email role'
+              }
+            }
+          });
+
+        const plainPopulatedOrder = populatedOrder?.toObject();
+
+        if (plainPopulatedOrder?.shop?.email) {
+          await mailService.send({
+            to: plainPopulatedOrder.shop.email,
+            subject: `New Order Received`,
+            text: `You have received a new order. Order ID: ${plainPopulatedOrder._id}`,
+          });
+        }
+      }
+    }
+
+    // Call the helper function after creating orders
+    await sendEmailNotifications(orders);
     //
     // if (plainPopulatedOrder) {
     //   await mailService.sendOrderSuccessToCustomer(
