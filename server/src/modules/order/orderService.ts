@@ -22,6 +22,7 @@ export const orderService = {
     sortOrder?: 'asc' | 'desc',
     status?: string,
     orderNumber?: string,
+    shop?: string,
     user?: string
   ) => {
     const allowedStatus: OrderStatus[] = [
@@ -52,6 +53,13 @@ export const orderService = {
       ...(status && { status: makeRegex(status) })
     };
 
+    if (shop) {
+      if (!Types.ObjectId.isValid(shop)) {
+        throw createHttpError(400, 'Invalid shop id');
+      }
+      matchStage.shop = new Types.ObjectId(shop);
+    }
+
     if (user) {
       if (!Types.ObjectId.isValid(user)) {
         throw createHttpError(400, 'Invalid user id');
@@ -77,7 +85,7 @@ export const orderService = {
           as: 'shop'
         }
       },
-      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
 
       {
         $lookup: {

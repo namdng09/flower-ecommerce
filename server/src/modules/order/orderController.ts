@@ -40,6 +40,7 @@ export const orderController = {
         sortOrder = 'desc',
         status,
         orderNumber,
+        shop,
         user
       } = req.query as {
         page?: string;
@@ -48,6 +49,7 @@ export const orderController = {
         sortOrder?: 'asc' | 'desc';
         status?: string;
         orderNumber?: string;
+        shop?: string;
         user?: string;
       };
 
@@ -58,6 +60,7 @@ export const orderController = {
         sortOrder,
         status,
         orderNumber,
+        shop,
         user
       );
 
