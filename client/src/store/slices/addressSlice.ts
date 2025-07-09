@@ -8,7 +8,7 @@ export const fetchAddresses = createAsyncThunk(
   'addresses/fetchAddresses',
   async (userId: string, { rejectWithValue }) => {
     try {
-      const res = await axiosInstance.get(`${BASE_URL}?userId=${userId}`);
+      const res = await axiosInstance.get(`${BASE_URL}/${userId}/user`);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Fetch failed');
