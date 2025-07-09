@@ -47,6 +47,9 @@ function HeaderC() {
             <li>
               <Link to='/home/contact'>Liên Hệ</Link>
             </li>
+            <li>
+              <Link to='/home/privacy'>Điều Khoản Và Chính Sách</Link>
+            </li>
           </ul>
 
           <div className='flex items-center space-x-6 md:order-2 relative'>

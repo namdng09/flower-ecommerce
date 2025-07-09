@@ -1,18 +1,12 @@
-import OrderModel, {
-  ICustomization,
-  IOrder,
-  IOrderItem,
-  IPayment,
-  IShipment
-} from './orderModel';
+import OrderModel, { IOrder, IPayment, IShipment } from './orderModel';
 import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
 import VariantModel from '../variant/variantModel';
 import UserModel from '../user/userModel';
 import AddressModel from '../address/addressModel';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
-import { variantService } from '../variant/variantService';
 import ProductModel from '../product/productModel';
+import { mailService } from '../email/emailService';
 
 export const orderService = {
   list: async () => {
@@ -412,6 +406,31 @@ export const orderService = {
 
       orders.push(order);
     }
+
+    // Populate để lấy được email của shops
+    // const populatedOrder = (await OrderModel.findById(newOrder._id)
+    //   .populate('address')
+    //   .populate('user')
+    //   .populate({
+    //     path: 'items.variant',
+    //     populate: {
+    //       path: 'product',
+    //       select: 'title skuCode thumbnailImage shop',
+    //       populate: {
+    //         path: 'shop',
+    //         select: 'fullName email role'
+    //       }
+    //     }
+    //   })) as any;
+    //
+    // const plainPopulatedOrder = populatedOrder.toObject();
+    //
+    // if (plainPopulatedOrder) {
+    //   await mailService.sendOrderSuccessToCustomer(
+    //     plainPopulatedOrder,
+    //     existingUser.email
+    //   );
+    // }
 
     return orders;
   },
