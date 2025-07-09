@@ -48,7 +48,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrderById } from '~/store/slices/orderSlice';
 import type { RootState } from '~/store';
 import { FaCheckCircle, FaGift } from 'react-icons/fa';
-import { FiBox, FiMapPin } from 'react-icons/fi';
+import { FiBox, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
 
 const OrderPage: React.FC = () => {
   const { orderId } = useParams();
@@ -95,7 +95,7 @@ const OrderPage: React.FC = () => {
         </div>
 
         {order.shop && (
-          <div className="flex items-center justify-between border-gray-50 rounded-lg p-4 bg-gray-50 mb-6">
+          <div className="flex items-center justify-between border border-gray-200 rounded-lg p-4 bg-gray-50 mb-6 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-lg">
                 {order.shop.fullName?.charAt(0)?.toUpperCase() || 'S'}
@@ -104,14 +104,24 @@ const OrderPage: React.FC = () => {
               <div>
                 <p className="text-sm text-gray-500">Người bán:</p>
                 <p className="text-[#C4265B] font-semibold">
-                  {order.shop.fullName} ({order.shop.username})
+                  {order.shop.fullName}{' '}
+                  <span className="text-sm text-gray-600">({order.shop.username})</span>
+                </p>
+
+                <p className="text-sm text-gray-700 flex items-center gap-1 mt-1">
+                  <FiPhone className="text-pink-500" size={14} />
+                  <span>{order.shop.phoneNumber}</span>
+                </p>
+                <p className="text-sm text-gray-700 flex items-center gap-1">
+                  <FiMail className="text-pink-500" size={14} />
+                  <span>{order.shop.email}</span>
                 </p>
               </div>
             </div>
 
             <button
               onClick={() => navigate(`/home/shop-profile/${order.shop._id}`)}
-              className="bg-pink-100 text-[#C4265B] px-4 py-1 rounded-md text-sm font-medium hover:bg-pink-200 transition"
+              className="bg-pink-100 text-[#C4265B] hover:bg-pink-200 px-4 py-1 rounded-md text-sm font-medium transition whitespace-nowrap"
             >
               Xem shop
             </button>
