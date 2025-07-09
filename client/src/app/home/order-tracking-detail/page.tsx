@@ -70,7 +70,7 @@ const OrderListByUserPage: React.FC = () => {
                 {userOrders.map((order) => (
                     <div
                         key={order._id}
-                        className="border rounded-lg shadow-sm p-4 bg-white"
+                        className="border-black-100 rounded-lg shadow-sm p-4 bg-white"
                     >
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
