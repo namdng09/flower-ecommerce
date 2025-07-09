@@ -26,7 +26,7 @@ const OrderListByUserPage: React.FC = () => {
     if (loading) return <p className="text-center mt-10">Đang tải danh sách đơn hàng...</p>;
     if (error || !userOrders.length || !userId) {
         return (
-            <div className="flex flex-col items-center justify-center mt-20 text-red-600">
+            <div className="flex flex-col items-center justify-center mt-50 text-red-600">
                 <FaExclamationCircle className="text-4xl mb-3 text-red-500" />
                 <p className="text-lg font-semibold">Không tìm thấy đơn hàng.</p>
                 <p className="text-gray-500 mt-2">Vui lòng đăng nhập hoặc kiểm tra lại thông tin.</p>
