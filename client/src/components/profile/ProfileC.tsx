@@ -207,7 +207,6 @@
 
 // export default EditProfile;
 
-
 import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router';
 import defaultAva from '../../../src/assets/no-user.jpg';
@@ -215,7 +214,10 @@ import { AuthContext } from '~/contexts/authContext';
 import axiosInstance from '~/config/axiosConfig';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
-import { fetchFavouritesByUser, removeFavouriteItem, } from '~/store/slices/favouriteSlice';
+import {
+  fetchFavouritesByUser,
+  removeFavouriteItem
+} from '~/store/slices/favouriteSlice';
 import { Link } from 'react-router';
 import { FaUserCircle, FaHeart, FaTimes } from 'react-icons/fa';
 
@@ -329,66 +331,105 @@ const EditProfile: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-40">
+    <div className='max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-40'>
       {/* USER INFO */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-bold text-center mb-6 flex items-center justify-center gap-2">
-          <FaUserCircle className="text-lime-600 text-2xl" />
+      <div className='bg-white border border-gray-200 rounded-lg shadow-md p-6'>
+        <h2 className='text-xl font-bold text-center mb-6 flex items-center justify-center gap-2'>
+          <FaUserCircle className='text-lime-600 text-2xl' />
           Thông tin tài khoản
         </h2>
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2 text-center">
+        <form
+          onSubmit={handleSubmit}
+          className='grid grid-cols-1 md:grid-cols-2 gap-6'
+        >
+          <div className='md:col-span-2 text-center'>
             <img
               src={form.avatarUrl?.trim() !== '' ? form.avatarUrl : defaultAva}
-              alt="Avatar"
-              className="w-24 h-24 rounded-full object-cover mx-auto border border-lime-500 shadow-sm"
+              alt='Avatar'
+              className='w-24 h-24 rounded-full object-cover mx-auto border border-lime-500 shadow-sm'
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Họ và tên</label>
-            <input type="text" name="fullName" value={form.fullName} onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
+            <label className='text-sm font-medium'>Họ và tên</label>
+            <input
+              type='text'
+              name='fullName'
+              value={form.fullName}
+              onChange={handleChange}
+              className='w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm'
+            />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Tên đăng nhập</label>
-            <input type="text" name="username" value={form.username} onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
+            <label className='text-sm font-medium'>Tên đăng nhập</label>
+            <input
+              type='text'
+              name='username'
+              value={form.username}
+              onChange={handleChange}
+              className='w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm'
+            />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Email</label>
-            <input type="email" name="email" value={form.email} disabled
-              className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
+            <label className='text-sm font-medium'>Email</label>
+            <input
+              type='email'
+              name='email'
+              value={form.email}
+              disabled
+              className='w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500'
+            />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Số điện thoại</label>
-            <input type="text" name="phoneNumber" value={form.phoneNumber} onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
+            <label className='text-sm font-medium'>Số điện thoại</label>
+            <input
+              type='text'
+              name='phoneNumber'
+              value={form.phoneNumber}
+              onChange={handleChange}
+              className='w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm'
+            />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Vai trò</label>
-            <input type="text" value={form.role} disabled
-              className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
+            <label className='text-sm font-medium'>Vai trò</label>
+            <input
+              type='text'
+              value={form.role}
+              disabled
+              className='w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500'
+            />
           </div>
 
           <div>
-            <label className="text-sm font-medium">Ngày tạo tài khoản</label>
-            <input type="text"
-              value={form.createdAt ? new Date(form.createdAt).toLocaleDateString('vi-VN') : ''}
-              disabled className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
+            <label className='text-sm font-medium'>Ngày tạo tài khoản</label>
+            <input
+              type='text'
+              value={
+                form.createdAt
+                  ? new Date(form.createdAt).toLocaleDateString('vi-VN')
+                  : ''
+              }
+              disabled
+              className='w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500'
+            />
           </div>
 
-          <div className="md:col-span-2 flex justify-center gap-4 pt-4">
-            <button type="submit"
-              className="bg-lime-600 hover:bg-lime-700 text-white px-6 py-2 rounded shadow">
+          <div className='md:col-span-2 flex justify-center gap-4 pt-4'>
+            <button
+              type='submit'
+              className='bg-lime-600 hover:bg-lime-700 text-white px-6 py-2 rounded shadow'
+            >
               Cập nhật
             </button>
-            <button type="button" onClick={handleLogout}
-              className="bg-[#B9205A] hover:bg-[#A3184D] text-white px-6 py-2 rounded shadow">
+            <button
+              type='button'
+              onClick={handleLogout}
+              className='bg-[#B9205A] hover:bg-[#A3184D] text-white px-6 py-2 rounded shadow'
+            >
               Đăng xuất
             </button>
           </div>
@@ -396,40 +437,49 @@ const EditProfile: React.FC = () => {
       </div>
 
       {/* FAVOURITE LIST */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 w-full">
-        <h3 className="text-lg font-bold mb-4 flex items-center text-pink-600 gap-2">
-          <FaHeart className="text-xl" />
+      <div className='bg-white border border-gray-200 rounded-lg shadow-md p-6 w-full'>
+        <h3 className='text-lg font-bold mb-4 flex items-center text-pink-600 gap-2'>
+          <FaHeart className='text-xl' />
           Danh sách yêu thích
         </h3>
 
         {favLoading ? (
-          <p className="text-gray-500 italic">Đang tải...</p>
+          <p className='text-gray-500 italic'>Đang tải...</p>
         ) : favourites.length === 0 ? (
-          <p className="text-gray-500 italic">Bạn chưa yêu thích sản phẩm nào.</p>
+          <p className='text-gray-500 italic'>
+            Bạn chưa yêu thích sản phẩm nào.
+          </p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'>
             {favourites.map((product: any) => (
               <Link
                 to={`/home/products/${product._id}`}
                 key={product._id}
-                className="relative border border-gray-200 rounded-lg hover:shadow-md transition bg-white overflow-hidden hover:-translate-y-1 duration-150 group"
+                className='relative border border-gray-200 rounded-lg hover:shadow-md transition bg-white overflow-hidden hover:-translate-y-1 duration-150 group'
               >
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     e.stopPropagation();
                     handleRemoveFavourite(product._id);
                   }}
-                  className="absolute top-1 right-1 bg-white rounded-full p-1 text-gray-500 hover:text-red-500 z-10"
+                  className='absolute top-1 right-1 bg-white rounded-full p-1 text-gray-500 hover:text-red-500 z-10'
                 >
-                  <FaTimes className="w-4 h-4" />
+                  <FaTimes className='w-4 h-4' />
                 </button>
 
-                <img src={product.thumbnailImage} alt={product.title}
-                  className="w-full h-40 object-cover" />
-                <div className="p-3">
-                  <h4 className="text-sm font-semibold line-clamp-1">{product.title}</h4>
-                  <p className="text-xs text-gray-500 line-clamp-2">{product.description}</p>
+                <img
+                  src={product.thumbnailImage}
+                  alt={product.title}
+                  className='w-full h-40 object-cover'
+                />
+                <div className='p-3'>
+                  <h4 className='text-sm font-semibold line-clamp-1'>
+                    {product.title}
+                  </h4>
+                  <p className='text-xs text-gray-500 line-clamp-2'>
+                    {product.description}
+                  </p>
                 </div>
               </Link>
             ))}

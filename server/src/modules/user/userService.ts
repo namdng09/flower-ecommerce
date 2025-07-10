@@ -280,5 +280,5 @@ export const userService = {
     if (!updatedUser) throw createHttpError(400, 'User update failed');
 
     return updatedUser;
-  },
+  }
 };

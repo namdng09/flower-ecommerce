@@ -107,7 +107,8 @@ function FeaturedProductsC() {
                   <span className='text-black font-semibold'>
                     {product.variants[0].salePrice.toLocaleString()}đ
                   </span>
-                  {product.variants[0].listPrice > product.variants[0].salePrice && (
+                  {product.variants[0].listPrice >
+                    product.variants[0].salePrice && (
                     <span className='line-through text-red-500'>
                       {product.variants[0].listPrice.toLocaleString()}đ
                     </span>
@@ -117,7 +118,6 @@ function FeaturedProductsC() {
                 <p className='text-gray-500 italic text-sm'>Chưa có giá</p>
               )}
             </div>
-
           ))}
         </div>
       )}

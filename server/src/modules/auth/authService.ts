@@ -118,7 +118,7 @@ export const authService = {
     googleId: string;
     email: string;
   }) => {
-    let user = await UserModel.findOne({ email: googleUser.email });
+    const user = await UserModel.findOne({ email: googleUser.email });
 
     if (!user || !['shop', 'admin'].includes(user.role)) {
       throw createHttpError(401, 'Account not found or not permitted');
@@ -169,14 +169,14 @@ export const authService = {
       throw createHttpError(404, 'User not found');
     }
 
-    const resetLink = "http://localhost:5173/auth/change-password"
+    const resetLink = 'http://localhost:5173/auth/change-password';
 
     // Gửi email qua emailService với template động
     await mailService.sendResetPassword(email, resetLink, user.fullName);
 
     return {
       message: 'Reset password email sent successfully',
-      user: user,
+      user: user
     };
   }
 };

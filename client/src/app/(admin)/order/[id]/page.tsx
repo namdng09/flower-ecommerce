@@ -4,7 +4,7 @@ import { fetchOrderById } from '~/store/slices/orderSlice';
 import { useParams } from 'react-router';
 import type { RootState } from '~/store';
 
-const page = () => {
+const Page = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
   const { currentOrder, loading, error } = useSelector(
@@ -157,4 +157,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
