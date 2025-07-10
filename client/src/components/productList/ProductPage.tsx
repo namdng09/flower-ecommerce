@@ -93,20 +93,27 @@ const ProductPage = () => {
   };
   
   const handleToggleFavourite = async () => {
-    if (!user?.id || !product) return alert('Bạn cần đăng nhập để sử dụng mục yêu thích!');
+    if (!user?.id || !product) {
+      toast.warn('Bạn cần đăng nhập để sử dụng mục yêu thích!');
+      return;
+    }
+
     try {
       if (isFavourited) {
-        await dispatch(removeFavouriteItem({ userId: user.id, productId: product._id }));
+        await dispatch(removeFavouriteItem({ userId: user.id, productId: product._id }))
         setIsFavourited(false);
+        toast.success('Đã xoá khỏi mục yêu thích!');
       } else {
-        await dispatch(addFavouriteItem({ userId: user.id, productId: product._id }));
+        await dispatch(addFavouriteItem({ userId: user.id, productId: product._id }))
         setIsFavourited(true);
+        toast.success('Đã thêm vào mục yêu thích!');
       }
     } catch (err) {
       console.error('Lỗi khi xử lý yêu thích:', err);
+      toast.error('Đã xảy ra lỗi khi xử lý mục yêu thích!');
     }
   };
-
+  
   if (loading) return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
   if (error) return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
   if (!product) return null;
