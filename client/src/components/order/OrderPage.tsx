@@ -185,13 +185,19 @@ const OrderPage: React.FC = () => {
           <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50'>
             <div className='bg-white p-6 rounded-lg w-[95%] max-w-md shadow-lg border'>
               <h3 className='text-lg font-bold mb-4'>Thêm địa chỉ mới</h3>
-              {['fullName', 'phone', 'street', 'ward', 'province'].map(field => (
+              {[
+                { key: 'fullName', placeholder: 'Họ và tên người nhận' },
+                { key: 'phone', placeholder: 'Số điện thoại' },
+                { key: 'street', placeholder: 'Địa chỉ cụ thể (số nhà, đường)' },
+                { key: 'ward', placeholder: 'Phường / Xã' },
+                { key: 'province', placeholder: 'Tỉnh / Thành phố' },
+              ].map(field => (
                 <input
-                  key={field}
-                  placeholder={field}
+                  key={field.key}
+                  placeholder={field.placeholder}
                   className='w-full border p-2 mb-2 rounded text-sm'
-                  value={(form as any)[field]}
-                  onChange={e => setForm(prev => ({ ...prev, [field]: e.target.value }))}
+                  value={(form as any)[field.key]}
+                  onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
                 />
               ))}
               <div className='flex justify-end gap-2 mt-4'>
