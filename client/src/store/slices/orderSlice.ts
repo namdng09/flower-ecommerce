@@ -128,7 +128,16 @@ const orderSlice = createSlice({
     currentOrder: null,
     userOrders: []
   },
-  reducers: {},
+  reducers: {
+    resetOrders: state => {
+      state.orders = [];
+      state.pagination = null;
+      state.loading = false;
+      state.error = null;
+      state.currentOrder = null;
+      state.userOrders = [];
+    }
+  },
   extraReducers: builder => {
     builder
       .addCase(filterOrders.pending, state => {
@@ -228,4 +237,5 @@ const orderSlice = createSlice({
   }
 });
 
+export const { resetOrders } = orderSlice.actions;
 export default orderSlice.reducer;
