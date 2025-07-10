@@ -95,9 +95,7 @@ const CartItemsTable: React.FC = () => {
                             className="w-24 h-24 rounded object-cover"
                           />
                           <div>
-                            {/* Tên sản phẩm cha in hoa đậm */}
                             <p className="font-bold text-sm text-[#C4265B] uppercase">{productTitle}</p>
-                            {/* Tên variant */}
                             <p className="font-semibold text-gray-800">{v.title}</p>
                             <p className="text-xs text-gray-500">Mã: {v.variantCode}</p>
                           </div>
