@@ -3,6 +3,19 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api/orders';
 
+export const filterOrders = createAsyncThunk(
+  'orders/filterOrders',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const res = await axios.get(`${BASE_URL}/filter?${query}`);
+      return res.data.data.result;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Filter failed');
+    }
+  }
+);
+
 export const fetchOrders = createAsyncThunk(
   'orders/fetchAll',
   async (params = {}, { rejectWithValue }) => {
