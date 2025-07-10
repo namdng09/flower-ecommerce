@@ -1,7 +1,9 @@
-import React from 'react';
+import LoginForm from '~/components/forms/LoginForm';
 
 const Page = () => {
-  return <div>Page</div>;
+  return (
+    <LoginForm title='Đăng nhập quản trị viên' redirectUrl='/admin/dashboard' />
+  );
 };
 
 export default Page;

@@ -1,7 +1,9 @@
 import LoginForm from '~/components/forms/LoginForm';
-import ShopLoginForm from '~/components/shop/sidebar/ShopLoginForm';
+
 const Login = () => {
-  return <ShopLoginForm />;
+  return <LoginForm title='Đăng nhập cửa hàng' redirectUrl='/shop/dashboard' />;
+
+
 };
 
-export default Login;
+export default Login

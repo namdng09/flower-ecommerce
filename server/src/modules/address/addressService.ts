@@ -47,7 +47,7 @@ export const addressService = {
       throw createHttpError(404, 'User not found');
     }
 
-    if (!fullName || !phone || !province || !ward || !street || !plusCode) {
+    if (!fullName || !phone || !province || !ward || !street) {
       throw createHttpError(400, 'Missing required fields');
     }
 
@@ -99,6 +99,10 @@ export const addressService = {
       addressType,
       isDefault
     } = addressData;
+
+    if (!fullName || !phone || !province || !ward || !street) {
+      throw createHttpError(400, 'Missing required fields');
+    }
 
     const validAddressTypes = ['home', 'office', 'other'];
     if (addressType !== undefined && !validAddressTypes.includes(addressType)) {

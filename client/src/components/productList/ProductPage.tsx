@@ -29,9 +29,12 @@ const ProductPage = () => {
 
   useEffect(() => {
     if (product) {
-      setMainImage(product.thumbnailImage);
       if (product.variants.length > 0) {
         setSelectedVariant(product.variants[0]);
+        setMainImage(product.variants[0].image); // Sửa ở đây
+      } else {
+        setMainImage(product.thumbnailImage);
+        setSelectedVariant(null);
       }
     }
   }, [product]);
@@ -128,7 +131,10 @@ const ProductPage = () => {
               <div
                 key={v._id}
                 className={`border p-4 rounded mb-3 shadow-sm cursor-pointer ${selectedVariant?._id === v._id ? 'border-pink-600 border-2' : ''}`}
-                onClick={() => setSelectedVariant(v)}
+                onClick={() => {
+                  setSelectedVariant(v);
+                  setMainImage(v.image);
+                }}
               >
                 <p className='text-md font-medium'>{v.title}</p>
                 <p className='text-sm text-gray-500'>(Kho: {v.inventory})</p>

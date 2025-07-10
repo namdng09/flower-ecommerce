@@ -3,6 +3,7 @@ import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import crypto from 'crypto';
 import { comparePassword } from '~/utils/bcrypt';
+import { sendMail } from '~/utils/mailer';
 
 export const userService = {
   list: async (role?: string) => {
@@ -26,6 +27,7 @@ export const userService = {
     fullName?: string,
     username?: string,
     email?: string,
+    role?: string,
     phoneNumber?: string
   ) => {
     const allowedSortFields = [
@@ -49,6 +51,7 @@ export const userService = {
       ...(fullName && { fullName: makeRegex(fullName) }),
       ...(username && { username: makeRegex(username) }),
       ...(email && { email: makeRegex(email) }),
+      ...(role && { role }),
       ...(phoneNumber && { phoneNumber: makeRegex(phoneNumber) })
     };
 
@@ -116,6 +119,12 @@ export const userService = {
     if (!newUser) {
       throw createHttpError(400, 'User creation failed');
     }
+
+    await sendMail({
+      to: email,
+      subject: 'Welcome to Our Service',
+      text: `Hello ${fullName},\n\nYour account has been created successfully. Your password is: ${password}\n\nPlease change your password after logging in.\n\nBest regards,\nThe Team`
+    });
 
     const { password: _pw, ...resUser } = newUser.toObject();
 

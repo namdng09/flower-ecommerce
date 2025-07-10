@@ -46,6 +46,7 @@ export const userController = {
         fullName,
         username,
         email,
+        role,
         phoneNumber
       } = req.query as {
         page?: string;
@@ -55,6 +56,7 @@ export const userController = {
         fullName?: string;
         username?: string;
         email?: string;
+        role?: string;
         phoneNumber?: string;
       };
 
@@ -66,6 +68,7 @@ export const userController = {
         fullName,
         username,
         email,
+        role,
         phoneNumber
       );
 
