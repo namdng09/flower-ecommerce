@@ -228,9 +228,7 @@ const OrderPage: React.FC = () => {
                   <td className="py-2 flex gap-2 items-center">
                     <img src={variant.image} className="w-16 h-16 object-cover rounded" />
                     <div>
-                      {/* Tên sản phẩm cha */}
                       <div className="text-sm font-bold uppercase text-[#C4265B]">{productTitle}</div>
-                      {/* Tên variant */}
                       <div>{variant.title}</div>
                       <div className="text-sm text-gray-500">Mã: {variant.variantCode}</div>
                     </div>
