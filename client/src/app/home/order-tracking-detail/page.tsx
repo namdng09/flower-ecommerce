@@ -241,9 +241,11 @@ const OrderListByUserPage: React.FC = () => {
         }
     };
 
-    const getVariantDetails = (variantId: string) => {
-        return variants.find((v: any) => v._id === variantId);
+    const getVariantDetails = (variantId: any) => {
+        const id = typeof variantId === "object" ? variantId._id : variantId;
+        return variants.find((v: any) => v._id === id);
     };
+      
 
     const translateStatus = (status: string) => {
         switch (status) {
@@ -320,7 +322,7 @@ const OrderListByUserPage: React.FC = () => {
                             </button>
                         </div>
 
-                        <div className="space-y-4">
+                        {/* <div className="space-y-4">
                             {order.items?.length > 0 ? order.items.map((item: any, index: number) => {
                                 const variant = getVariantDetails(item.variant);
                                 const imageUrl = variant?.image || variant?.product?.thumbnailImage;
@@ -345,6 +347,45 @@ const OrderListByUserPage: React.FC = () => {
                                         </div>
                                     </div>
                                 );
+                            }) : (
+                                <p className="text-sm text-gray-500">Không có sản phẩm trong đơn hàng.</p>
+                            )}
+                        </div> */}
+                        <div className="space-y-4">
+                            {order.items?.length > 0 ? order.items.map((item: any, index: number) => {
+                                const variant = getVariantDetails(item.variant);
+
+                                // xử lý productThumbnail chính xác nếu product là mảng
+                                const productThumbnail = Array.isArray(variant?.product) ? variant.product[0]?.thumbnailImage : variant?.product?.thumbnailImage;
+
+                                // chọn ảnh hiển thị
+                                const imageUrl = variant?.image || productThumbnail;
+
+                                console.log("➡️ Variant ID:", item.variant);
+                                console.log("➡️ Variant object:", variant);
+                                console.log("➡️ Image URL:", imageUrl);
+
+                                return (
+                                    <div key={index} className="flex gap-3 border rounded p-3 bg-gray-50">
+                                        {imageUrl ? (
+                                            <img src={imageUrl} alt="Ảnh sản phẩm" className="w-16 h-16 object-cover border rounded" />
+                                        ) : (
+                                            <div className="w-16 h-16 flex items-center justify-center border rounded text-xs text-gray-400 bg-white">
+                                                Không ảnh
+                                            </div>
+                                        )}
+                                        <div className="flex-1">
+                                            <p className="text-base font-bold text-[#C4265B]">{variant?.product?.[0]?.title || ''}</p>
+                                            <p className="text-base font-bold text-[#C4265B]">
+                                                {variant?.title ? `Phân Loại: ${variant.title}` : ''} {variant?.variantCode ? `| Mã: ${variant.variantCode}` : ''}
+                                            </p>
+                                            <p className="text-sm mt-1">SL: {item.quantity} | Giá: {item.price.toLocaleString()}₫</p>
+                                            <p className="text-sm font-medium text-[#C4265B]">
+                                                Tổng: {(item.price * item.quantity).toLocaleString()}₫
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
                             }) : (
                                 <p className="text-sm text-gray-500">Không có sản phẩm trong đơn hàng.</p>
                             )}
