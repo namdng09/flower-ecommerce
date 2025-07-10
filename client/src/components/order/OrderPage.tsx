@@ -82,18 +82,21 @@ const OrderPage: React.FC = () => {
       description: note
     };
 
-    try {
-      const result = await dispatch(createOrder(orderData));
-      if (createOrder.fulfilled.match(result)) {
-        const order = result.payload;
-        navigate(`/home/order-success/${order._id}`);
+    const result = await dispatch(createOrder(orderData));
+
+    if (createOrder.fulfilled.match(result)) {
+      const orders = result.payload;
+
+      if (Array.isArray(orders) && orders.length > 0) {
+        navigate(`/home/order-success/${orders[0]._id}`);
       } else {
+        console.error('Không có đơn hàng nào trong phản hồi:', orders);
         navigate('/home/order-fail');
       }
-    } catch (error) {
-      console.error('Order failed:', error);
+    } else {
       navigate('/home/order-fail');
     }
+    
   };
 
   const handleCreateAddress = async () => {

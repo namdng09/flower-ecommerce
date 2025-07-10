@@ -42,14 +42,13 @@
 
 // export default OrderSuccess;
 
-
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchOrderById } from '~/store/slices/orderSlice';
 import type { RootState } from '~/store';
 import { FaCheckCircle, FaGift } from 'react-icons/fa';
-import { FiBox, FiMapPin } from 'react-icons/fi';
+import { FiBox, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
 
 const OrderPage: React.FC = () => {
   const { orderId } = useParams();
@@ -71,17 +70,20 @@ const OrderPage: React.FC = () => {
   if (loading) return <p className='text-center mt-10'>Đang tải đơn hàng...</p>;
   if (error || !order)
     return (
-      <p className='text-center mt-10 text-red-600'>Không tìm thấy đơn hàng.</p>
+      <p className='text-center mt-10 text-red-600'>
+        Không tìm thấy đơn hàng.
+      </p>
     );
 
   const {
-    orderNumber,
-    address,
-    items,
-    totalPrice,
-    shipment,
-    payment,
-    createdAt
+    orderNumber = '---',
+    address = {},
+    items = [],
+    totalPrice = 0,
+    shipment = { shippingCost: 0 },
+    payment = { method: '---', status: '---' },
+    createdAt,
+    customization = {}
   } = order;
 
   return (
@@ -92,11 +94,45 @@ const OrderPage: React.FC = () => {
           <h1 className='text-2xl font-bold'>Đặt hàng thành công!</h1>
         </div>
 
+        {order.shop && (
+          <div className="flex items-center justify-between border border-gray-200 rounded-lg p-4 bg-gray-50 mb-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-lg">
+                {order.shop.fullName?.charAt(0)?.toUpperCase() || 'S'}
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">Người bán:</p>
+                <p className="text-[#C4265B] font-semibold">
+                  {order.shop.fullName}{' '}
+                  <span className="text-sm text-gray-600">({order.shop.username})</span>
+                </p>
+
+                <p className="text-sm text-gray-700 flex items-center gap-1 mt-1">
+                  <FiPhone className="text-pink-500" size={14} />
+                  <span>{order.shop.phoneNumber}</span>
+                </p>
+                <p className="text-sm text-gray-700 flex items-center gap-1">
+                  <FiMail className="text-pink-500" size={14} />
+                  <span>{order.shop.email}</span>
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate(`/home/shop-profile/${order.shop._id}`)}
+              className="bg-pink-100 text-[#C4265B] hover:bg-pink-200 px-4 py-1 rounded-md text-sm font-medium transition whitespace-nowrap"
+            >
+              Xem shop
+            </button>
+          </div>
+        )}
+
         <p className='mb-4'>
           Mã đơn hàng: <span className='font-semibold'>{orderNumber}</span>
         </p>
         <p className='mb-4 text-sm text-gray-500'>
-          Ngày đặt: {new Date(createdAt).toLocaleString()}
+          Ngày đặt: {createdAt ? new Date(createdAt).toLocaleString() : '---'}
         </p>
 
         <h2 className='text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2'>
@@ -104,14 +140,18 @@ const OrderPage: React.FC = () => {
           Sản phẩm
         </h2>
         <ul className='mb-6 space-y-2'>
-          {items.map((item: any, idx: number) => (
-            <li key={idx} className='border-b py-2 flex justify-between'>
-              <span>
-                {item.variant?.title || 'Sản phẩm'} x {item.quantity}
-              </span>
-              <span>{(item.price * item.quantity).toLocaleString()}₫</span>
-            </li>
-          ))}
+          {Array.isArray(items) && items.length > 0 ? (
+            items.map((item: any, idx: number) => (
+              <li key={idx} className='border-b py-2 flex justify-between'>
+                <span>
+                  {item.variant?.title || 'Sản phẩm'} x {item.quantity}
+                </span>
+                <span>{(item.price * item.quantity).toLocaleString()}₫</span>
+              </li>
+            ))
+          ) : (
+            <p className='text-gray-500 italic'>Không có sản phẩm nào.</p>
+          )}
         </ul>
 
         <h2 className='text-lg font-semibold mb-2 text-[#C4265B] flex items-center gap-2'>
@@ -119,36 +159,34 @@ const OrderPage: React.FC = () => {
           Địa chỉ giao hàng
         </h2>
         <p className='mb-4'>
-          <strong>{address.fullName}</strong> - {address.phone}
+          <strong>{address.fullName || '---'}</strong> - {address.phone || '---'}
           <br />
-          {address.street}, {address.ward}, {address.province}
+          {address.street || '...'}, {address.ward || '...'}, {address.province || '...'}
         </p>
 
-        {order.customization && (
+        {customization && (
           <div className='mt-6 space-y-2'>
             <h2 className='text-lg font-semibold text-[#C4265B] flex items-center gap-2'>
               <FaGift className='text-[#C4265B] size-5' />
               Tuỳ chọn đơn hàng
             </h2>
 
-            {order.customization.giftMessage && (
+            {customization.giftMessage && (
               <div className='text-gray-800'>
-                <strong>Lời chúc:</strong> {order.customization.giftMessage}
+                <strong>Lời chúc:</strong> {customization.giftMessage}
               </div>
             )}
 
-            {order.customization.isAnonymous && (
+            {customization.isAnonymous && (
               <div className='text-gray-800'>
                 <strong>Người gửi:</strong> Ẩn danh
               </div>
             )}
 
-            {order.customization.deliveryTimeRequested && (
+            {customization.deliveryTimeRequested && (
               <div className='text-gray-800'>
                 <strong>Thời gian giao hàng mong muốn:</strong>{' '}
-                {new Date(
-                  order.customization.deliveryTimeRequested
-                ).toLocaleString('vi-VN', {
+                {new Date(customization.deliveryTimeRequested).toLocaleString('vi-VN', {
                   hour: '2-digit',
                   minute: '2-digit',
                   day: '2-digit',
@@ -164,12 +202,12 @@ const OrderPage: React.FC = () => {
           <div className='flex justify-between'>
             <span>Tạm tính:</span>
             <span>
-              {(totalPrice - shipment.shippingCost).toLocaleString()}₫
+              {(totalPrice - (shipment.shippingCost || 0)).toLocaleString()}₫
             </span>
           </div>
           <div className='flex justify-between'>
             <span>Phí vận chuyển:</span>
-            <span>{shipment.shippingCost.toLocaleString()}₫</span>
+            <span>{(shipment.shippingCost || 0).toLocaleString()}₫</span>
           </div>
           <div className='flex justify-between font-bold text-lg text-[#C4265B]'>
             <span>Tổng cộng:</span>
@@ -203,3 +241,4 @@ const OrderPage: React.FC = () => {
 };
 
 export default OrderPage;
+

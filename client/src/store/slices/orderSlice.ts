@@ -162,7 +162,6 @@ const orderSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-
       .addCase(createOrder.pending, state => {
         state.loading = true;
         state.error = null;

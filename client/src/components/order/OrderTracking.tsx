@@ -106,12 +106,16 @@ const OrderTrackingPage: React.FC = () => {
             </tr>
           </thead>
           <tbody className='divide-y divide-gray-200'>
-            {items.map((item: any, index: number) => (
-              <tr key={item.variant} className='text-left'>
+            {Array.isArray(items) && items.map((item: any, index: number) => (
+              <tr key={item.variant?._id || index} className='text-left'>
                 <td className='p-3'>{index + 1}</td>
-                <td className='p-3'>{item.variant}</td>
+
+                <td className='p-3'>
+                  {item.variant?.variantCode || 'Không rõ'}
+                </td>
+
                 <td className='p-3'>{item.quantity}</td>
-                <td className='p-3'>{item.price.toLocaleString()}₫</td>
+                <td className='p-3'>{item.price?.toLocaleString()}₫</td>
                 <td className='p-3'>
                   {(item.price * item.quantity).toLocaleString()}₫
                 </td>
