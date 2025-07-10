@@ -108,7 +108,7 @@ const OrderPage: React.FC = () => {
     } else {
       navigate('/home/order-fail');
     }
-    
+
   };
 
   const handleCreateAddress = async () => {
@@ -148,30 +148,30 @@ const OrderPage: React.FC = () => {
         {addresses.length === 0 ? (
           <p>Bạn chưa có địa chỉ nào.</p>
         ) : (
-            <div className='space-y-2 mb-3'>
-              {addresses.map(address => (
-                <label key={address._id} className='block border p-3 rounded cursor-pointer'>
-                  <input
-                    type='radio'
-                    name='selectedAddress'
-                    className='mr-2'
-                    checked={selectedAddressId === address._id}
-                    onChange={() => setSelectedAddressId(address._id)}
-                  />
-                  <span className='font-semibold'>{address.fullName}</span> - {address.phone}
+          <div className='space-y-2 mb-3'>
+            {addresses.map(address => (
+              <label key={address._id} className='block border p-3 rounded cursor-pointer'>
+                <input
+                  type='radio'
+                  name='selectedAddress'
+                  className='mr-2'
+                  checked={selectedAddressId === address._id}
+                  onChange={() => setSelectedAddressId(address._id)}
+                />
+                <span className='font-semibold'>{address.fullName}</span> - {address.phone}
 
-                  <div className='text-sm text-gray-600'>
-                    {address.street}, {address.ward}, {address.province}
+                <div className='text-sm text-gray-600'>
+                  {address.street}, {address.ward}, {address.province}
+                </div>
+
+                {address.addressType && (
+                  <div className='text-xs text-gray-700 italic mt-1'>
+                    📍 Loại địa chỉ: <span className='capitalize'>{address.addressType}</span>
                   </div>
-
-                  {address.addressType && (
-                    <div className='text-xs text-gray-700 italic mt-1'>
-                      📍 Loại địa chỉ: <span className='capitalize'>{address.addressType}</span>
-                    </div>
-                  )}
-                </label>
-              ))}
-            </div>        
+                )}
+              </label>
+            ))}
+          </div>
         )}
         <button
           onClick={() => setIsModalOpen(true)}
@@ -219,20 +219,28 @@ const OrderPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {cart.items.map((item, index) => (
-              <tr key={index} className='border-b'>
-                <td className='py-2 flex gap-2 items-center'>
-                  <img src={item.variantId.image} className='w-16 h-16 object-cover rounded' />
-                  <div>
-                    <div>{item.variantId.title}</div>
-                    <div className='text-sm text-gray-500'>Mã: {item.variantId.variantCode}</div>
-                  </div>
-                </td>
-                <td>{item.quantity}</td>
-                <td>{item.price.toLocaleString()}₫</td>
-                <td>{(item.price * item.quantity).toLocaleString()}₫</td>
-              </tr>
-            ))}
+            {cart.items.map((item, index) => {
+              const variant = item.variantId;
+              const productTitle = variant.product?.[0]?.title || "Sản phẩm";
+
+              return (
+                <tr key={index} className="border-b">
+                  <td className="py-2 flex gap-2 items-center">
+                    <img src={variant.image} className="w-16 h-16 object-cover rounded" />
+                    <div>
+                      {/* Tên sản phẩm cha */}
+                      <div className="text-sm font-bold uppercase text-[#C4265B]">{productTitle}</div>
+                      {/* Tên variant */}
+                      <div>{variant.title}</div>
+                      <div className="text-sm text-gray-500">Mã: {variant.variantCode}</div>
+                    </div>
+                  </td>
+                  <td>{item.quantity}</td>
+                  <td>{item.price.toLocaleString()}₫</td>
+                  <td>{(item.price * item.quantity).toLocaleString()}₫</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
