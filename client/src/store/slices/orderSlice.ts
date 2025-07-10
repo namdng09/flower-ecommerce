@@ -137,9 +137,11 @@ const orderSlice = createSlice({
       })
       .addCase(filterOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload.docs;
+        state.orders = [...action.payload.docs].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
         state.pagination = {
-          total: action.payload.totalDocs,
+          total: action.payload.totalDocs || [],
           page: action.payload.page,
           limit: action.payload.limit,
           totalPages: action.payload.totalPages
