@@ -8,7 +8,7 @@ router.get('/:userId/user', asyncHandler(addressController.list));
 router.get('/:id', asyncHandler(addressController.show));
 
 router.post('/', asyncHandler(addressController.create));
-router.put('/:addressId', asyncHandler(addressController.update));
-router.delete('/:addressId', asyncHandler(addressController.delete));
+router.put('/:id', asyncHandler(addressController.update));
+router.delete('/:id', asyncHandler(addressController.delete));
 
 export default router as Router;

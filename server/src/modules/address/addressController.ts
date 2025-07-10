@@ -52,10 +52,10 @@ export const addressController = {
    * addressController.update()
    */
   update: async (req: Request, res: Response): Promise<Response> => {
-    const { addressId } = req.params;
+    const { id } = req.params;
     const addressData: IAddress = req.body;
 
-    const address = await addressService.update(addressId, addressData);
+    const address = await addressService.update(id, addressData);
 
     return res
       .status(200)
@@ -71,9 +71,9 @@ export const addressController = {
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { addressId } = req.params;
+      const { id } = req.params;
 
-      const address = await addressService.delete(addressId);
+      const address = await addressService.delete(id);
 
       return res
         .status(200)
