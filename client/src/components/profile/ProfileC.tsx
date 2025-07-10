@@ -218,6 +218,7 @@ import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchFavouritesByUser, removeFavouriteItem, } from '~/store/slices/favouriteSlice';
 import { Link } from 'react-router';
 import { FaUserCircle, FaHeart, FaTimes } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 interface UserProfile {
   fullName: string;
@@ -317,16 +318,20 @@ const EditProfile: React.FC = () => {
   };
 
   const handleRemoveFavourite = async (productId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.warn('Vui lòng đăng nhập để sử dụng tính năng này!');
+      return;
+    }
 
     try {
-      await dispatch(removeFavouriteItem({ userId, productId })).unwrap();
-
+      await dispatch(removeFavouriteItem({ userId, productId }))
       await dispatch(fetchFavouritesByUser(userId));
+      toast.success('Đã xoá khỏi mục yêu thích!');
     } catch (error) {
       console.error('Lỗi khi xóa sản phẩm khỏi yêu thích:', error);
+      toast.error('Xoá khỏi mục yêu thích thất bại!');
     }
-  };
+  };  
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-40">
