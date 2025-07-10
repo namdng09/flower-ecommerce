@@ -113,7 +113,10 @@ const OrderPage: React.FC = () => {
   };
 
   const handleCreateAddress = async () => {
-    if (!user) return alert('Cần đăng nhập');
+    if (!user) {
+      toast.warn('⚠️ Vui lòng đăng nhập để tiếp tục!');
+      return;
+    }
     const newAddress = { ...form, user: user.id };
     await dispatch(createAddress(newAddress));
     setForm({ fullName: '', phone: '', street: '', ward: '', province: '' });
