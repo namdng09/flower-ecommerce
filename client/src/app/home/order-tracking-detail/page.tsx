@@ -38,9 +38,10 @@ const OrderListByUserPage: React.FC = () => {
     };
 
     const handleCancelOrder = (orderId: string) => {
+        const now = new Date().toISOString();
         const cancelData = {
             status: 'cancelled',
-            expectedDeliveryAt: '2025-07-11T09:30:00+07:00',
+            expectedDeliveryAt: now,
             description: 'Khách đã hủy đơn hàng'
         };
         dispatch(updateOrder({ id: orderId, updateData: cancelData }))
@@ -53,6 +54,7 @@ const OrderListByUserPage: React.FC = () => {
                 alert('Hủy đơn thất bại: ' + err);
             });
     };
+      
 
     const translateStatus = (status: string) => {
         switch (status) {
