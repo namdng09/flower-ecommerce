@@ -13,11 +13,11 @@ export const addressService = {
     return addresses;
   },
 
-  show: async (addressId: string) => {
-    if (!Types.ObjectId.isValid(addressId)) {
+  show: async (id: string) => {
+    if (!Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid address id');
     }
-    const address = await AddressModel.findById(addressId);
+    const address = await AddressModel.findById(id);
     if (!address) {
       throw createHttpError(404, 'Address not found');
     }

@@ -26,9 +26,9 @@ export const addressController = {
    * addressController.show()
    */
   show: async (req: Request, res: Response): Promise<Response> => {
-    const { addressId } = req.params;
+    const { id } = req.params;
 
-    const address = await addressService.show(addressId);
+    const address = await addressService.show(id);
 
     return res
       .status(200)
