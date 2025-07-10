@@ -13,11 +13,11 @@ export const addressService = {
     return addresses;
   },
 
-  show: async (addressId: string) => {
-    if (!Types.ObjectId.isValid(addressId)) {
+  show: async (id: string) => {
+    if (!Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid address id');
     }
-    const address = await AddressModel.findById(addressId);
+    const address = await AddressModel.findById(id);
     if (!address) {
       throw createHttpError(404, 'Address not found');
     }
@@ -82,8 +82,8 @@ export const addressService = {
     return newAddress;
   },
 
-  update: async (addressId: string, addressData: IAddress) => {
-    if (!Types.ObjectId.isValid(addressId)) {
+  update: async (id: string, addressData: IAddress) => {
+    if (!Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid address id');
     }
 
@@ -112,7 +112,7 @@ export const addressService = {
       );
     }
 
-    const address = await AddressModel.findById(addressId);
+    const address = await AddressModel.findById(id);
     if (!address) {
       throw createHttpError(404, 'Address not found');
     }
@@ -141,7 +141,7 @@ export const addressService = {
 
     if (isDefault === true && address.user) {
       await AddressModel.updateMany(
-        { user: address.user, _id: { $ne: addressId }, isDefault: true },
+        { user: address.user, _id: { $ne: id }, isDefault: true },
         { isDefault: false }
       );
     }
@@ -149,11 +149,11 @@ export const addressService = {
     return updatedAddress;
   },
 
-  delete: async (addressId: string) => {
-    if (!Types.ObjectId.isValid(addressId)) {
+  delete: async (id: string) => {
+    if (!Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid address id');
     }
-    const deletedAddress = await AddressModel.findByIdAndDelete(addressId);
+    const deletedAddress = await AddressModel.findByIdAndDelete(id);
     if (!deletedAddress) {
       throw createHttpError(404, 'Address not found');
     }

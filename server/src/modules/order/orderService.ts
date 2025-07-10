@@ -97,6 +97,7 @@ export const orderService = {
         }
       },
       { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
       {
         $lookup: {
           from: 'addresses',
@@ -105,6 +106,8 @@ export const orderService = {
           as: 'address'
         }
       },
+      { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+
       { $unwind: '$items' },
       {
         $lookup: {
