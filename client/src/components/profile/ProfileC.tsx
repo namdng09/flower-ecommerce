@@ -6,7 +6,7 @@ import axiosInstance from '~/config/axiosConfig';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchFavouritesByUser, removeFavouriteItem } from '~/store/slices/favouriteSlice';
-import { fetchAddresses } from '~/store/slices/addressSlice';
+import { fetchAddresses, updateAddress, deleteAddress } from '~/store/slices/addressSlice';
 import { Link } from 'react-router';
 import { FaUserCircle, FaHeart, FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
 import { toast } from 'react-toastify';
@@ -34,6 +34,11 @@ const EditProfile: React.FC = () => {
     phoneNumber: '',
     avatarUrl: '',
     role: ''
+  });
+
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<any>({
+    fullName: '', phone: '', province: '', ward: '', street: '', addressType: ''
   });
 
   const { items: favourites, loading: favLoading } = useAppSelector(state => state.favourites);
@@ -79,23 +84,12 @@ const EditProfile: React.FC = () => {
     try {
       await axiosInstance.put(
         `/api/users/${userId}`,
-        {
-          fullName: form.fullName,
-          username: form.username,
-          email: form.email,
-          phoneNumber: form.phoneNumber,
-          avatarUrl: form.avatarUrl,
-          role: form.role
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
-        }
+        { ...form },
+        { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       alert('Cập nhật thành công!');
       navigate(`/home/profile/${userId}`);
-    } catch (err) {
+    } catch {
       alert('Cập nhật thất bại!');
     }
   };
@@ -106,21 +100,47 @@ const EditProfile: React.FC = () => {
   };
 
   const handleRemoveFavourite = async (productId: string) => {
-    if (!userId) {
-      toast.warn('Vui lòng đăng nhập để sử dụng tính năng này!');
-      return;
-    }
-
+    if (!userId) return toast.warn('Vui lòng đăng nhập!');
     try {
       await dispatch(removeFavouriteItem({ userId, productId }));
       await dispatch(fetchFavouritesByUser(userId));
       toast.success('Đã xoá khỏi mục yêu thích!');
-    } catch (error) {
-      console.error('Lỗi khi xóa sản phẩm khỏi yêu thích:', error);
-      toast.error('Xoá khỏi mục yêu thích thất bại!');
+    } catch {
+      toast.error('Xoá yêu thích thất bại!');
     }
   };
 
+  const handleEditAddress = (addr: any) => {
+    setEditingAddressId(addr._id);
+    setEditForm({ ...addr });
+  };
+
+  const handleChangeEdit = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmitEdit = async () => {
+    try {
+      if (!editingAddressId) return;
+      await dispatch(updateAddress({ id: editingAddressId, updateData: editForm })).unwrap();
+      toast.success('Địa chỉ đã được cập nhật!');
+      setEditingAddressId(null);
+    } catch (err) {
+      console.error('Lỗi khi cập nhật địa chỉ:', err);
+      toast.error('Cập nhật địa chỉ thất bại!');
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    try {
+      await dispatch(deleteAddress(id)).unwrap();
+      toast.success('Đã xoá địa chỉ!');
+      if (editingAddressId === id) setEditingAddressId(null);
+    } catch (err) {
+      toast.error('Xoá địa chỉ thất bại!');
+    }
+  };
+  
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-40">
       {/* USER INFO */}
@@ -138,61 +158,24 @@ const EditProfile: React.FC = () => {
             />
           </div>
 
-          <div>
-            <label className="text-sm font-medium">Họ và tên</label>
-            <input type="text" name="fullName" value={form.fullName} onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Tên đăng nhập</label>
-            <input type="text" name="username" value={form.username} onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Email</label>
-            <input type="email" name="email" value={form.email} disabled
-              className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Số điện thoại</label>
-            <input type="text" name="phoneNumber" value={form.phoneNumber} onChange={handleChange}
-              className="w-full border border-gray-300 px-3 py-2 rounded mt-1 shadow-sm" />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Vai trò</label>
-            <input type="text" value={form.role} disabled
-              className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Ngày tạo tài khoản</label>
-            <input type="text"
-              value={form.createdAt ? new Date(form.createdAt).toLocaleDateString('vi-VN') : ''}
-              disabled className="w-full border border-gray-200 px-3 py-2 rounded mt-1 bg-gray-100 text-gray-500" />
-          </div>
+          <input name="fullName" value={form.fullName} onChange={handleChange} className="border p-2 rounded" placeholder="Họ và tên" />
+          <input name="username" value={form.username} onChange={handleChange} className="border p-2 rounded" placeholder="Tên đăng nhập" />
+          <input name="email" value={form.email} disabled className="border p-2 rounded bg-gray-100 text-gray-500" placeholder="Email" />
+          <input name="phoneNumber" value={form.phoneNumber} onChange={handleChange} className="border p-2 rounded" placeholder="SĐT" />
+          <input name="role" value={form.role} disabled className="border p-2 rounded bg-gray-100 text-gray-500" placeholder="Vai trò" />
+          <input name="createdAt" value={form.createdAt ? new Date(form.createdAt).toLocaleDateString('vi-VN') : ''} disabled className="border p-2 rounded bg-gray-100 text-gray-500" />
 
           <div className="md:col-span-2 flex justify-center gap-4 pt-4">
-            <button type="submit"
-              className="bg-lime-600 hover:bg-lime-700 text-white px-6 py-2 rounded shadow">
-              Cập nhật
-            </button>
-            <button type="button" onClick={handleLogout}
-              className="bg-[#B9205A] hover:bg-[#A3184D] text-white px-6 py-2 rounded shadow">
-              Đăng xuất
-            </button>
+            <button type="submit" className="bg-lime-600 text-white px-6 py-2 rounded">Cập nhật</button>
+            <button onClick={handleLogout} className="bg-pink-600 text-white px-6 py-2 rounded">Đăng xuất</button>
           </div>
         </form>
       </div>
 
-      {/* FAVOURITE LIST */}
+      {/* FAVOURITES */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 w-full">
         <h3 className="text-lg font-bold mb-4 flex items-center text-pink-600 gap-2">
-          <FaHeart className="text-xl" />
-          Danh sách yêu thích
+          <FaHeart className="text-xl" /> Danh sách yêu thích
         </h3>
 
         {favLoading ? (
@@ -230,11 +213,11 @@ const EditProfile: React.FC = () => {
         )}
       </div>
 
-      {/* ADDRESS LIST */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 w-full">
+
+      {/* ADDRESSES */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-md p-6">
         <h3 className="text-lg font-bold mb-4 flex items-center text-indigo-600 gap-2">
-          <FaMapMarkerAlt className="text-xl" />
-          Danh sách địa chỉ
+          <FaMapMarkerAlt className="text-xl" /> Danh sách địa chỉ
         </h3>
 
         {addressLoading ? (
@@ -242,22 +225,70 @@ const EditProfile: React.FC = () => {
         ) : addresses.length === 0 ? (
           <p className="text-gray-500 italic">Bạn chưa thêm địa chỉ nào.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {addresses.map((addr: any) => (
               <div
                 key={addr._id}
-                className="p-4 border border-gray-100 rounded-lg bg-gray-50 shadow-sm"
+                className="p-5 bg-gray-50 rounded-xl border border-gray-200 shadow-sm relative"
               >
-                <div className="font-semibold">{addr.fullName} - {addr.phone}</div>
-                <div className="text-sm text-gray-700">
-                  {addr.street}, {addr.ward}, {addr.province}
-                </div>
-                <div className="text-xs text-gray-500 mt-1 italic">
-                  {addr.addressType === 'home' ? 'Nhà riêng' : addr.addressType}
-                  {addr.isDefault && (
-                    <span className="ml-2 text-green-600 font-medium">[Mặc định]</span>
-                  )}
-                </div>
+                {editingAddressId === addr._id ? (
+                  <div className="space-y-3">
+                    <input name="fullName" value={editForm.fullName} onChange={handleChangeEdit} placeholder="Họ tên"
+                      className="border border-gray-300 w-full px-3 py-2 rounded-md" />
+                    <input name="phone" value={editForm.phone} onChange={handleChangeEdit} placeholder="SĐT"
+                      className="border border-gray-300 w-full px-3 py-2 rounded-md" />
+                    <input name="street" value={editForm.street} onChange={handleChangeEdit} placeholder="Số nhà, đường"
+                      className="border border-gray-300 w-full px-3 py-2 rounded-md" />
+                    <input name="ward" value={editForm.ward} onChange={handleChangeEdit} placeholder="Phường/xã"
+                      className="border border-gray-300 w-full px-3 py-2 rounded-md" />
+                    <input name="province" value={editForm.province} onChange={handleChangeEdit} placeholder="Tỉnh/thành phố"
+                      className="border border-gray-300 w-full px-3 py-2 rounded-md" />
+                    <select name="addressType" value={editForm.addressType} onChange={handleChangeEdit}
+                      className="border border-gray-300 w-full px-3 py-2 rounded-md">
+                      <option value="home">🏠 Nhà riêng</option>
+                      <option value="work">🏢 Công ty</option>
+                    </select>
+                    <div className="flex justify-end gap-2">
+                      <button onClick={handleSubmitEdit}
+                        className="bg-green-600 text-white px-4 py-1 rounded-md text-sm hover:bg-green-700 transition">
+                        Lưu
+                      </button>
+                      <button onClick={() => setEditingAddressId(null)}
+                        className="bg-gray-300 px-4 py-1 rounded-md text-sm hover:bg-gray-400 transition">
+                        Huỷ
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="font-semibold text-gray-800">{addr.fullName} - {addr.phone}</div>
+                    <div className="text-sm text-gray-700">
+                      {addr.street}, {addr.ward}, {addr.province}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1 italic">
+                      {addr.addressType === 'home' ? '🏠 Nhà riêng' : '🏢 Công ty'}
+                      {addr.isDefault && (
+                        <span className="ml-2 text-green-600 font-medium">[Mặc định]</span>
+                      )}
+                    </div>
+                    <div className="absolute top-3 right-4 flex gap-3">
+                      <button
+                        onClick={() => handleEditAddress(addr)}
+                        className="text-indigo-600 hover:text-indigo-800 text-sm"
+                        title="Sửa địa chỉ"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAddress(addr._id)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                        title="Xoá địa chỉ"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
