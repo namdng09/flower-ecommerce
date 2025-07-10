@@ -91,30 +91,21 @@ export const revenueService = {
       matchStage.shop = new mongoose.Types.ObjectId(shopId);
     }
 
-    let dateFormat;
-    switch (groupBy) {
-      case 'day':
-        dateFormat = {
-          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
-        };
-        break;
-      case 'month':
-        dateFormat = {
-          $dateToString: { format: '%Y-%m', date: '$createdAt' }
-        };
-        break;
-      case 'year':
-        dateFormat = {
-          $dateToString: { format: '%Y', date: '$createdAt' }
-        };
-        break;
-    }
-
     const aggregateQuery = OrderModel.aggregate([
       { $match: matchStage },
       {
+        $addFields: {
+          convertedDate: { $toDate: '$createdAt' }
+        }
+      },
+      {
         $group: {
-          _id: dateFormat,
+          _id: {
+            $dateToString: {
+              format: groupBy === 'day' ? '%Y-%m-%d' : '%Y-%m',
+              date: '$convertedDate'
+            }
+          },
           totalRevenue: { $sum: '$payment.amount' },
           orderCount: { $sum: 1 }
         }
@@ -253,13 +244,24 @@ export const revenueService = {
         break;
     }
 
+    // Ensure valid date conversion for createdAt
     const aggregateQuery = OrderModel.aggregate([
       { $match: matchStage },
+      {
+        $addFields: {
+          convertedDate: { $toDate: '$createdAt' }
+        }
+      },
       {
         $group: {
           _id: {
             shop: '$shop',
-            date: dateFormat
+            date: {
+              $dateToString: {
+                format: groupBy === 'day' ? '%Y-%m-%d' : '%Y-%m',
+                date: '$convertedDate'
+              }
+            }
           },
           totalRevenue: { $sum: '$payment.amount' },
           orderCount: { $sum: 1 }
