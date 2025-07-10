@@ -20,16 +20,21 @@ const OrderListByUserPage: React.FC = () => {
 
     useEffect(() => {
         if (userId) {
+            dispatch(fetchVariants());
+        }
+    }, [dispatch, userId]);
+
+    useEffect(() => {
+        if (userId) {
             dispatch(
                 filterOrders({
                     page,
-                    limit: 10,
+                    limit: 20,
                     sortBy: 'createdAt',
                     sortOrder: 'asc',
                     user: userId,
                 })
             );
-            dispatch(fetchVariants());
         }
     }, [dispatch, userId, page]);
 
@@ -48,7 +53,7 @@ const OrderListByUserPage: React.FC = () => {
                     page,
                     limit: 10,
                     sortBy: 'createdAt',
-                    sortOrder: 'asc',
+                    sortOrder: 'desc',
                     user: userId,
                 })
             );
@@ -62,7 +67,7 @@ const OrderListByUserPage: React.FC = () => {
         const id = typeof variantId === "object" ? variantId._id : variantId;
         return variants.find((v: any) => v._id === id);
     };
-      
+
 
     const translateStatus = (status: string) => {
         switch (status) {
@@ -114,7 +119,7 @@ const OrderListByUserPage: React.FC = () => {
         );
     }
     console.log("Variants list:", variants);
-    
+
     return (
         <div className="max-w-7xl mx-auto p-4 text-black mt-45">
             <h2 className="text-2xl font-bold mb-6">Lịch sử đơn hàng của bạn</h2>
@@ -139,7 +144,7 @@ const OrderListByUserPage: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* <div className="space-y-4">
+                        <div className="space-y-4">
                             {order.items?.length > 0 ? order.items.map((item: any, index: number) => {
                                 const variant = getVariantDetails(item.variant);
                                 const imageUrl = variant?.image || variant?.product?.thumbnailImage;
@@ -167,45 +172,6 @@ const OrderListByUserPage: React.FC = () => {
                             }) : (
                                 <p className="text-sm text-gray-500">Không có sản phẩm trong đơn hàng.</p>
                             )}
-                        </div> */}
-                        <div className="space-y-4">
-                            {order.items?.length > 0 ? order.items.map((item: any, index: number) => {
-                                const variant = getVariantDetails(item.variant);
-
-                                // xử lý productThumbnail chính xác nếu product là mảng
-                                const productThumbnail = Array.isArray(variant?.product) ? variant.product[0]?.thumbnailImage : variant?.product?.thumbnailImage;
-
-                                // chọn ảnh hiển thị
-                                const imageUrl = variant?.image || productThumbnail;
-
-                                console.log("➡️ Variant ID:", item.variant);
-                                console.log("➡️ Variant object:", variant);
-                                console.log("➡️ Image URL:", imageUrl);
-
-                                return (
-                                    <div key={index} className="flex gap-3 border rounded p-3 bg-gray-50">
-                                        {imageUrl ? (
-                                            <img src={imageUrl} alt="Ảnh sản phẩm" className="w-16 h-16 object-cover border rounded" />
-                                        ) : (
-                                            <div className="w-16 h-16 flex items-center justify-center border rounded text-xs text-gray-400 bg-white">
-                                                Không ảnh
-                                            </div>
-                                        )}
-                                        <div className="flex-1">
-                                            <p className="text-base font-bold text-[#C4265B]">{variant?.product?.[0]?.title || ''}</p>
-                                            <p className="text-base font-bold text-[#C4265B]">
-                                                {variant?.title ? `Phân Loại: ${variant.title}` : ''} {variant?.variantCode ? `| Mã: ${variant.variantCode}` : ''}
-                                            </p>
-                                            <p className="text-sm mt-1">SL: {item.quantity} | Giá: {item.price.toLocaleString()}₫</p>
-                                            <p className="text-sm font-medium text-[#C4265B]">
-                                                Tổng: {(item.price * item.quantity).toLocaleString()}₫
-                                            </p>
-                                        </div>
-                                    </div>
-                                )
-                            }) : (
-                                <p className="text-sm text-gray-500">Không có sản phẩm trong đơn hàng.</p>
-                            )}
                         </div>
 
                         <div className="mt-4 text-sm text-gray-600 space-y-1">
@@ -229,7 +195,7 @@ const OrderListByUserPage: React.FC = () => {
                                 <strong>Phí vận chuyển:</strong> {order.shipment?.shippingCost?.toLocaleString() || '0'}₫
                             </p>
                             <p className="text-base font-bold text-[#C4265B]">
-                                Tổng thanh toán: {(order.totalPrice + (order.shipment?.shippingCost || 0)).toLocaleString()}₫
+                                Tổng thanh toán: {(order?.totalPrice)?.toLocaleString()}₫
                             </p>
                             {order.status === 'pending' && (
                                 <div className="flex justify-end mt-3">
@@ -269,4 +235,3 @@ const OrderListByUserPage: React.FC = () => {
 
 export default OrderListByUserPage;
 
-    
