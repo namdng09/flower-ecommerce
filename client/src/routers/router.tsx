@@ -192,6 +192,11 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/(shop)/product/create/page'))
       },
       {
+        path: 'product/update/:id',
+        Component: lazy(() => import('../app/(shop)/product/update/page'))
+      },
+
+      {
         path: 'review',
         Component: lazy(() => import('../app/(shop)/review/page'))
       }
