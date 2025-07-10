@@ -161,7 +161,6 @@ const userSlice = createSlice({
     setCurrentUser: (state, action) => {
       state.currentUser = action.payload;
     }
-    
   },
   extraReducers: builder => {
     builder
@@ -295,5 +294,6 @@ const userSlice = createSlice({
   }
 });
 
-export const { setFilters, clearCurrentUser, clearError, setCurrentUser } = userSlice.actions;
+export const { setFilters, clearCurrentUser, clearError, setCurrentUser } =
+  userSlice.actions;
 export default userSlice.reducer;

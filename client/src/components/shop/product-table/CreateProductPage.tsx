@@ -213,13 +213,11 @@ const CreateProductPage = () => {
       <h2 className='text-xl font-bold mb-4'>Tạo sản phẩm mới</h2>
       <form onSubmit={handleSubmit} className='space-y-6'>
         {/* Biến thể (Variants) */}
-        
 
         {/* Thông tin sản phẩm */}
         <h3 className='font-semibold mt-4 mb-2'>Thông tin sản phẩm</h3>
         <div className='grid grid-cols-1 gap-4'>
-          
-          <input 
+          <input
             type='text'
             name='title'
             value={form.title}
@@ -229,17 +227,15 @@ const CreateProductPage = () => {
             required
           />
 
-
           {/* Mô tả sản phẩm */}
-        
-        <textarea
-          name='description'
-          value={form.description}
-          onChange={handleChange}
-          placeholder='Mô tả sản phẩm'
-          className='w-full p-2 border rounded'
-        />
 
+          <textarea
+            name='description'
+            value={form.description}
+            onChange={handleChange}
+            placeholder='Mô tả sản phẩm'
+            className='w-full p-2 border rounded'
+          />
 
           <div className='mb-4'>
             <select
@@ -318,8 +314,6 @@ const CreateProductPage = () => {
           );
         })}
 
-        
-
         {/* Thumbnail upload */}
         <div className='flex items-center gap-2'>
           <input
@@ -386,7 +380,6 @@ const CreateProductPage = () => {
           ))}
         </div>
 
-
         {/* Phân loại hàng (Variants) */}
         <h1 className='font-semibold mt-4 mb-2'>II.Thông tin bán hàng</h1>
         <div>
@@ -443,7 +436,7 @@ const CreateProductPage = () => {
                 className='px-3 py-2 bg-gray-200 rounded hover:bg-gray-300'
                 onClick={() => variantInputRefs.current[idx]?.click()}
               >
-                Chọn ảnh 
+                Chọn ảnh
               </button>
               {variantFiles[idx] && (
                 <>
@@ -476,16 +469,11 @@ const CreateProductPage = () => {
           </button>
         </div>
 
-
-        
-
-
-
         {/* Thêm input cho trọng lượng và kích thước */}
         <h1 className='font-semibold mt-4 mb-2'>III.Thông tin vận chuyển</h1>
         <div className='grid grid-cols-1 gap-4'>
           <h5 className='font-semibold'>Cân nặng</h5>
-          <input       
+          <input
             name='weight'
             value={weight}
             onChange={e => setWeight(e.target.value)}
@@ -535,9 +523,6 @@ const CreateProductPage = () => {
             />
           </div>
         </div>
-
-        
-
 
         <button
           type='submit'

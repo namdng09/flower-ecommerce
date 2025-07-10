@@ -20,7 +20,10 @@ export const createCategory = createAsyncThunk(
   'categories/createCategory',
   async (categoryData, thunkAPI) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/categories', categoryData);
+      const response = await axios.post(
+        'http://localhost:8000/api/categories',
+        categoryData
+      );
       return response.data.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(
@@ -35,7 +38,10 @@ export const updateCategory = createAsyncThunk(
   'categories/updateCategory',
   async ({ id, updatedData }: { id: string; updatedData: any }, thunkAPI) => {
     try {
-      const response = await axios.put(`http://localhost:8000/api/categories/${id}`, updatedData);
+      const response = await axios.put(
+        `http://localhost:8000/api/categories/${id}`,
+        updatedData
+      );
       return response.data.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(
@@ -93,7 +99,9 @@ const categorySlice = createSlice({
       })
       .addCase(updateCategory.fulfilled, (state, action) => {
         state.loading = false;
-        const idx = state.items.findIndex((cat: any) => cat._id === action.payload._id);
+        const idx = state.items.findIndex(
+          (cat: any) => cat._id === action.payload._id
+        );
         if (idx !== -1) {
           state.items[idx] = action.payload;
         }

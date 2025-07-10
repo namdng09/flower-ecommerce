@@ -1,6 +1,9 @@
 import { useEffect, useState, useContext } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProductsByShop, deleteProduct } from '~/store/slices/productSlice';
+import {
+  fetchProductsByShop,
+  deleteProduct
+} from '~/store/slices/productSlice';
 import DynamicTable from '~/components/DynamicTable';
 import Pagination from '~/components/Pagination';
 import { ConfirmModal } from '~/components/ConfirmModal';
@@ -185,7 +188,6 @@ const ProductTableDisplay = () => {
       ) : error ? (
         <p className='text-red-500'>{error}</p>
       ) : (
-        
         <DynamicTable data={paginatedItems} columns={columns} />
       )}
 

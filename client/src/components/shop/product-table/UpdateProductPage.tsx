@@ -466,7 +466,8 @@ const UpdateProductPage = () => {
                   className='w-16 h-16 object-cover rounded border'
                 />
               ))
-            : Array.isArray(form.image) && form.image.length > 0 &&
+            : Array.isArray(form.image) &&
+              form.image.length > 0 &&
               form.image.map((url: string, idx: number) => (
                 <img
                   key={idx}
