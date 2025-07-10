@@ -117,10 +117,20 @@ const OrderPage: React.FC = () => {
       toast.warn('⚠️ Vui lòng đăng nhập để tiếp tục!');
       return;
     }
+
     const newAddress = { ...form, user: user.id };
-    await dispatch(createAddress(newAddress));
-    setForm({ fullName: '', phone: '', street: '', ward: '', province: '' });
-    setIsModalOpen(false);
+
+    try {
+      await dispatch(createAddress(newAddress)).unwrap();
+      toast.success('🎉 Đã thêm địa chỉ mới thành công!');
+      setForm({ fullName: '', phone: '', street: '', ward: '', province: '' });
+      setIsModalOpen(false);
+
+      dispatch(fetchAddresses(user.id));
+    } catch (error) {
+      console.error(error);
+      toast.error('❌ Thêm địa chỉ thất bại!');
+    }
   };
 
   return (
