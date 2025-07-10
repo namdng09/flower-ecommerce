@@ -102,7 +102,12 @@ export const revenueService = {
         $group: {
           _id: {
             $dateToString: {
-              format: groupBy === 'day' ? '%Y-%m-%d' : '%Y-%m',
+              format:
+                groupBy === 'day'
+                  ? '%Y-%m-%d'
+                  : groupBy === 'year'
+                    ? '%Y'
+                    : '%Y-%m',
               date: '$convertedDate'
             }
           },
@@ -223,25 +228,6 @@ export const revenueService = {
 
     if (shopId) {
       matchStage.shop = new mongoose.Types.ObjectId(shopId);
-    }
-
-    let dateFormat;
-    switch (groupBy) {
-      case 'day':
-        dateFormat = {
-          $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
-        };
-        break;
-      case 'month':
-        dateFormat = {
-          $dateToString: { format: '%Y-%m', date: '$createdAt' }
-        };
-        break;
-      case 'year':
-        dateFormat = {
-          $dateToString: { format: '%Y', date: '$createdAt' }
-        };
-        break;
     }
 
     // Ensure valid date conversion for createdAt

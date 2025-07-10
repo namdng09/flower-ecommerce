@@ -14,6 +14,7 @@ import type { ChartData, TooltipItem } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import axiosInstance from '~/config/axiosConfig';
 import { AxiosError } from 'axios';
+import { formatVND } from '~/utils/formatCurrency';
 
 ChartJS.register(
   CategoryScale,
@@ -39,19 +40,6 @@ export interface KpiData {
   orderCount: number;
   averageOrderValue: number;
 }
-
-export const formatVND = (value: number) => {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(2)}B ₫`;
-  }
-  if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(2)}M ₫`;
-  }
-  if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(0)}K ₫`;
-  }
-  return `${value} ₫`;
-};
 
 interface RevenueChartProps {
   isShop?: boolean;
