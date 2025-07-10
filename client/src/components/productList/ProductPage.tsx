@@ -83,7 +83,7 @@ const ProductPage = () => {
           variantId: selectedVariant._id,
           quantity
         })
-      ).unwrap();
+      )
 
       toast.success('Đã thêm vào giỏ hàng!');
     } catch (err) {
