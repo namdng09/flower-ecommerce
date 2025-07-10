@@ -98,7 +98,16 @@ const router = createBrowserRouter([
       {
         path: 'shop-profile/:shopId',
         Component: lazy(() => import('../app/home/shopProfile/[shopId]/page'))
-      }
+      },
+      {
+        path: 'review',
+        children: [
+          {
+            path: 'product/:productId',
+            Component: lazy(() => import('../app/home/review/[productId]/page'))
+          }
+        ]
+      },
     ]
   },
   {

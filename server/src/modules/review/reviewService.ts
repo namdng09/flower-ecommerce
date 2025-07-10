@@ -5,7 +5,7 @@ import { Types } from 'mongoose';
 export const reviewService = {
   list: async () => {
     const reviews = await ReviewModel.find();
-    if (!reviews || reviews.length === 0) {
+    if (!reviews) {
       throw createHttpError(404, 'No reviews found');
     }
     return reviews;
@@ -20,6 +20,20 @@ export const reviewService = {
       throw createHttpError(404, 'Review not found');
     }
     return review;
+  },
+
+  getByProduct: async (productId: string) => {
+    if (!Types.ObjectId.isValid(productId)) {
+      throw createHttpError(400, 'Invalid product id');
+    }
+    const reviews = await ReviewModel.find({ productId: productId })
+      .populate('userId', 'fullName username email')
+      .sort({ createdAt: -1 });
+
+    if (!reviews) {
+      throw createHttpError(404, 'No reviews found for this product');
+    }
+    return reviews;
   },
 
   create: async (reviewData: IReviewRequest) => {

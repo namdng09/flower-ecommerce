@@ -8,7 +8,8 @@ router.get('/', asyncHandler(reviewController.list));
 router.post('/', asyncHandler(reviewController.create));
 
 router.get('/:reviewId', asyncHandler(reviewController.show));
-router.put('/:reviewId', asyncHandler(reviewController.update));
+router.get('/product/:productId', asyncHandler(reviewController.getByProduct));
+router.patch('/:reviewId', asyncHandler(reviewController.update));
 router.delete('/:reviewId', asyncHandler(reviewController.delete));
 
 export default router as Router;
