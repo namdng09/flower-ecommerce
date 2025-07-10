@@ -61,7 +61,6 @@ const OrderPage: React.FC = () => {
       toast.warn('🛒 Giỏ hàng của bạn đang trống!');
       return;
     }
-    
 
     let deliveryTimeRequested;
     if (deliveryDate && deliveryTime) {
@@ -109,7 +108,7 @@ const OrderPage: React.FC = () => {
     } else {
       navigate('/home/order-fail');
     }
-    
+
   };
 
   const handleCreateAddress = async () => {
@@ -160,9 +159,16 @@ const OrderPage: React.FC = () => {
                   onChange={() => setSelectedAddressId(address._id)}
                 />
                 <span className='font-semibold'>{address.fullName}</span> - {address.phone}
+
                 <div className='text-sm text-gray-600'>
                   {address.street}, {address.ward}, {address.province}
                 </div>
+
+                {address.addressType && (
+                  <div className='text-xs text-gray-600 italic mt-1'>
+                    📍 Loại địa chỉ: <span className='capitalize'>{address.addressType}</span>
+                  </div>
+                )}
               </label>
             ))}
           </div>
