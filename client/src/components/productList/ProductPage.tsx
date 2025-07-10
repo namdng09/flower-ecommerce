@@ -12,6 +12,7 @@ import {
   removeFavouriteItem
 } from '~/store/slices/favouriteSlice';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -60,21 +61,37 @@ const ProductPage = () => {
   }, [favourites, product]);
 
   const handleAddToCart = async () => {
-    if (!user?.id) return alert('Bạn cần đăng nhập để thêm vào giỏ hàng!');
-    if (!selectedVariant) return alert('Vui lòng chọn phiên bản sản phẩm!');
+    if (!user?.id) {
+      toast.warn('Bạn cần đăng nhập để thêm vào giỏ hàng!');
+      return;
+    }
+
+    if (!selectedVariant) {
+      toast.error('Vui lòng chọn phiên bản sản phẩm!');
+      return;
+    }
+
+    if (quantity < 1) {
+      toast.warn('Số lượng phải lớn hơn 0!');
+      return;
+    }
 
     try {
-      await dispatch(addToCart({
-        userId: user.id,
-        variantId: selectedVariant._id,
-        quantity
-      }));
-      alert('✅ Đã thêm vào giỏ hàng!');
-    } catch {
-      alert('❌ Có lỗi khi thêm vào giỏ hàng!');
+      await dispatch(
+        addToCart({
+          userId: user.id,
+          variantId: selectedVariant._id,
+          quantity
+        })
+      ).unwrap();
+
+      toast.success('Đã thêm vào giỏ hàng!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Có lỗi khi thêm vào giỏ hàng!');
     }
   };
-
+  
   const handleToggleFavourite = async () => {
     if (!user?.id || !product) return alert('Bạn cần đăng nhập để sử dụng mục yêu thích!');
     try {
