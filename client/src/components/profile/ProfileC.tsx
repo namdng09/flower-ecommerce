@@ -62,7 +62,7 @@ const EditProfile: React.FC = () => {
           createdAt: u.createdAt || ''
         });
       } catch {
-        alert('Không thể lấy dữ liệu người dùng');
+        toast.error('Không thể lấy dữ liệu người dùng!');
       }
     };
 
