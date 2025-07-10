@@ -87,7 +87,7 @@ const EditProfile: React.FC = () => {
         { ...form },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-      alert('Cập nhật thành công!');
+      toast.success('Cập nhật thành công!');
       navigate(`/home/profile/${userId}`);
     } catch {
       alert('Cập nhật thất bại!');
