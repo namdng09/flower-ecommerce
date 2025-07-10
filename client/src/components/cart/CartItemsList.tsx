@@ -10,6 +10,7 @@ import {
   updateCartItem
 } from '~/store/slices/cartSlice';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
 const CartItemsTable: React.FC = () => {
   const { user } = useContext(AuthContext);
@@ -26,10 +27,18 @@ const CartItemsTable: React.FC = () => {
     }
   }, [userId, dispatch]);
 
-  const handleRemove = (variantId: string) => {
-    dispatch(removeFromCart({ userId, variantId }));
-  };
+  const handleRemove = async (variantId: string) => {
+    if (!userId) return;
 
+    try {
+      await dispatch(removeFromCart({ userId, variantId })).unwrap();
+      toast.success('Đã xoá sản phẩm khỏi giỏ hàng!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Xoá không thành công!');
+    }
+  };
+  
   const handleQuantityChange = (variantId: string, quantity: number) => {
     if (quantity < 1) return;
     dispatch(updateCartItem({ userId, variantId, quantity })).then(() =>
