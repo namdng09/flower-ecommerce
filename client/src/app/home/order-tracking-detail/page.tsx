@@ -6,6 +6,7 @@ import { FaStore, FaCalendarAlt, FaMoneyBillWave, FaShippingFast, FaClipboardChe
 import { fetchVariants } from '~/store/slices/variantSlice';
 import { AuthContext } from '~/contexts/authContext';
 import { Link } from 'react-router';
+import { toast } from 'react-toastify';
 
 const OrderListByUserPage: React.FC = () => {
     const dispatch = useDispatch<any>();
@@ -47,10 +48,10 @@ const OrderListByUserPage: React.FC = () => {
         dispatch(updateOrder({ id: orderId, updateData: cancelData }))
             .then(() => {
                 dispatch(fetchOrdersByUser(userId));
-                alert('Đã hủy đơn hàng thành công');
+                toast.success('Đã hủy đơn hàng thành công');
             })
             .catch((err) => {
-                alert('Hủy đơn thất bại: ' + err);
+                toast.error('Hủy đơn thất bại: ' + err);
             });
     };
       
