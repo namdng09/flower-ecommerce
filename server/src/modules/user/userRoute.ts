@@ -17,6 +17,10 @@ router.post('/', asyncHandler(userController.create));
 router.patch('/:userId/avatar', asyncHandler(userController.updateAvatarUrl));
 router.patch('/:userId/cover', asyncHandler(userController.updateCoverUrl));
 router.put('/:userId', asyncHandler(userController.update));
+router.put(
+  '/:userId/change-password',
+  asyncHandler(userController.changePassword)
+);
 router.delete('/:userId', asyncHandler(userController.remove));
 
 export default router as Router;

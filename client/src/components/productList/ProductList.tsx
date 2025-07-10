@@ -103,7 +103,7 @@ const ProductList = () => {
                 return (
                   <div
                     key={product._id}
-                    className='border rounded p-4 text-center bg-white'
+                    className='border border-gray-100 rounded p-4 text-center bg-white'
                   >
                     <div className='relative group overflow-hidden rounded'>
                       <img

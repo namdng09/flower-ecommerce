@@ -39,13 +39,13 @@ function HeaderC() {
               <Link to='/home/shop'>Cửa Hàng</Link>
             </li>
             <li>
-              <Link to='/home/products'>Sản Phẩm</Link>
-            </li>
-            <li>
               <Link to='/home/about'>Về Chúng Tôi</Link>
             </li>
             <li>
-              <Link to='/home/contact'>Liên Hệ</Link>
+              <Link to='/home/privacy'>Điều Khoản Và Chính Sách</Link>
+            </li>
+            <li>
+              <Link to='/home/order-tracking-detail'>Đơn Hàng Đã Đặt</Link>
             </li>
           </ul>
 

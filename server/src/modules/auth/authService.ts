@@ -5,6 +5,7 @@ import { comparePassword } from '~/utils/bcrypt';
 import { generateToken, verifyRefreshToken } from '~/utils/jwt';
 import { sendMail } from '~/utils/mailer';
 import crypto from 'crypto';
+import { mailService } from '../email/emailService';
 
 export const authService = {
   register: async (userData: IUser) => {
@@ -37,7 +38,7 @@ export const authService = {
       }
     }
 
-    const newUser = await UserModel.create({
+    const createdUser = await UserModel.create({
       fullName,
       username,
       email,
@@ -45,14 +46,14 @@ export const authService = {
       role,
       password
     });
-    if (!newUser) throw createHttpError(400, 'User creation failed');
+    if (!createdUser) throw createHttpError(400, 'User creation failed');
 
     const { accessToken, refreshToken } = generateToken({
-      id: newUser.id,
-      role: newUser.role
+      id: createdUser.id,
+      role: createdUser.role
     });
 
-    return { newUser, accessToken, refreshToken };
+    return { createdUser, accessToken, refreshToken };
   },
 
   login: async (userData: IUser) => {
@@ -61,9 +62,70 @@ export const authService = {
     const user = await UserModel.findOne({ email });
     if (!user) throw createHttpError(400, 'Invalid email or password');
 
+    if (!user.password) {
+      throw createHttpError(
+        400,
+        'This account was created via Google. Please login using Google'
+      );
+    }
+
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid)
       throw createHttpError(400, 'Invalid email or password');
+
+    const { accessToken, refreshToken } = generateToken({
+      id: user.id,
+      role: user.role
+    });
+
+    return { user, accessToken, refreshToken };
+  },
+
+  loginWithGoogle: async (googleUser: {
+    googleId: string;
+    email: string;
+    fullName: string;
+    username: string;
+    avatarUrl?: string;
+  }) => {
+    let user = await UserModel.findOne({
+      $or: [{ googleId: googleUser.googleId }, { email: googleUser.email }]
+    }).select('-password');
+
+    if (!user) {
+      user = await UserModel.create({
+        googleId: googleUser.googleId,
+        email: googleUser.email,
+        fullName: googleUser.fullName,
+        username: googleUser.username,
+        avatarUrl: googleUser.avatarUrl,
+        role: 'customer'
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleUser.googleId;
+      await user.save();
+    }
+
+    const { accessToken, refreshToken } = generateToken({
+      id: user.id,
+      role: user.role
+    });
+
+    return { user, accessToken, refreshToken };
+  },
+
+  loginDashboardWithGoogle: async (googleUser: {
+    googleId: string;
+    email: string;
+  }) => {
+    const user = await UserModel.findOne({ email: googleUser.email });
+
+    if (!user || !['shop', 'admin'].includes(user.role)) {
+      throw createHttpError(401, 'Account not found or not permitted');
+    } else if (!user.googleId) {
+      user.googleId = googleUser.googleId;
+      await user.save();
+    }
 
     const { accessToken, refreshToken } = generateToken({
       id: user.id,
@@ -101,33 +163,20 @@ export const authService = {
     return accessToken;
   },
 
-  resetPassword: async (email?: string) => {
-    const user = await UserModel.findOne({ email });
+  requestResetPassword: async (email: string) => {
+    const user = await UserModel.findOne({ email }).select('-password');
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
 
-    const newPasswordPlain = crypto
-      .randomBytes(8)
-      .toString('base64')
-      .replace(/[^a-zA-Z0-9]/g, '')
-      .slice(0, 10);
+    const resetLink = 'http://localhost:5173/auth/change-password';
 
-    user.password = newPasswordPlain;
+    // Gửi email qua emailService với template động
+    await mailService.sendResetPassword(email, resetLink, user.fullName);
 
-    await user.save();
-
-    await sendMail({
-      to: email,
-      subject: 'Mật khẩu mới cho tài khoản IMS',
-      html: `
-          <p>Xin chào ${user.fullName ?? ''},</p>
-          <p>Mật khẩu mới của bạn là: <strong>${newPasswordPlain}</strong></p>
-          <p>Hãy đăng nhập và đổi mật khẩu ngay.</p>
-        `,
-      text: `Mật khẩu mới: ${newPasswordPlain}`
-    });
-
-    return newPasswordPlain;
+    return {
+      message: 'Reset password email sent successfully',
+      user: user
+    };
   }
 };

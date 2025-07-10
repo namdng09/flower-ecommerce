@@ -32,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: 'reset-password',
         Component: lazy(() => import('../app/auth/reset-password/page'))
+      },
+      {
+        path: 'change-password',
+        Component: lazy(() => import('../app/auth/change-password/page'))
       }
     ]
   },
@@ -60,6 +64,10 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/home/checkout/page'))
       },
       {
+        path: 'privacy',
+        Component: lazy(() => import('../app/home/privacy/page'))
+      },
+      {
         path: 'profile/:id',
         Component: lazy(() => import('../app/home/profile/[id]/page'))
       },
@@ -68,8 +76,8 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/home/cart/page'))
       },
       {
-        path: 'orders/:orderId',
-        Component: lazy(() => import('../app/home/order/[orderId]/page'))
+        path: 'order',
+        Component: lazy(() => import('../app/home/order/page'))
       },
       {
         path: 'order-success/:orderId',
@@ -86,6 +94,14 @@ const router = createBrowserRouter([
       {
         path: 'order-fail',
         Component: lazy(() => import('../app/home/order-fail/page'))
+      },
+      {
+        path: 'shop-profile/:shopId',
+        Component: lazy(() => import('../app/home/shopProfile/[shopId]/page'))
+      },
+      {
+        path: 'order-tracking-detail',
+        Component: lazy(() => import('../app/home/order-tracking-detail/page'))
       }
     ]
   },
@@ -194,11 +210,6 @@ const router = createBrowserRouter([
       {
         path: 'product/update/:id',
         Component: lazy(() => import('../app/(shop)/product/update/page'))
-      },
-
-      {
-        path: 'review',
-        Component: lazy(() => import('../app/(shop)/review/page'))
       }
     ]
   }

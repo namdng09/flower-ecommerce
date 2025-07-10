@@ -19,6 +19,7 @@ export const productService = {
     limit?: string,
     sortBy?: string,
     sortOrder?: 'asc' | 'desc',
+    shop?: string,
     title?: string,
     category?: string,
     minPrice?: string,
@@ -27,6 +28,13 @@ export const productService = {
     ward?: string
   ) => {
     const matchStage: any = {};
+
+    if (shop) {
+      if (!Types.ObjectId.isValid(shop)) {
+        throw createHttpError(400, 'Invalid shop id');
+      }
+      matchStage.shop = new Types.ObjectId(shop);
+    }
 
     if (title) {
       matchStage.title = { $regex: title, $options: 'i' };

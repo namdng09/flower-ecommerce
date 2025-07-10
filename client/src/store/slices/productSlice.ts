@@ -53,17 +53,20 @@ export const deleteProduct = createAsyncThunk(
 );
 
 // Fetch products by userId (role shop)
+
 export const fetchProductsByShop = createAsyncThunk(
-  'products/fetchProductsByShop',
-  async (userId, { rejectWithValue }) => {
+  'products/fetchByShop',
+  async (shopId: string, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`/api/products/shop/${userId}`);
-      return res.data.data;
+      const res = await axios.get(`/api/products/shop/${shopId}`);
+      return {
+        products: res.data.data,
+        shop: res.data.shop
+      };
     } catch (err: any) {
-      if (err.response && err.response.data && err.response.data.message) {
-        return rejectWithValue(err.response.data.message);
-      }
-      return rejectWithValue(err.message);
+      return rejectWithValue(
+        err.response?.data?.message || 'Lỗi khi lấy sản phẩm theo shop'
+      );
     }
   }
 );
@@ -100,7 +103,13 @@ const initialState = {
 
 const productSlice = createSlice({
   name: 'products',
-  initialState,
+  initialState: {
+    items: [], // all products
+    shopProducts: [], // sản phẩm theo shop
+    shopInfo: null,
+    loading: false,
+    error: null as string | null
+  },
   reducers: {},
   extraReducers: builder => {
     builder
@@ -181,18 +190,35 @@ const productSlice = createSlice({
       })
 
       // Fetch products by shop (userId)
+      // .addCase(fetchProductsByShop.pending, state => {
+      //   state.loading = true;
+      //   state.error = null;
+      // })
+      // .addCase(fetchProductsByShop.fulfilled, (state, action) => {
+      //   state.items = action.payload;
+      //   state.loading = false;
+      // })
+      // .addCase(fetchProductsByShop.rejected, (state, action) => {
+      //   state.loading = false;
+      //   state.error =
+      //     (action.payload as string) || action.error.message || null;
+      //   state.error = action.error.message || 'Lỗi khi tải sản phẩm';
+      // })
+
       .addCase(fetchProductsByShop.pending, state => {
         state.loading = true;
         state.error = null;
+        state.shopProducts = [];
+        state.shopInfo = null;
       })
       .addCase(fetchProductsByShop.fulfilled, (state, action) => {
-        state.items = action.payload;
         state.loading = false;
+        state.shopProducts = action.payload.products;
+        state.shopInfo = action.payload.shop;
       })
       .addCase(fetchProductsByShop.rejected, (state, action) => {
         state.loading = false;
-        state.error =
-          (action.payload as string) || action.error.message || null;
+        state.error = action.payload as string;
       });
   }
 });

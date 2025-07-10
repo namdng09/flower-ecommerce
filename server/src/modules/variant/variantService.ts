@@ -2,6 +2,7 @@ import VariantModel, { IVariant } from './variantModel';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
+import ProductModel from '../product/productModel';
 
 export const variantService = {
   list: async () => {
@@ -16,6 +17,22 @@ export const variantService = {
       throw createHttpError(404, 'No variant found');
     }
     return variants;
+  },
+
+  getShopIdByVariant: async (variantId: string) => {
+    if (!Types.ObjectId.isValid(variantId)) {
+      throw createHttpError(400, 'Invalid variant id');
+    }
+
+    const product = await ProductModel.findOne({ variants: variantId }).select(
+      'shop'
+    );
+
+    if (!product) {
+      throw createHttpError(400, 'No product found for this variant');
+    }
+
+    return product.shop;
   },
 
   show: async (variantId: string) => {

@@ -2,32 +2,18 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
-  type ResetPasswordFormFields,
-  resetPasswordSchema
-} from '~/types/resetPassword';
+  type ChangePasswordFormFields,
+  changePasswordSchema
+} from '~/types/changePassword';
 import backgroundlogin1 from '../../assets/backgroundlogin1.jpg';
-import axiosInstance from '~/config/axiosConfig';
 
 const ResetPasswordForm: React.FC = () => {
   const {
     register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    reset
-  } = useForm<ResetPasswordFormFields>({
-    resolver: zodResolver(resetPasswordSchema)
+    formState: { errors, isSubmitting }
+  } = useForm<ChangePasswordFormFields>({
+    resolver: zodResolver(changePasswordSchema)
   });
-
-  const onSubmit = async (data: ResetPasswordFormFields) => {
-    try {
-      await axiosInstance.post('/api/auth/request-reset-password', data);
-      reset();
-    } finally {
-      alert(
-        'Đã gửi email xác nhận đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn.'
-      );
-    }
-  };
 
   return (
     <div
@@ -40,24 +26,39 @@ const ResetPasswordForm: React.FC = () => {
       <div className='max-w-md w-full space-y-8 p-10 bg-white rounded-xl z-10'>
         <div className='text-center'>
           <h2 className='mt-6 text-3xl font-bold text-gray-900'>
-            Đặt lại mật khẩu{' '}
+            Thay đổi mật khẩu{' '}
           </h2>
         </div>
-        <form className='mt-8 space-y-6' onSubmit={handleSubmit(onSubmit)}>
+        <form className='mt-8 space-y-6'>
           <div className='relative'>
             <label className='text-sm font-bold text-gray-700 tracking-wide'>
-              Email
+              Mật khẩu mới
             </label>
             <input
-              className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.email ? 'border-red-500' : ''}`}
-              type='email'
-              placeholder='mail@gmail.com'
-              autoComplete='email'
-              {...register('email')}
+              className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.newPassword ? 'border-red-500' : ''}`}
+              type='password'
+              placeholder='abcxyz123'
+              {...register('newPassword')}
             />
-            {errors.email && (
+            {errors.newPassword && (
               <span className='text-xs text-red-500'>
-                {errors.email.message}
+                {errors.newPassword.message}
+              </span>
+            )}
+          </div>
+          <div className='relative'>
+            <label className='text-sm font-bold text-gray-700 tracking-wide'>
+              Xác nhận mật khẩu mới
+            </label>
+            <input
+              className={`w-full text-base py-2 border-b border-gray-300 focus:outline-none focus:border-indigo-500 ${errors.confirmNewPassword ? 'border-red-500' : ''}`}
+              type='password'
+              placeholder='abcxyz123'
+              {...register('confirmNewPassword')}
+            />
+            {errors.confirmNewPassword && (
+              <span className='text-xs text-red-500'>
+                {errors.confirmNewPassword.message}
               </span>
             )}
           </div>

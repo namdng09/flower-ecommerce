@@ -1,16 +1,12 @@
-import OrderModel, {
-  ICustomization,
-  IOrder,
-  IOrderItem,
-  IPayment,
-  IShipment
-} from './orderModel';
+import OrderModel, { IOrder, IPayment, IShipment } from './orderModel';
 import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
 import VariantModel from '../variant/variantModel';
 import UserModel from '../user/userModel';
 import AddressModel from '../address/addressModel';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
+import ProductModel from '../product/productModel';
+import { mailService } from '../email/emailService';
 
 export const orderService = {
   list: async () => {
@@ -26,6 +22,7 @@ export const orderService = {
     sortOrder?: 'asc' | 'desc',
     status?: string,
     orderNumber?: string,
+    shop?: string,
     user?: string
   ) => {
     const allowedStatus: OrderStatus[] = [
@@ -56,6 +53,13 @@ export const orderService = {
       ...(status && { status: makeRegex(status) })
     };
 
+    if (shop) {
+      if (!Types.ObjectId.isValid(shop)) {
+        throw createHttpError(400, 'Invalid shop id');
+      }
+      matchStage.shop = new Types.ObjectId(shop);
+    }
+
     if (user) {
       if (!Types.ObjectId.isValid(user)) {
         throw createHttpError(400, 'Invalid user id');
@@ -71,6 +75,18 @@ export const orderService = {
     const aggregate = [
       { $match: matchStage },
       { $sort: { [sortField as string]: sortDirection } },
+
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'shop',
+          foreignField: '_id',
+          pipeline: [{ $project: { password: 0 } }],
+          as: 'shop'
+        }
+      },
+      { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
+
       {
         $lookup: {
           from: 'users',
@@ -81,6 +97,7 @@ export const orderService = {
         }
       },
       { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
       {
         $lookup: {
           from: 'addresses',
@@ -89,6 +106,8 @@ export const orderService = {
           as: 'address'
         }
       },
+      { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+
       { $unwind: '$items' },
       {
         $lookup: {
@@ -145,11 +164,93 @@ export const orderService = {
   },
 
   show: async (orderId: string) => {
-    if (!Types.ObjectId.isValid(orderId))
+    if (!Types.ObjectId.isValid(orderId)) {
       throw createHttpError(400, 'Invalid order id');
+    }
 
-    const order = await OrderModel.findById(orderId).populate('address');
-    if (!order) throw createHttpError(404, 'Order not found');
+    const aggregate = [
+      { $match: { _id: new Types.ObjectId(orderId) } },
+
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          pipeline: [{ $project: { password: 0 } }],
+          as: 'user'
+        }
+      },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'shop',
+          foreignField: '_id',
+          pipeline: [{ $project: { password: 0 } }],
+          as: 'shop'
+        }
+      },
+      { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
+
+      {
+        $lookup: {
+          from: 'addresses',
+          localField: 'address',
+          foreignField: '_id',
+          as: 'address'
+        }
+      },
+      { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+
+      { $unwind: '$items' },
+
+      {
+        $lookup: {
+          from: 'variants',
+          localField: 'items.variant',
+          foreignField: '_id',
+          as: 'items.variant'
+        }
+      },
+      { $unwind: '$items.variant' },
+
+      {
+        $lookup: {
+          from: 'products',
+          localField: 'items.variant._id',
+          foreignField: 'variants',
+          pipeline: [{ $project: { title: 1, skuCode: 1, thumbnailImage: 1 } }],
+          as: 'productInfo'
+        }
+      },
+      {
+        $addFields: {
+          'items.variant.product': { $arrayElemAt: ['$productInfo', 0] }
+        }
+      },
+      { $project: { productInfo: 0 } },
+
+      {
+        $group: {
+          _id: '$_id',
+          doc: { $first: '$$ROOT' },
+          items: { $push: '$items' }
+        }
+      },
+      {
+        $replaceRoot: {
+          newRoot: { $mergeObjects: ['$doc', { items: '$items' }] }
+        }
+      }
+    ];
+
+    const results = await OrderModel.aggregate(aggregate);
+    const order = results[0];
+
+    if (!order) {
+      throw createHttpError(404, 'Order not found');
+    }
 
     return order;
   },
@@ -208,19 +309,38 @@ export const orderService = {
     if (!Array.isArray(items) || items.length === 0)
       throw createHttpError(400, 'Order must contain at least one item');
 
-    for (const [index, it] of items.entries()) {
-      if (!Types.ObjectId.isValid(it.variant))
+    const shopItemMap = new Map<string, typeof items>();
+
+    for (const [index, item] of items.entries()) {
+      if (!Types.ObjectId.isValid(item.variant))
         throw createHttpError(400, `Invalid variant id at index ${index}`);
 
-      const variantDoc = await VariantModel.findById(it.variant);
+      const variantDoc = await VariantModel.findById(item.variant);
       if (!variantDoc)
         throw createHttpError(400, `Variant not found at index ${index}`);
 
-      if (!it.quantity || it.quantity < 1)
+      if (!item.quantity || item.quantity < 1)
         throw createHttpError(400, `Quantity must be ≥1 at index ${index}`);
 
-      if (!it.price || it.price < 0)
+      if (!item.price || item.price < 0)
         throw createHttpError(400, `Price must be ≥0 at index ${index}`);
+
+      const shopId = await ProductModel.findOne({
+        variants: item.variant
+      }).select('shop');
+      if (!shopId)
+        throw createHttpError(
+          400,
+          `Shop not found for variant at index ${index}`
+        );
+
+      const key = shopId.shop.toString();
+
+      if (!shopItemMap.has(key)) {
+        shopItemMap.set(key, []);
+      }
+
+      shopItemMap.get(key)!.push(item);
     }
 
     if (
@@ -263,27 +383,82 @@ export const orderService = {
     const paymentStatus: PaymentStatus =
       payment.method === 'banking' ? 'awaiting_payment' : 'unpaid';
 
-    const paymentData: IPayment = {
-      amount: totalPrice,
-      method: payment.method,
-      status: paymentStatus,
-      description: payment.description,
-      gatewayRef: payment.gatewayRef,
-      paymentDate: payment.paymentDate
-    };
+    const orders = [];
 
-    const newOrder = await OrderModel.create({
-      user,
-      address,
-      items,
-      totalQuantity,
-      totalPrice,
-      payment: paymentData,
-      shipment,
-      customization
-    });
+    for (const [shopId, groupedItems] of shopItemMap.entries()) {
+      const totalQuantity = groupedItems.reduce(
+        (sum, it) => sum + it.quantity,
+        0
+      );
+      const itemsTotal = groupedItems.reduce(
+        (sum, it) => sum + it.quantity * it.price,
+        0
+      );
+      const totalPrice = itemsTotal + shipment.shippingCost;
 
-    return newOrder;
+      const order = await OrderModel.create({
+        user,
+        shop: shopId,
+        address,
+        items: groupedItems,
+        totalQuantity,
+        totalPrice,
+        payment: {
+          amount: totalPrice,
+          method: payment.method,
+          status: paymentStatus,
+          description: payment.description,
+          gatewayRef: payment.gatewayRef,
+          paymentDate: payment.paymentDate
+        },
+        shipment,
+        customization
+      });
+
+      orders.push(order);
+    }
+
+    // Helper function to send email notifications to shops
+    async function sendEmailNotifications(orders: IOrder[]) {
+      for (const order of orders) {
+        const populatedOrder = await OrderModel.findById(order._id)
+          .populate('address')
+          .populate('user')
+          .populate({
+            path: 'items.variant',
+            populate: {
+              path: 'product',
+              select: 'title skuCode thumbnailImage shop',
+              populate: {
+                path: 'shop',
+                select: 'fullName email role'
+              }
+            }
+          });
+
+        const plainPopulatedOrder = populatedOrder?.toObject();
+
+        if (plainPopulatedOrder?.shop?.email) {
+          await mailService.send({
+            to: plainPopulatedOrder.shop.email,
+            subject: `New Order Received`,
+            text: `You have received a new order. Order ID: ${plainPopulatedOrder._id}`
+          });
+        }
+      }
+    }
+
+    // Call the helper function after creating orders
+    await sendEmailNotifications(orders);
+    //
+    // if (plainPopulatedOrder) {
+    //   await mailService.sendOrderSuccessToCustomer(
+    //     plainPopulatedOrder,
+    //     existingUser.email
+    //   );
+    // }
+
+    return orders;
   },
 
   updateShipment: async (orderId: string, shipmentData: IShipment) => {
