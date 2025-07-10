@@ -7,6 +7,7 @@ import { fetchAddresses, createAddress } from '~/store/slices/addressSlice';
 import { AuthContext } from '~/contexts/authContext';
 import { FaShoppingCart, FaUserSecret, FaMoneyBillWave } from 'react-icons/fa';
 import { FiSend, FiGift, FiCalendar, FiClock, FiMapPin, FiPlus } from 'react-icons/fi';
+import { toast } from 'react-toastify';
 
 const OrderPage: React.FC = () => {
   const dispatch = useDispatch<any>();
@@ -46,9 +47,21 @@ const OrderPage: React.FC = () => {
   }, [addresses]);
 
   const handleOrder = async () => {
-    if (!user) return alert('Vui lòng đăng nhập');
-    if (!selectedAddressId) return alert('Vui lòng chọn địa chỉ');
-    if (cart.items.length === 0) return alert('Giỏ hàng trống');
+    if (!user) {
+      toast.warn('⚠️ Vui lòng đăng nhập để tiếp tục!');
+      return;
+    }
+
+    if (!selectedAddressId) {
+      toast.warn('📍 Vui lòng chọn địa chỉ giao hàng!');
+      return;
+    }
+
+    if (cart.items.length === 0) {
+      toast.warn('🛒 Giỏ hàng của bạn đang trống!');
+      return;
+    }
+    
 
     let deliveryTimeRequested;
     if (deliveryDate && deliveryTime) {
