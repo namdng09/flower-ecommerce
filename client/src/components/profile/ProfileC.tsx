@@ -8,7 +8,7 @@ import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchFavouritesByUser, removeFavouriteItem } from '~/store/slices/favouriteSlice';
 import { fetchAddresses, updateAddress, deleteAddress } from '~/store/slices/addressSlice';
 import { Link } from 'react-router';
-import { FaUserCircle, FaHeart, FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUserCircle, FaHeart, FaTimes, FaMapMarkerAlt, FaEdit, FaTrashAlt } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 interface UserProfile {
@@ -271,22 +271,22 @@ const EditProfile: React.FC = () => {
                         <span className="ml-2 text-green-600 font-medium">[Mặc định]</span>
                       )}
                     </div>
-                    <div className="absolute top-3 right-4 flex gap-3">
-                      <button
-                        onClick={() => handleEditAddress(addr)}
-                        className="text-indigo-600 hover:text-indigo-800 text-sm"
-                        title="Sửa địa chỉ"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => handleDeleteAddress(addr._id)}
-                        className="text-red-500 hover:text-red-700 text-sm"
-                        title="Xoá địa chỉ"
-                      >
-                        🗑️
-                      </button>
-                    </div>
+                      <div className="absolute top-3 right-4 flex gap-3">
+                        <button
+                          onClick={() => handleEditAddress(addr)}
+                          className="text-indigo-600 hover:text-indigo-800 text-sm"
+                          title="Sửa địa chỉ"
+                        >
+                          <FaEdit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAddress(addr._id)}
+                          className="text-red-500 hover:text-red-700 text-sm"
+                          title="Xoá địa chỉ"
+                        >
+                          <FaTrashAlt className="w-4 h-4" />
+                        </button>
+                      </div>
                   </>
                 )}
               </div>
