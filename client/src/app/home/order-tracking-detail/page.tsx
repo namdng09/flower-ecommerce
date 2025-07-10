@@ -45,7 +45,6 @@ const OrderListByUserPage: React.FC = () => {
             description: 'Khách đã hủy đơn hàng'
         };
         dispatch(updateOrder({ id: orderId, updateData: cancelData }))
-            .unwrap()
             .then(() => {
                 dispatch(fetchOrdersByUser(userId));
                 alert('Đã hủy đơn hàng thành công');
@@ -55,7 +54,6 @@ const OrderListByUserPage: React.FC = () => {
             });
     };
       
-
     const translateStatus = (status: string) => {
         switch (status) {
             case 'pending': return 'Chờ xác nhận';
