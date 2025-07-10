@@ -56,7 +56,7 @@ export const updateOrder = createAsyncThunk(
   'orders/updateOrder',
   async ({ id, updateData }, { rejectWithValue }) => {
     try {
-      const res = await axios.patch(`${BASE_URL}/${id}`, updateData);
+      const res = await axios.put(`${BASE_URL}/${id}`, updateData);
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Update failed');
