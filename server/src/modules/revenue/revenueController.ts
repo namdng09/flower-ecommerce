@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { revenueService } from './revenueService';
+import { apiResponse } from '~/types/apiResponse';
 
 interface QueryParams {
   startDate?: string;
@@ -23,7 +24,7 @@ interface TimeframeOptions extends RevenueQueryOptions {
 }
 
 export const revenueController = {
-  async getOverallRevenue(req: Request, res: Response) {
+  async getOverallRevenue(req: Request, res: Response, next: NextFunction) {
     try {
       const { startDate, endDate, shopId, page, limit } =
         req.query as QueryParams;
@@ -37,13 +38,16 @@ export const revenueController = {
       if (limit) options.limit = parseInt(limit);
 
       const revenue = await revenueService.getOverallRevenue(options);
-      res.json(revenue);
+      return res
+        .status(200)
+        .json(
+          apiResponse.success('Overall revenue retrieved successfully', revenue)
+        );
     } catch (error) {
-      console.error('Error retrieving overall revenue:', error);
-      res.status(500).json({ error: 'Failed to retrieve revenue data' });
+      next(error);
     }
   },
-  async getDailyRevenue(req: Request, res: Response) {
+  async getDailyRevenue(req: Request, res: Response, next: NextFunction) {
     try {
       const { startDate, endDate, shopId, page, limit } =
         req.query as QueryParams;
@@ -57,13 +61,16 @@ export const revenueController = {
       if (limit) options.limit = parseInt(limit);
 
       const revenue = await revenueService.getRevenueByTimeframe(options);
-      res.json(revenue);
+      return res
+        .status(200)
+        .json(
+          apiResponse.success('Daily revenue retrieved successfully', revenue)
+        );
     } catch (error) {
-      console.error('Error retrieving daily revenue:', error);
-      res.status(500).json({ error: 'Failed to retrieve revenue data' });
+      next(error);
     }
   },
-  async getMonthlyRevenue(req: Request, res: Response) {
+  async getMonthlyRevenue(req: Request, res: Response, next: NextFunction) {
     try {
       const { startDate, endDate, shopId, page, limit } =
         req.query as QueryParams;
@@ -77,13 +84,16 @@ export const revenueController = {
       if (limit) options.limit = parseInt(limit);
 
       const revenue = await revenueService.getRevenueByTimeframe(options);
-      res.json(revenue);
+      return res
+        .status(200)
+        .json(
+          apiResponse.success('Monthly revenue retrieved successfully', revenue)
+        );
     } catch (error) {
-      console.error('Error retrieving monthly revenue:', error);
-      res.status(500).json({ error: 'Failed to retrieve revenue data' });
+      next(error);
     }
   },
-  async getRevenueByShop(req: Request, res: Response) {
+  async getRevenueByShop(req: Request, res: Response, next: NextFunction) {
     try {
       const { startDate, endDate, page, limit } = req.query as QueryParams;
 
@@ -95,13 +105,16 @@ export const revenueController = {
       if (limit) options.limit = parseInt(limit);
 
       const revenue = await revenueService.getRevenueByShop(options);
-      res.json(revenue);
+      return res
+        .status(200)
+        .json(
+          apiResponse.success('Revenue by shop retrieved successfully', revenue)
+        );
     } catch (error) {
-      console.error('Error retrieving revenue by shop:', error);
-      res.status(500).json({ error: 'Failed to retrieve revenue data' });
+      next(error);
     }
   },
-  async getDailyRevenueByShop(req: Request, res: Response) {
+  async getDailyRevenueByShop(req: Request, res: Response, next: NextFunction) {
     try {
       const { startDate, endDate, shopId, page, limit } =
         req.query as QueryParams;
@@ -115,13 +128,23 @@ export const revenueController = {
       if (limit) options.limit = parseInt(limit);
 
       const revenue = await revenueService.getRevenueByShopTimeframe(options);
-      res.json(revenue);
+      return res
+        .status(200)
+        .json(
+          apiResponse.success(
+            'Daily revenue by shop retrieved successfully',
+            revenue
+          )
+        );
     } catch (error) {
-      console.error('Error retrieving daily revenue by shop:', error);
-      res.status(500).json({ error: 'Failed to retrieve revenue data' });
+      next(error);
     }
   },
-  async getMonthlyRevenueByShop(req: Request, res: Response) {
+  async getMonthlyRevenueByShop(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const { startDate, endDate, shopId, page, limit } =
         req.query as QueryParams;
@@ -135,10 +158,16 @@ export const revenueController = {
       if (limit) options.limit = parseInt(limit);
 
       const revenue = await revenueService.getRevenueByShopTimeframe(options);
-      res.json(revenue);
+      return res
+        .status(200)
+        .json(
+          apiResponse.success(
+            'Monthly revenue by shop retrieved successfully',
+            revenue
+          )
+        );
     } catch (error) {
-      console.error('Error retrieving monthly revenue by shop:', error);
-      res.status(500).json({ error: 'Failed to retrieve revenue data' });
+      next(error);
     }
   }
 };
