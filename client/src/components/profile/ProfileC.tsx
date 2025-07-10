@@ -140,7 +140,7 @@ const EditProfile: React.FC = () => {
       toast.error('Xoá địa chỉ thất bại!');
     }
   };
-  
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 text-black space-y-10 mt-40">
       {/* USER INFO */}
@@ -271,22 +271,22 @@ const EditProfile: React.FC = () => {
                         <span className="ml-2 text-green-600 font-medium">[Mặc định]</span>
                       )}
                     </div>
-                      <div className="absolute top-3 right-4 flex gap-3">
-                        <button
-                          onClick={() => handleEditAddress(addr)}
-                          className="text-indigo-600 hover:text-indigo-800 text-sm"
-                          title="Sửa địa chỉ"
-                        >
-                          <FaEdit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteAddress(addr._id)}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                          title="Xoá địa chỉ"
-                        >
-                          <FaTrashAlt className="w-4 h-4" />
-                        </button>
-                      </div>
+                    <div className="absolute top-3 right-4 flex gap-3">
+                      <button
+                        onClick={() => handleEditAddress(addr)}
+                        className="text-indigo-600 hover:text-indigo-800 text-sm"
+                        title="Sửa địa chỉ"
+                      >
+                        <FaEdit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteAddress(addr._id)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                        title="Xoá địa chỉ"
+                      >
+                        <FaTrashAlt className="w-4 h-4" />
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
