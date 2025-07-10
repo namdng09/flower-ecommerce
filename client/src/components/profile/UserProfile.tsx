@@ -4,6 +4,7 @@ import { type Profile } from '~/types/profile';
 import axiosInstance from '~/config/axiosConfig';
 import LogoutButton from '../buttons/LogoutButton';
 import { NavLink } from 'react-router';
+
 const UserProfile = () => {
   const { user, isAuthenticated, loading } = useContext(AuthContext);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -15,12 +16,10 @@ const UserProfile = () => {
       setProfileLoading(true);
       try {
         const response = await axiosInstance.get(`/api/users/${user.id}`);
-        // Nếu API trả về { data: {...profile} }
         const profileData = response.data.data
           ? response.data.data
           : response.data;
         setProfile(profileData);
-        // console.log('Thông tin người dùng:', profileData);
       } catch (error) {
         console.error('Lỗi khi lấy thông tin người dùng:', error);
       } finally {
