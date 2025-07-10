@@ -77,7 +77,7 @@ const DashboardPage = () => {
   useEffect(() => {
     const getKpiData = async () => {
       try {
-        const data = await fetchRevenueData<KpiData>('/revenue');
+        const data = await fetchRevenueData<KpiData>('/api/revenue');
         setKpiData(data);
       } catch (err) {
         if (err instanceof Error) {
@@ -96,7 +96,7 @@ const DashboardPage = () => {
       setError(null);
       try {
         const result = await fetchRevenueData<{ records: RevenueRecord[] }>(
-          `/revenue/${timeframe}`
+          `/api/revenue/${timeframe}`
         );
         setChartData(result.records);
       } catch (err) {
