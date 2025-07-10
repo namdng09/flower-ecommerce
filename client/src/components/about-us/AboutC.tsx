@@ -1,3 +1,4 @@
+import { Link } from 'react-router';
 import pic from '../../../src/assets/about-us.webp';
 
 const PhulerIntro = () => {
@@ -22,7 +23,7 @@ const PhulerIntro = () => {
           implementation.
         </p>
         <button className='bg-red-600 text-white font-bold px-6 py-3 rounded hover:bg-red-700 transition duration-300'>
-          SHOP NOW!
+          <Link to={`/home/shop`}>SHOP NOW!</Link>
         </button>
       </div>
 
