@@ -96,7 +96,6 @@ const EditProfile: React.FC = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem('accessToken');
-    navigate('/auth/login');
   };
 
   const handleRemoveFavourite = async (productId: string) => {
@@ -167,7 +166,9 @@ const EditProfile: React.FC = () => {
 
           <div className="md:col-span-2 flex justify-center gap-4 pt-4">
             <button type="submit" className="bg-lime-600 text-white px-6 py-2 rounded">Cập nhật</button>
-            <button onClick={handleLogout} className="bg-pink-600 text-white px-6 py-2 rounded">Đăng xuất</button>
+            <button className="bg-pink-600 text-white px-6 py-2 rounded">
+              <Link to={`/auth/login`} onClick={handleLogout}>Đăng xuất</Link>
+            </button>
           </div>
         </form>
       </div>
