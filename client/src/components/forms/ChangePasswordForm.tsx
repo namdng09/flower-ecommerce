@@ -10,7 +10,7 @@ import backgroundlogin1 from '../../assets/backgroundlogin1.jpg';
 const ResetPasswordForm: React.FC = () => {
   const {
     register,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting }
   } = useForm<ChangePasswordFormFields>({
     resolver: zodResolver(changePasswordSchema)
   });

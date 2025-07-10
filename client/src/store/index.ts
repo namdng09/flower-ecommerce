@@ -20,7 +20,7 @@ export const store = configureStore({
     carts: cartReducer,
     orders: orderReducer,
     addresses: addressReducer,
-    favourites: favouriteReducer,
+    favourites: favouriteReducer
   }
 });
 

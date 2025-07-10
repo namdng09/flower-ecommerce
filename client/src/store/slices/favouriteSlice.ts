@@ -47,13 +47,10 @@ export const removeFavouriteItem = createAsyncThunk(
       });
       return productId;
     } catch (err: any) {
-      return rejectWithValue(
-        err.response?.data?.message || 'Remove failed'
-      );
+      return rejectWithValue(err.response?.data?.message || 'Remove failed');
     }
   }
 );
-
 
 // Slice
 const favouriteSlice = createSlice({
@@ -61,7 +58,7 @@ const favouriteSlice = createSlice({
   initialState: {
     loading: false,
     error: null as string | null,
-    items: [] as string[] 
+    items: [] as string[]
   },
   reducers: {},
   extraReducers: builder => {
