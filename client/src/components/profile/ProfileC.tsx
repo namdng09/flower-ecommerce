@@ -90,7 +90,7 @@ const EditProfile: React.FC = () => {
       toast.success('Cập nhật thành công!');
       navigate(`/home/profile/${userId}`);
     } catch {
-      alert('Cập nhật thất bại!');
+      toast.error('Cập nhật thất bại!');
     }
   };
 
