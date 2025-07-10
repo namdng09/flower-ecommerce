@@ -131,6 +131,25 @@ const orderSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder
+      .addCase(filterOrders.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(filterOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = action.payload.docs;
+        state.pagination = {
+          total: action.payload.totalDocs,
+          page: action.payload.page,
+          limit: action.payload.limit,
+          totalPages: action.payload.totalPages
+        };
+      })
+      .addCase(filterOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       .addCase(fetchOrders.pending, state => {
         state.loading = true;
         state.error = null;
