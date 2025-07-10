@@ -1,5 +1,5 @@
 import React from 'react';
-import CreateProductPage from '~/components/shop/sidebar/CreateProductPage';
+import CreateProductPage from '~/components/shop/product-table/CreateProductPage';
 const Page = () => {
   return (
     <div>
