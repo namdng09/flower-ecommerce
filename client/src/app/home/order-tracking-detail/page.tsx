@@ -110,9 +110,9 @@ const OrderListByUserPage: React.FC = () => {
                                             </div>
                                         )}
                                         <div className="flex-1">
-                                            <p className="text-sm font-semibold">{variant?.product?.title || ''}</p>
-                                            <p className="text-xs text-gray-500">
-                                                {variant?.title ? `Biến thể: ${variant.title}` : ''} {variant?.variantCode ? `| Mã: ${variant.variantCode}` : ''}
+                                            <p className="text-base font-bold text-[#C4265B]">{variant?.product?.title || ''}</p>
+                                            <p className="text-base font-bold text-[#C4265B]">
+                                                {variant?.title ? `Phân Loại: ${variant.title}` : ''} {variant?.variantCode ? `| Mã: ${variant.variantCode}` : ''}
                                             </p>
                                             <p className="text-sm mt-1">
                                                 SL: {item.quantity} | Giá: {item.price.toLocaleString()}₫
