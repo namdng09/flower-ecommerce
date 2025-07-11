@@ -1,12 +1,13 @@
 import { useEffect, useState, useContext } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
-import { fetchProducts } from '~/store/slices/productSlice';
+import { fetchProducts, filterProducts } from '~/store/slices/productSlice';
 import { addToCart } from '~/store/slices/cartSlice';
 import ListCategory from '~/components/listcategory/ListCategory';
 import { AuthContext } from '~/contexts/authContext';
 import banner from '~/assets/banner1.webp';
 import { Link } from 'react-router';
+import AddressFilter from '~/components/filter-address/AddressFilter';
 
 const ProductList = () => {
   const dispatch = useDispatch();
@@ -23,6 +24,29 @@ const ProductList = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
+  const [province, setProvince] = useState('');
+  const [ward, setWard] = useState('');
+
+  useEffect(() => {
+    dispatch(
+      filterProducts({
+        province,
+        ward,
+        category: selectedCategoryId || undefined,
+        sortBy: sortBy === 'PriceLowHigh' ? 'salePrice' : 'title',
+        sortOrder: sortBy === 'Z-A' ? 'desc' : 'asc'
+      })
+    );
+  }, [dispatch, province, ward, selectedCategoryId, sortBy]);
+
+  const handleAddressFilter = (province: string, ward: string) => {
+    setProvince(province);
+    setWard(ward);
+  };
+
+  useEffect(() => {
+    console.log('Products:', products);
+  }, [products]);
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -65,6 +89,7 @@ const ProductList = () => {
               selectedCategoryId={selectedCategoryId}
             />
           </div>
+          <AddressFilter onFilter={handleAddressFilter} />
         </div>
 
         {/* Content */}
