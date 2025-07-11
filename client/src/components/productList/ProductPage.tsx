@@ -12,6 +12,7 @@ import {
   removeFavouriteItem
 } from '~/store/slices/favouriteSlice';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -64,8 +65,20 @@ const ProductPage = () => {
   }, [favourites, product]);
 
   const handleAddToCart = async () => {
-    if (!user?.id) return alert('Bạn cần đăng nhập để thêm vào giỏ hàng!');
-    if (!selectedVariant) return alert('Vui lòng chọn phiên bản sản phẩm!');
+    if (!user?.id) {
+      toast.warn('Bạn cần đăng nhập để thêm vào giỏ hàng!');
+      return;
+    }
+
+    if (!selectedVariant) {
+      toast.error('Vui lòng chọn phiên bản sản phẩm!');
+      return;
+    }
+
+    if (quantity < 1) {
+      toast.warn('Số lượng phải lớn hơn 0!');
+      return;
+    }
 
     try {
       await dispatch(
@@ -75,29 +88,37 @@ const ProductPage = () => {
           quantity
         })
       );
-      alert('✅ Đã thêm vào giỏ hàng!');
-    } catch {
-      alert('❌ Có lỗi khi thêm vào giỏ hàng!');
+
+      toast.success('Đã thêm vào giỏ hàng!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Có lỗi khi thêm vào giỏ hàng!');
     }
   };
 
   const handleToggleFavourite = async () => {
-    if (!user?.id || !product)
-      return alert('Bạn cần đăng nhập để sử dụng mục yêu thích!');
+    if (!user?.id || !product) {
+      toast.warn('Bạn cần đăng nhập để sử dụng mục yêu thích!');
+      return;
+    }
+
     try {
       if (isFavourited) {
         await dispatch(
           removeFavouriteItem({ userId: user.id, productId: product._id })
         );
         setIsFavourited(false);
+        toast.success('Đã xoá khỏi mục yêu thích!');
       } else {
         await dispatch(
           addFavouriteItem({ userId: user.id, productId: product._id })
         );
         setIsFavourited(true);
+        toast.success('Đã thêm vào mục yêu thích!');
       }
     } catch (err) {
       console.error('Lỗi khi xử lý yêu thích:', err);
+      toast.error('Đã xảy ra lỗi khi xử lý mục yêu thích!');
     }
   };
 

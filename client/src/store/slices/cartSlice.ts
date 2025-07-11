@@ -113,17 +113,31 @@ const cartSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
+
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
-        const existing = state.items.find(
-          item => item.variantId._id === action.payload.variantId._id
-        );
+
+        const newVariantId =
+          typeof action.payload.variantId === 'object'
+            ? action.payload.variantId._id
+            : action.payload.variantId;
+
+        const existing = state.items.find(item => {
+          const itemVariantId =
+            typeof item.variantId === 'object'
+              ? item.variantId._id
+              : item.variantId;
+
+          return itemVariantId === newVariantId;
+        });
+
         if (existing) {
           existing.quantity += action.payload.quantity;
         } else {
           state.items.push(action.payload);
         }
       })
+
       .addCase(addToCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;

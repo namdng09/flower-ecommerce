@@ -10,6 +10,7 @@ import {
   updateCartItem
 } from '~/store/slices/cartSlice';
 import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
 
 const CartItemsTable: React.FC = () => {
   const { user } = useContext(AuthContext);
@@ -26,8 +27,16 @@ const CartItemsTable: React.FC = () => {
     }
   }, [userId, dispatch]);
 
-  const handleRemove = (variantId: string) => {
-    dispatch(removeFromCart({ userId, variantId }));
+  const handleRemove = async (variantId: string) => {
+    if (!userId) return;
+
+    try {
+      await dispatch(removeFromCart({ userId, variantId })).unwrap();
+      toast.success('Đã xoá sản phẩm khỏi giỏ hàng!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Xoá không thành công!');
+    }
   };
 
   const handleQuantityChange = (variantId: string, quantity: number) => {
@@ -75,7 +84,10 @@ const CartItemsTable: React.FC = () => {
                   {items.map(item => {
                     const v = item?.variantId;
                     if (!v) return null;
+
                     const isDiscounted = v.salePrice < v.listPrice;
+                    const productTitle = v.product?.[0]?.title || 'Sản phẩm';
+
                     return (
                       <tr key={v._id} className='border-t'>
                         <td className='p-3 flex items-center gap-3'>
@@ -85,6 +97,9 @@ const CartItemsTable: React.FC = () => {
                             className='w-24 h-24 rounded object-cover'
                           />
                           <div>
+                            <p className='font-bold text-sm text-[#C4265B] uppercase'>
+                              {productTitle}
+                            </p>
                             <p className='font-semibold text-gray-800'>
                               {v.title}
                             </p>
