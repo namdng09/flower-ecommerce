@@ -111,7 +111,6 @@ const OrderPage: React.FC = () => {
     } else {
       navigate('/home/order-fail');
     }
-    
   };
 
   const handleCreateAddress = async () => {
