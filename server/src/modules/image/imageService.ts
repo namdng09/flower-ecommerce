@@ -4,17 +4,32 @@ interface UploadResult {
 }
 
 const uploadToCloudinary = async (
-  fileBuffer: Buffer,
-  fileName: string,
-  mimeType: string,
-  uploadPreset: string,
-  folder: string,
+  fileBuffer?: Buffer,
+  fileName?: string,
+  mimeType?: string,
+  uploadPreset?: string,
+  folder?: string,
   publicId?: string
 ): Promise<UploadResult> => {
   try {
+    // Validate parameters
+    if (!fileBuffer) {
+      throw new Error('No file provided');
+    }
+
+    if (!uploadPreset || !folder) {
+      throw new Error('upload_preset and folder are required');
+    }
+
+    if (!fileName || !mimeType) {
+      throw new Error('fileName and mimeType are required');
+    }
+
     const formData = new FormData();
 
-    const file = new Blob([fileBuffer], { type: mimeType });
+    const file = new Blob([fileBuffer], {
+      type: mimeType
+    });
     formData.append('file', file, fileName);
     formData.append('upload_preset', uploadPreset);
     formData.append('folder', folder);

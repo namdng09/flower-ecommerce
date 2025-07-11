@@ -14,22 +14,12 @@ type MulterRequest = Request & {
 
 const uploadImage = async (req: MulterRequest, res: Response) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file provided' });
-    }
-
     const { upload_preset, folder, public_id } = req.body;
 
-    if (!upload_preset || !folder) {
-      return res.status(400).json({
-        error: 'upload_preset and folder are required'
-      });
-    }
-
     const result = await uploadToCloudinary(
-      req.file.buffer,
-      req.file.originalname,
-      req.file.mimetype,
+      req.file?.buffer,
+      req.file?.originalname,
+      req.file?.mimetype,
       upload_preset,
       folder,
       public_id
@@ -43,7 +33,17 @@ const uploadImage = async (req: MulterRequest, res: Response) => {
     );
   } catch (error) {
     console.error('Upload error:', error);
-    res.status(500).json({ error: 'Upload failed' });
+
+    // Handle validation errors with appropriate status codes
+    const errorMessage =
+      error instanceof Error ? error.message : 'Upload failed';
+    const statusCode =
+      errorMessage.includes('required') ||
+      errorMessage.includes('No file provided')
+        ? 400
+        : 500;
+
+    res.status(statusCode).json({ error: errorMessage });
   }
 };
 
