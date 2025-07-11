@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import passport from 'passport';
 import authRoutes from '~/modules/auth/authRoute';
 import productRoute from '~/modules/product/productRoute';
 import categoryRoute from '~/modules/category/categoryRoute';
@@ -10,6 +9,8 @@ import reviewRoute from '~/modules/review/reviewRoute';
 import cartRoute from '~/modules/cart/cartRoute';
 import favouriteRoute from '~/modules/favourite/favouriteRoute';
 import orderRoute from '~/modules/order/orderRoute';
+import revenueRoute from '~/modules/revenue/revenueRoute';
+import imageRoute from '~/modules/image/imageRoute';
 import { authorize } from '~/middleware/authorize';
 import jwtAuth from '~/middleware/jwtAuth';
 
@@ -36,5 +37,9 @@ router.use('/favourites', favouriteRoute);
 router.use('/carts', jwtAuth, authorize('customer'), cartRoute);
 
 router.use('/orders', orderRoute);
+
+router.use('/revenue', revenueRoute);
+
+router.use('/images', imageRoute);
 
 export default router;

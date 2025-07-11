@@ -1,7 +1,11 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, {
+  Schema,
+  Document,
+  Model,
+  AggregatePaginateModel
+} from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
-import { PaginateModel, PaginateOptions, PaginateResult } from 'mongoose';
 
 export type OrderStatus =
   | 'pending'
@@ -141,7 +145,7 @@ const OrderSchema = new Schema<IOrder>(
     shop: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: true
     },
     user: {
       type: Schema.Types.ObjectId,
@@ -195,10 +199,7 @@ OrderSchema.pre<IOrder>('validate', async function (next) {
   next();
 });
 
-export interface OrderDocument extends IOrder, mongoose.Document {}
-export type OrderPaginateModel = PaginateModel<OrderDocument>;
-
-const OrderModel = mongoose.model<OrderDocument, OrderPaginateModel>(
+const OrderModel = mongoose.model<IOrder, AggregatePaginateModel<IOrder>>(
   'Order',
   OrderSchema
 );

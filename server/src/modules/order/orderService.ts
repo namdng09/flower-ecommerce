@@ -442,7 +442,7 @@ export const orderService = {
           await mailService.send({
             to: plainPopulatedOrder.shop.email,
             subject: `New Order Received`,
-            text: `You have received a new order. Order ID: ${plainPopulatedOrder._id}`,
+            text: `You have received a new order. Order ID: ${plainPopulatedOrder._id}`
           });
         }
       }
