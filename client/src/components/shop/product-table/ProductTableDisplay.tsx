@@ -11,33 +11,43 @@ import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 import type { RootState } from '~/store';
 import { AuthContext } from '~/contexts/authContext';
 import { useNavigate } from 'react-router';
-
+import FilterProduct from './FilterProduct';
 import React from 'react';
 
 const ProductTableDisplay = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
+  // Lấy state từ productSlice
   const {
     items = [],
+    shopProducts = [],
     loading,
-    error
+    error,
+    shopInfo
   } = useSelector((state: RootState) => state.products);
-  const { user } = useContext(AuthContext);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const totalItems = items.length;
-  const totalPages = Math.ceil(totalItems / limit);
-  const paginatedItems = items.slice((page - 1) * limit, page * limit);
+  const [isFiltering, setIsFiltering] = useState(false);
 
   useEffect(() => {
     if (user?.role === 'shop' && user.id) {
       dispatch(fetchProductsByShop(user.id));
     }
   }, [dispatch, user]);
+
+  // Chọn dữ liệu hiển thị: nếu đang filter thì dùng items, còn lại dùng shopProducts
+  const displayedProducts = isFiltering ? items : shopProducts;
+  const totalItems = displayedProducts.length;
+  const totalPages = Math.ceil(totalItems / limit);
+  const paginatedItems = displayedProducts.slice(
+    (page - 1) * limit,
+    page * limit
+  );
 
   if (!user || user.role !== 'shop' || !user.id) {
     return (
@@ -52,7 +62,6 @@ const ProductTableDisplay = () => {
     setShowConfirm(true);
   };
 
-  // SỬA: chỉ cần dispatch deleteProduct, không cần fetch lại danh sách
   const confirmDelete = async () => {
     if (selectedId) {
       try {
@@ -63,6 +72,11 @@ const ProductTableDisplay = () => {
       setShowConfirm(false);
       setSelectedId(null);
     }
+  };
+
+  const handleFilter = () => {
+    setIsFiltering(true);
+    setPage(1);
   };
 
   const columns = [
@@ -158,6 +172,7 @@ const ProductTableDisplay = () => {
 
   return (
     <div className='p-6 bg-white rounded-lg shadow-sm'>
+      <FilterProduct onFilter={() => setIsFiltering(true)} />
       <div className='flex justify-between items-start mb-6 flex-col sm:flex-row sm:items-center'>
         <div>
           {user && (
@@ -171,9 +186,6 @@ const ProductTableDisplay = () => {
           <h1 className='text-xl font-bold'>Sản phẩm của shop</h1>
         </div>
         <div className='flex gap-2 mt-2 sm:mt-0'>
-          <button className='px-3 py-2 text-sm border rounded hover:bg-gray-100'>
-            Filter
-          </button>
           <button
             className='bg-green-500 text-white px-4 py-2 text-sm rounded hover:bg-green-600'
             onClick={() => navigate('/shop/product/create')}
