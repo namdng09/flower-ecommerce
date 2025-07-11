@@ -191,7 +191,7 @@ const ReviewPage: React.FC = () => {
                                 <h3 className="font-semibold text-gray-700 mb-2">Các tùy chọn sản phẩm:</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                     {product.variants.map((variant) => (
-                                        <div key={variant._id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                        <div key={variant._id} className="flex items-center justify-between border bg-gray-50 p-2 rounded">
                                             <span className="text-sm text-gray-700">{variant.title}</span>
                                             <span className="text-sm font-semibold text-red-600">
                                                 {variant.salePrice.toLocaleString()}₫
