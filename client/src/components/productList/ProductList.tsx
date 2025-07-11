@@ -7,6 +7,7 @@ import ListCategory from '~/components/listcategory/ListCategory';
 import { AuthContext } from '~/contexts/authContext';
 import banner from '~/assets/banner1.webp';
 import { Link } from 'react-router';
+import { toast } from 'react-toastify';
 
 const ProductList = () => {
   const dispatch = useDispatch();
@@ -48,11 +49,26 @@ const ProductList = () => {
     return 0;
   });
 
-  const handleAddToCart = (variantId: string) => {
-    if (!userId) return alert('Vui lòng đăng nhập để thêm vào giỏ hàng.');
-    dispatch(addToCart({ userId, variantId, quantity: 1 }));
-  };
+  const handleAddToCart = async (variantId: string) => {
+    if (!userId) {
+      toast.warn('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+      return;
+    }
 
+    if (!variantId) {
+      toast.error('Sản phẩm chưa có biến thể hợp lệ!');
+      return;
+    }
+
+    try {
+      await dispatch(addToCart({ userId, variantId, quantity: 1 }))
+      toast.success('Đã thêm vào giỏ hàng!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Lỗi khi thêm vào giỏ hàng!');
+    }
+  };
+  
   return (
     <div className='container mx-auto px-4 pt-[200px] mb-5'>
       <div className='flex flex-col lg:flex-row gap-8'>

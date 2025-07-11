@@ -23,15 +23,16 @@ function FeaturedProductsC() {
     dispatch(fetchProducts());
   }, [dispatch]);
 
+
   const handleAddToCart = async (product: any) => {
     if (!isAuthenticated || !user?.id) {
-      console.log('Bạn cần đăng nhập để thêm vào giỏ hàng!');
+      toast.warn('Bạn cần đăng nhập để thêm vào giỏ hàng!');
       return;
     }
 
     const variant = product.variants?.[0];
     if (!variant) {
-      console.log('Sản phẩm chưa có biến thể!');
+      toast.error('Sản phẩm chưa có biến thể!');
       return;
     }
 
@@ -44,13 +45,13 @@ function FeaturedProductsC() {
         })
       ).unwrap();
 
-      console.log('Đã thêm vào giỏ hàng!');
+      toast.success('Đã thêm vào giỏ hàng!');
     } catch (err) {
-      console.log('Lỗi khi thêm vào giỏ hàng!');
+      toast.error('Lỗi khi thêm vào giỏ hàng!');
       console.error(err);
     }
   };
-
+  
   const handleBuyNow = (product: any) => {
     handleAddToCart(product);
     navigate('/home/checkout');

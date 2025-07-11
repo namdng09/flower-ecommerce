@@ -35,12 +35,12 @@ function FooterC() {
         <div className='mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8'>
           <div className='md:flex md:justify-between'>
             <div className='mb-5 md:mb-0'>
-              <a href='/' className='flex items-center'>
+              <Link to={`/home`} className='flex items-center'>
                 <img src={logo} className='h-40 me-3' alt='RibbonBox Logo' />
-              </a>
+              </Link>
             </div>
 
-            <div className='grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-4'>
+            {/* <div className='grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-4'>
               {footerItems.map(section => (
                 <div key={section.title}>
                   <h2 className='mb-6 text-sm font-semibold text-[#AD3542] uppercase'>
@@ -73,7 +73,7 @@ function FooterC() {
                   </ul>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
 
           <hr className='my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8' />

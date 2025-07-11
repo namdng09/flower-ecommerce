@@ -12,6 +12,7 @@ import {
   removeFavouriteItem
 } from '~/store/slices/favouriteSlice';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -19,9 +20,7 @@ const ProductPage = () => {
   const { user } = useContext(AuthContext);
   const [quantity, setQuantity] = useState(1);
 
-  const { product, loading, error } = useAppSelector(
-    state => state.productDetail
-  );
+  const { product, loading, error } = useAppSelector(state => state.productDetail);
   const { items: favourites } = useAppSelector(state => state.favourites); // FavouriteItem[]
 
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
@@ -56,16 +55,26 @@ const ProductPage = () => {
 
   useEffect(() => {
     if (product && Array.isArray(favourites)) {
-      const isFav = favourites.some(
-        f => f.productId === product._id || f.productId?._id === product._id
-      );
+      const isFav = favourites.some(f => f.productId === product._id || f.productId?._id === product._id);
       setIsFavourited(isFav);
     }
   }, [favourites, product]);
 
   const handleAddToCart = async () => {
-    if (!user?.id) return alert('Bạn cần đăng nhập để thêm vào giỏ hàng!');
-    if (!selectedVariant) return alert('Vui lòng chọn phiên bản sản phẩm!');
+    if (!user?.id) {
+      toast.warn('Bạn cần đăng nhập để thêm vào giỏ hàng!');
+      return;
+    }
+
+    if (!selectedVariant) {
+      toast.error('Vui lòng chọn phiên bản sản phẩm!');
+      return;
+    }
+
+    if (quantity < 1) {
+      toast.warn('Số lượng phải lớn hơn 0!');
+      return;
+    }
 
     try {
       await dispatch(
@@ -74,37 +83,39 @@ const ProductPage = () => {
           variantId: selectedVariant._id,
           quantity
         })
-      );
-      alert('✅ Đã thêm vào giỏ hàng!');
-    } catch {
-      alert('❌ Có lỗi khi thêm vào giỏ hàng!');
+      )
+
+      toast.success('Đã thêm vào giỏ hàng!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Có lỗi khi thêm vào giỏ hàng!');
     }
   };
-
+  
   const handleToggleFavourite = async () => {
-    if (!user?.id || !product)
-      return alert('Bạn cần đăng nhập để sử dụng mục yêu thích!');
+    if (!user?.id || !product) {
+      toast.warn('Bạn cần đăng nhập để sử dụng mục yêu thích!');
+      return;
+    }
+
     try {
       if (isFavourited) {
-        await dispatch(
-          removeFavouriteItem({ userId: user.id, productId: product._id })
-        );
+        await dispatch(removeFavouriteItem({ userId: user.id, productId: product._id }))
         setIsFavourited(false);
+        toast.success('Đã xoá khỏi mục yêu thích!');
       } else {
-        await dispatch(
-          addFavouriteItem({ userId: user.id, productId: product._id })
-        );
+        await dispatch(addFavouriteItem({ userId: user.id, productId: product._id }))
         setIsFavourited(true);
+        toast.success('Đã thêm vào mục yêu thích!');
       }
     } catch (err) {
       console.error('Lỗi khi xử lý yêu thích:', err);
+      toast.error('Đã xảy ra lỗi khi xử lý mục yêu thích!');
     }
   };
-
-  if (loading)
-    return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
-  if (error)
-    return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
+  
+  if (loading) return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
+  if (error) return <p className='pt-[200px] text-center text-red-600'>Lỗi: {error}</p>;
   if (!product) return null;
 
   return (
@@ -123,11 +134,10 @@ const ProductPage = () => {
                 setMainImage(product.thumbnailImage);
                 setSelectedVariant(null);
               }}
-              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
-                mainImage === product.thumbnailImage && !selectedVariant
-                  ? 'border-pink-600 border-2'
-                  : 'border-gray-300'
-              }`}
+              className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${mainImage === product.thumbnailImage && !selectedVariant
+                ? 'border-pink-600 border-2'
+                : 'border-gray-300'
+                }`}
             />
             {product.variants.map(variant => (
               <img
@@ -137,11 +147,10 @@ const ProductPage = () => {
                   setMainImage(variant.image);
                   setSelectedVariant(variant);
                 }}
-                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${
-                  selectedVariant?._id === variant._id
-                    ? 'border-pink-600 border-2'
-                    : 'border-gray-300'
-                }`}
+                className={`w-20 h-20 object-cover rounded-lg border cursor-pointer ${selectedVariant?._id === variant._id
+                  ? 'border-pink-600 border-2'
+                  : 'border-gray-300'
+                  }`}
               />
             ))}
           </div>
@@ -163,9 +172,7 @@ const ProductPage = () => {
             </button>
           </div>
 
-          <p className='text-sm text-gray-600'>
-            {product.description.replace(/"/g, '')}
-          </p>
+          <p className='text-sm text-gray-600'>{product.description.replace(/"/g, '')}</p>
 
           {product.variants.map(v => (
             <div
@@ -216,30 +223,21 @@ const ProductPage = () => {
           </div>
 
           <div className='pt-6 text-sm space-y-1'>
-            <p>
-              <strong>Danh mục:</strong>{' '}
-              {product.categories.map(c => c.title).join(', ')}
-            </p>
-            <p>
-              <strong>Người bán:</strong> {product.shop.fullName} (
-              {product.shop.username})
-            </p>
-            <p>
-              <strong>Liên hệ:</strong> {product.shop.phoneNumber} -{' '}
-              {product.shop.email}
-            </p>
+            <p><strong>Danh mục:</strong> {product.categories.map(c => c.title).join(', ')}</p>
+            <p><strong>Người bán:</strong> {product.shop.fullName} ({product.shop.username})</p>
+            <p><strong>Liên hệ:</strong> {product.shop.phoneNumber} - {product.shop.email}</p>
           </div>
 
-          <div className='flex items-center gap-4 p-4 border rounded-lg shadow-sm bg-gray-50 mt-4'>
-            <div className='w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-xl font-bold'>
+          <div className="flex items-center gap-4 p-4 border rounded-lg shadow-sm bg-gray-50 mt-4">
+            <div className="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 text-xl font-bold">
               {product.shop.fullName?.charAt(0).toUpperCase()}
             </div>
 
-            <div className='flex-1'>
-              <p className='text-sm text-gray-600'>Người bán:</p>
+            <div className="flex-1">
+              <p className="text-sm text-gray-600">Người bán:</p>
               <Link
                 to={`/home/shop-profile/${product.shop._id}`}
-                className='text-md font-medium text-pink-600 hover:underline'
+                className="text-md font-medium text-pink-600 hover:underline"
               >
                 {product.shop.fullName} ({product.shop.username})
               </Link>
@@ -247,11 +245,13 @@ const ProductPage = () => {
 
             <Link
               to={`/home/shop-profile/${product.shop._id}`}
-              className='text-sm px-4 py-1 bg-pink-100 text-pink-700 font-medium rounded hover:bg-pink-200 transition'
+              className="text-sm px-4 py-1 bg-pink-100 text-pink-700 font-medium rounded hover:bg-pink-200 transition"
             >
               Xem shop
             </Link>
           </div>
+
+
         </div>
       </div>
     </div>

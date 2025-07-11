@@ -3,6 +3,19 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api/orders';
 
+export const filterOrders = createAsyncThunk(
+  'orders/filterOrders',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const query = new URLSearchParams(params).toString();
+      const res = await axios.get(`${BASE_URL}/filter?${query}`);
+      return res.data.data.result;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Filter failed');
+    }
+  }
+);
+
 export const fetchOrders = createAsyncThunk(
   'orders/fetchAll',
   async (params = {}, { rejectWithValue }) => {
@@ -56,7 +69,7 @@ export const updateOrder = createAsyncThunk(
   'orders/updateOrder',
   async ({ id, updateData }, { rejectWithValue }) => {
     try {
-      const res = await axios.patch(`${BASE_URL}/${id}`, updateData);
+      const res = await axios.put(`${BASE_URL}/${id}`, updateData);
       return res.data.data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Update failed');
@@ -118,6 +131,27 @@ const orderSlice = createSlice({
   reducers: {},
   extraReducers: builder => {
     builder
+      .addCase(filterOrders.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(filterOrders.fulfilled, (state, action) => {
+        state.loading = false;
+        state.orders = [...action.payload.docs].sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        state.pagination = {
+          total: action.payload.totalDocs || [],
+          page: action.payload.page,
+          limit: action.payload.limit,
+          totalPages: action.payload.totalPages
+        };
+      })
+      .addCase(filterOrders.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       .addCase(fetchOrders.pending, state => {
         state.loading = true;
         state.error = null;
