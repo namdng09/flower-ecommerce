@@ -45,7 +45,9 @@ const CartItemsTable: React.FC = () => {
 
   return (
     <div className='pt-10 px-4 max-w-6xl mx-auto bg-white min-h-screen text-black mt-50'>
-      <h2 className='text-2xl font-bold mb-6 text-gray-800'>🛒 Giỏ hàng của bạn</h2>
+      <h2 className='text-2xl font-bold mb-6 text-gray-800'>
+        🛒 Giỏ hàng của bạn
+      </h2>
 
       {loading && <p>Đang tải...</p>}
 
@@ -83,8 +85,12 @@ const CartItemsTable: React.FC = () => {
                             className='w-24 h-24 rounded object-cover'
                           />
                           <div>
-                            <p className='font-semibold text-gray-800'>{v.title}</p>
-                            <p className='text-xs text-gray-500'>Mã: {v.variantCode}</p>
+                            <p className='font-semibold text-gray-800'>
+                              {v.title}
+                            </p>
+                            <p className='text-xs text-gray-500'>
+                              Mã: {v.variantCode}
+                            </p>
                           </div>
                         </td>
                         <td className='p-3'>

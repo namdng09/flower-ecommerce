@@ -1,4 +1,5 @@
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/upload`;
+import axiosInstance from '~/config/axiosConfig';
+const SERVER_UPLOAD_URL = `/api/images/upload`;
 
 interface UploadResult {
   url: string;
@@ -27,18 +28,20 @@ const uploadSingleAsset = async ({
   }
 
   try {
-    const response = await fetch(CLOUDINARY_URL, {
-      method: 'POST',
-      body: formData
+    const response = await axiosInstance.post(SERVER_UPLOAD_URL, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
 
-    if (!response.ok) {
-      throw new Error(`Upload failed: ${response.statusText}`);
+    if (response.status !== 200) {
+      throw new Error('Upload failed');
     }
-    const result = await response.json();
+
+    const result = response.data.data;
     return {
-      url: result.secure_url,
-      publicId: result.public_id
+      url: result.url,
+      publicId: result.publicId
     };
   } catch (error) {
     console.error('Error uploading file:', error);

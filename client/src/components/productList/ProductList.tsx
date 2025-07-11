@@ -32,10 +32,10 @@ const ProductList = () => {
 
   const filteredProducts = selectedCategoryId
     ? products.filter(
-      p =>
-        Array.isArray(p.categories) &&
-        p.categories.some(cat => cat._id === selectedCategoryId)
-    )
+        p =>
+          Array.isArray(p.categories) &&
+          p.categories.some(cat => cat._id === selectedCategoryId)
+      )
     : products;
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
