@@ -54,7 +54,10 @@ export const createReview = createAsyncThunk(
 
 export const updateReview = createAsyncThunk(
   'reviews/updateReview',
-  async ({ id, updateData }: { id: string; updateData: any }, { rejectWithValue }) => {
+  async (
+    { id, updateData }: { id: string; updateData: any },
+    { rejectWithValue }
+  ) => {
     try {
       const res = await axios.patch(`${BASE_URL}/${id}`, updateData);
       return res.data.data;

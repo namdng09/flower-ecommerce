@@ -108,6 +108,7 @@ const router = createBrowserRouter([
           }
         ]
       },
+      {
         path: 'order-tracking-detail',
         Component: lazy(() => import('../app/home/order-tracking-detail/page'))
       }
