@@ -34,6 +34,19 @@ export const reviewController = {
       .json(apiResponse.success('Review fetched successfully', review));
   },
   /**
+   * GET /reviews/product/:productId
+   * reviewController.show()
+   */
+  getByProduct: async (req: Request, res: Response): Promise<Response> => {
+    const { productId } = req.params;
+
+    const reviews = await reviewService.getByProduct(productId);
+
+    return res
+      .status(200)
+      .json(apiResponse.success('Reviews fetched successfully', reviews));
+  },
+  /**
    * POST /reviews
    * reviewController.create()
    */
@@ -47,7 +60,7 @@ export const reviewController = {
       .json(apiResponse.success('Review created successfully', newReview));
   },
   /**
-   * PUT /reviews/:id
+   * PATCH /reviews/:id
    * reviewController.update()
    */
   update: async (req: Request, res: Response): Promise<Response> => {

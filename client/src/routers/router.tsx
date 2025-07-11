@@ -100,6 +100,14 @@ const router = createBrowserRouter([
         Component: lazy(() => import('../app/home/shopProfile/[shopId]/page'))
       },
       {
+        path: 'review',
+        children: [
+          {
+            path: 'product/:productId',
+            Component: lazy(() => import('../app/home/review/[productId]/page'))
+          }
+        ]
+      },
         path: 'order-tracking-detail',
         Component: lazy(() => import('../app/home/order-tracking-detail/page'))
       }
