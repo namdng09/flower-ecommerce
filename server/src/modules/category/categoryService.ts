@@ -1,19 +1,20 @@
-import CategoryModel, { ICategory } from './categoryModel';
+import { ICategory } from './categoryModel';
+import { categoryRepository } from './categoryRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 
 export const categoryService = {
   list: async () => {
-    const allActiveCategories = await CategoryModel.find({
-      status: 'active'
-    }).lean();
+    const allActiveCategories = await categoryRepository.findAllActive();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const categoryMap = new Map<string, any>();
 
     allActiveCategories.forEach(cat => {
       categoryMap.set(cat._id.toString(), { ...cat, subCategory: [] });
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rootCategories: any[] = [];
 
     allActiveCategories.forEach(cat => {
@@ -34,7 +35,7 @@ export const categoryService = {
     if (!Types.ObjectId.isValid(categoryId)) {
       throw createHttpError(400, 'Invalid category id');
     }
-    const category = await CategoryModel.findById(categoryId);
+    const category = await categoryRepository.findById(categoryId);
     if (!category) {
       throw createHttpError(404, 'Category not found');
     }
@@ -54,6 +55,7 @@ export const categoryService = {
       : 'createdAt';
     const sortDirection = sortOrder === 'asc' ? 1 : -1;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: Record<string, any> = {};
     if (title && title.trim()) {
       filter.title = { $regex: title.trim(), $options: 'i' };
@@ -62,7 +64,7 @@ export const categoryService = {
     const pageNum = Number(page) > 0 ? Number(page) : 1;
     const limitNum = Number(limit) > 0 ? Number(limit) : 10;
 
-    const aggregate = CategoryModel.aggregate([
+    const aggregate = categoryRepository.aggregate([
       { $match: filter },
       { $sort: { [sortField as string]: sortDirection } }
     ]);
@@ -72,7 +74,7 @@ export const categoryService = {
       limit: limitNum
     };
 
-    const result = await (CategoryModel as any).aggregatePaginate(
+    const result = await categoryRepository.aggregatePaginate(
       aggregate,
       options
     );
@@ -90,21 +92,21 @@ export const categoryService = {
     if (parentId !== undefined && parentId !== null) {
       if (!Types.ObjectId.isValid(parentId))
         throw createHttpError(400, 'Invalid parentId');
-      const parent = await CategoryModel.findById(parentId);
+      const parent = await categoryRepository.findById(parentId);
       if (!parent || parent.parentId)
         throw createHttpError(404, 'Parent category not found');
     }
 
-    const duplicate = await CategoryModel.findOne({ title });
+    const duplicate = await categoryRepository.findByTitle(title);
     if (duplicate) {
       throw createHttpError(409, 'Category title already exists');
     }
 
-    const newCategory = await CategoryModel.create({
+    const newCategory = await categoryRepository.create({
       title,
       image,
       description,
-      parentId: parentId ?? null
+      parentId: parentId ?? undefined
     });
     return newCategory;
   },
@@ -116,13 +118,13 @@ export const categoryService = {
 
     const { title, image, description, status, parentId } = categoryData;
 
-    const category = await CategoryModel.findById(categoryId);
+    const category = await categoryRepository.findById(categoryId);
     if (!category) {
       throw createHttpError(404, 'Category not found');
     }
 
     if (title && title !== category.title) {
-      const duplicate = await CategoryModel.findOne({ title });
+      const duplicate = await categoryRepository.findByTitle(title);
       if (duplicate) {
         throw createHttpError(409, 'Category title already exists');
       }
@@ -134,7 +136,7 @@ export const categoryService = {
       if (parentId.equals(categoryId))
         throw createHttpError(400, 'Category cannot be its own parent');
       if (parentId !== null) {
-        const parent = await CategoryModel.findById(parentId);
+        const parent = await categoryRepository.findById(parentId);
         if (!parent || parent.parentId)
           throw createHttpError(404, 'Parent category not found');
       }
@@ -152,10 +154,9 @@ export const categoryService = {
       category.status = status;
     }
 
-    const updatedCategory = await CategoryModel.findByIdAndUpdate(
+    const updatedCategory = await categoryRepository.findByIdAndUpdate(
       categoryId,
-      category,
-      { new: true }
+      category
     );
     if (!updatedCategory) {
       throw createHttpError(404, 'Category not found');
@@ -167,7 +168,8 @@ export const categoryService = {
     if (!Types.ObjectId.isValid(categoryId)) {
       throw createHttpError(400, 'Invalid category id');
     }
-    const deletedCategory = await CategoryModel.findByIdAndDelete(categoryId);
+    const deletedCategory =
+      await categoryRepository.findByIdAndDelete(categoryId);
     if (!deletedCategory) {
       throw createHttpError(404, 'Category not found');
     }
@@ -175,7 +177,7 @@ export const categoryService = {
   },
 
   parents: async () => {
-    const parents = await CategoryModel.find({ parentId: null });
+    const parents = await categoryRepository.findParents();
     if (!parents || parents.length === 0) {
       throw createHttpError(404, 'No parent categories found');
     }
@@ -186,7 +188,7 @@ export const categoryService = {
     if (!Types.ObjectId.isValid(parentId)) {
       throw createHttpError(400, 'Invalid parent category id');
     }
-    const children = await CategoryModel.find({ parentId });
+    const children = await categoryRepository.findChildren(parentId);
     if (!children || children.length === 0) {
       throw createHttpError(404, 'No child categories found');
     }

@@ -1,4 +1,5 @@
-import UserModel, { IUser } from './userModel';
+import { IUser } from './userModel';
+import { userRepository } from './userRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import crypto from 'crypto';
@@ -13,9 +14,14 @@ export const userService = {
       throw createHttpError(400, 'Invalid role value');
     }
 
-    const filter = role ? { role } : {};
-    const users = await UserModel.find(filter).select('-password');
+    if (role) {
+      const users = await userRepository.findByRole(
+        role as 'admin' | 'customer' | 'shop'
+      );
+      return users;
+    }
 
+    const users = await userRepository.findAll();
     return users;
   },
 
@@ -47,6 +53,7 @@ export const userService = {
     const makeRegex = (value?: string | string[]) =>
       value ? { $regex: value, $options: 'i' } : undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const matchStage: Record<string, any> = {
       ...(fullName && { fullName: makeRegex(fullName) }),
       ...(username && { username: makeRegex(username) }),
@@ -55,7 +62,7 @@ export const userService = {
       ...(phoneNumber && { phoneNumber: makeRegex(phoneNumber) })
     };
 
-    const aggregate = UserModel.aggregate([
+    const aggregate = userRepository.aggregate([
       { $match: matchStage },
       { $sort: { [sortField as string]: sortDirection } }
     ]);
@@ -65,10 +72,7 @@ export const userService = {
       limit: parseInt(limit as string) || 10
     };
 
-    const result = await (UserModel as any).aggregatePaginate(
-      aggregate,
-      options
-    );
+    const result = await userRepository.aggregatePaginate(aggregate, options);
 
     return result;
   },
@@ -77,7 +81,7 @@ export const userService = {
     if (!Types.ObjectId.isValid(userId)) {
       throw createHttpError(400, 'Invalid user id');
     }
-    const user = await UserModel.findById(userId);
+    const user = await userRepository.findById(userId);
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
@@ -95,19 +99,23 @@ export const userService = {
       throw createHttpError(400, 'Invalid role value');
     }
 
-    if (await UserModel.findOne({ username })) {
+    if (await userRepository.findByUsername(username)) {
       throw createHttpError(409, 'Username already exists');
     }
-    if (await UserModel.findOne({ email })) {
+    if (await userRepository.findByEmail(email)) {
       throw createHttpError(409, 'Email already exists');
     }
-    if (await UserModel.findOne({ phoneNumber })) {
+    if (
+      await userRepository.countDocuments({
+        phoneNumber
+      })
+    ) {
       throw createHttpError(409, 'Phone number already exists');
     }
 
     const password = crypto.randomBytes(4).toString('hex');
 
-    const newUser = await UserModel.create({
+    const newUser = await userRepository.create({
       fullName,
       username,
       email,
@@ -126,6 +134,7 @@ export const userService = {
       text: `Hello ${fullName},\n\nYour account has been created successfully. Your password is: ${password}\n\nPlease change your password after logging in.\n\nBest regards,\nThe Team`
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...resUser } = newUser.toObject();
 
     return resUser;
@@ -138,7 +147,7 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const user = await UserModel.findById(userId);
+    const user = await userRepository.findByIdWithPassword(userId);
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
@@ -152,23 +161,31 @@ export const userService = {
     }
 
     if (username && username !== user.username) {
-      const dup = await UserModel.findOne({ username, _id: { $ne: userId } });
-      if (dup) throw createHttpError(409, 'Username already exists');
+      const dup = await userRepository.findByUsername(username);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (dup && (dup as any)._id.toString() !== userId) {
+        throw createHttpError(409, 'Username already exists');
+      }
       user.username = username;
     }
 
     if (email && email !== user.email) {
-      const dup = await UserModel.findOne({ email, _id: { $ne: userId } });
-      if (dup) throw createHttpError(409, 'Email already exists');
+      const dup = await userRepository.findByEmail(email);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (dup && (dup as any)._id.toString() !== userId) {
+        throw createHttpError(409, 'Email already exists');
+      }
       user.email = email;
     }
 
     if (phoneNumber && phoneNumber !== user.phoneNumber) {
-      const dup = await UserModel.findOne({
+      const dup = await userRepository.countDocuments({
         phoneNumber,
         _id: { $ne: userId }
       });
-      if (dup) throw createHttpError(409, 'Phone number already exists');
+      if (dup > 0) {
+        throw createHttpError(409, 'Phone number already exists');
+      }
       user.phoneNumber = phoneNumber;
     }
 
@@ -178,9 +195,16 @@ export const userService = {
     if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
     if (role !== undefined) user.role = role;
 
-    const updatedUser = await user.save();
+    const updatedUser = await userRepository.findByIdAndUpdate(userId, {
+      fullName: user.fullName,
+      username: user.username,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      role: user.role
+    });
     if (!updatedUser) throw createHttpError(400, 'User update failed');
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...resUser } = updatedUser.toObject();
     return resUser;
   },
@@ -190,7 +214,7 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const deleted = await UserModel.findByIdAndDelete(userId);
+    const deleted = await userRepository.findByIdAndDelete(userId);
     if (!deleted) throw createHttpError(404, 'User not found');
 
     return deleted;
@@ -206,13 +230,12 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const existingUser = await UserModel.findByIdAndUpdate(
-      userId,
-      { avatarUrl },
-      { new: true }
-    );
+    const existingUser = await userRepository.findByIdAndUpdate(userId, {
+      avatarUrl
+    });
     if (!existingUser) throw createHttpError(404, 'User not found');
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...resUser } = existingUser.toObject();
     return resUser;
   },
@@ -227,13 +250,12 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const existingUser = await UserModel.findByIdAndUpdate(
-      userId,
-      { coverUrl },
-      { new: true }
-    );
+    const existingUser = await userRepository.findByIdAndUpdate(userId, {
+      coverUrl
+    });
     if (!existingUser) throw createHttpError(404, 'User not found');
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...resUser } = existingUser.toObject();
     return resUser;
   },
@@ -249,16 +271,19 @@ export const userService = {
       throw createHttpError(400, 'New Password must be at least 6 characters');
     }
 
-    const user = await UserModel.findOne({ email });
+    const user = await userRepository.findByEmail(email || '');
     if (!user) throw createHttpError(404, 'User not found');
 
     const isMatch = await comparePassword(oldPassword, user.password);
     if (!isMatch) throw createHttpError(401, 'Incorrect old password');
 
-    user.password = newPassword;
-    await user.save();
+    const updatedUser = await userRepository.updatePassword(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (user as any)._id.toString(),
+      newPassword
+    );
 
-    return user;
+    return updatedUser;
   },
 
   changePassword: async (userId: string, newPassword: string) => {
@@ -269,14 +294,15 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const user = await UserModel.findById(userId);
+    const user = await userRepository.findByIdWithPassword(userId);
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
 
-    user.password = newPassword;
-
-    const updatedUser = await user.save();
+    const updatedUser = await userRepository.updatePassword(
+      userId,
+      newPassword
+    );
     if (!updatedUser) throw createHttpError(400, 'User update failed');
 
     return updatedUser;

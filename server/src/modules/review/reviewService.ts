@@ -1,10 +1,11 @@
-import ReviewModel, { IReviewRequest } from './reviewModel';
+import { IReviewRequest } from './reviewModel';
+import { reviewRepository } from './reviewRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 
 export const reviewService = {
   list: async () => {
-    const reviews = await ReviewModel.find();
+    const reviews = await reviewRepository.findAll();
     if (!reviews || reviews.length === 0) {
       throw createHttpError(404, 'No reviews found');
     }
@@ -15,7 +16,7 @@ export const reviewService = {
     if (!Types.ObjectId.isValid(reviewId)) {
       throw createHttpError(400, 'Invalid review id');
     }
-    const review = await ReviewModel.findById(reviewId);
+    const review = await reviewRepository.findById(reviewId);
     if (!review) {
       throw createHttpError(404, 'Review not found');
     }
@@ -35,8 +36,7 @@ export const reviewService = {
       throw createHttpError(400, 'Missing required fields');
     }
 
-    const newReview = new ReviewModel(reviewData);
-    await newReview.save();
+    const newReview = await reviewRepository.create(reviewData);
     return newReview;
   },
 
@@ -57,10 +57,9 @@ export const reviewService = {
       throw createHttpError(400, 'Missing required fields');
     }
 
-    const updatedReview = await ReviewModel.findByIdAndUpdate(
+    const updatedReview = await reviewRepository.findByIdAndUpdate(
       reviewId,
-      reviewData,
-      { new: true }
+      reviewData
     );
     if (!updatedReview) {
       throw createHttpError(404, 'Review not found');
@@ -72,7 +71,7 @@ export const reviewService = {
     if (!Types.ObjectId.isValid(reviewId)) {
       throw createHttpError(400, 'Invalid review id');
     }
-    const deletedReview = await ReviewModel.findByIdAndDelete(reviewId);
+    const deletedReview = await reviewRepository.findByIdAndDelete(reviewId);
     if (!deletedReview) {
       throw createHttpError(404, 'Review not found');
     }

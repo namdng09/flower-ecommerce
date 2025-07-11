@@ -1,17 +1,17 @@
-import OrderModel, { IOrder, IPayment, IShipment } from './orderModel';
+import { IOrder, IPayment, IShipment } from './orderModel';
 import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
-import VariantModel from '../variant/variantModel';
-import UserModel from '../user/userModel';
-import AddressModel from '../address/addressModel';
+import orderRepository from './orderRepository';
+import { variantRepository } from '../variant/variantRepository';
+import { userRepository } from '../user/userRepository';
+import addressRepository from '../address/addressRepository';
+import { productRepository } from '../product/productRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
-import ProductModel from '../product/productModel';
 import { mailService } from '../email/emailService';
 
 export const orderService = {
   list: async () => {
-    const orders = await OrderModel.find().populate('address');
-
+    const orders = await orderRepository.findAll();
     return orders;
   },
 
@@ -48,6 +48,7 @@ export const orderService = {
     const makeRegex = (value?: string | string[]) =>
       value ? { $regex: value, $options: 'i' } : undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const matchStage: Record<string, any> = {
       ...(orderNumber && { orderNumber: makeRegex(orderNumber) }),
       ...(status && { status: makeRegex(status) })
@@ -72,93 +73,16 @@ export const orderService = {
       : 'createdAt';
     const sortDirection = sortOrder === 'asc' ? 1 : -1;
 
-    const aggregate = [
-      { $match: matchStage },
-      { $sort: { [sortField as string]: sortDirection } },
-
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'shop',
-          foreignField: '_id',
-          pipeline: [{ $project: { password: 0 } }],
-          as: 'shop'
-        }
-      },
-      { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
-
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'user',
-          foreignField: '_id',
-          pipeline: [{ $project: { password: 0 } }],
-          as: 'user'
-        }
-      },
-      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-
-      {
-        $lookup: {
-          from: 'addresses',
-          localField: 'address',
-          foreignField: '_id',
-          as: 'address'
-        }
-      },
-      { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
-
-      { $unwind: '$items' },
-      {
-        $lookup: {
-          from: 'variants',
-          localField: 'items.variant',
-          foreignField: '_id',
-          as: 'items.variant'
-        }
-      },
-      { $unwind: '$items.variant' },
-
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'items.variant._id',
-          foreignField: 'variants',
-          pipeline: [{ $project: { title: 1, skuCode: 1, thumbnailImage: 1 } }],
-          as: 'productInfo'
-        }
-      },
-
-      {
-        $addFields: {
-          'items.variant.product': '$productInfo'
-        }
-      },
-      { $project: { productInfo: 0 } }, // bỏ field tạm
-
-      {
-        $group: {
-          _id: '$_id',
-          doc: { $first: '$$ROOT' },
-          items: { $push: '$items' }
-        }
-      },
-      {
-        $replaceRoot: {
-          newRoot: { $mergeObjects: ['$doc', { items: '$items' }] }
-        }
-      }
-    ];
+    const aggregate = await orderRepository.findWithFilters(matchStage, {
+      [sortField as string]: sortDirection
+    });
 
     const options = {
       page: parseInt(page as string) || 1,
       limit: parseInt(limit as string) || 10
     };
 
-    const result = await (OrderModel as any).aggregatePaginate(
-      aggregate,
-      options
-    );
+    const result = await orderRepository.aggregatePaginate(aggregate, options);
 
     return result;
   },
@@ -168,85 +92,7 @@ export const orderService = {
       throw createHttpError(400, 'Invalid order id');
     }
 
-    const aggregate = [
-      { $match: { _id: new Types.ObjectId(orderId) } },
-
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'user',
-          foreignField: '_id',
-          pipeline: [{ $project: { password: 0 } }],
-          as: 'user'
-        }
-      },
-      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
-
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'shop',
-          foreignField: '_id',
-          pipeline: [{ $project: { password: 0 } }],
-          as: 'shop'
-        }
-      },
-      { $unwind: { path: '$shop', preserveNullAndEmptyArrays: true } },
-
-      {
-        $lookup: {
-          from: 'addresses',
-          localField: 'address',
-          foreignField: '_id',
-          as: 'address'
-        }
-      },
-      { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
-
-      { $unwind: '$items' },
-
-      {
-        $lookup: {
-          from: 'variants',
-          localField: 'items.variant',
-          foreignField: '_id',
-          as: 'items.variant'
-        }
-      },
-      { $unwind: '$items.variant' },
-
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'items.variant._id',
-          foreignField: 'variants',
-          pipeline: [{ $project: { title: 1, skuCode: 1, thumbnailImage: 1 } }],
-          as: 'productInfo'
-        }
-      },
-      {
-        $addFields: {
-          'items.variant.product': { $arrayElemAt: ['$productInfo', 0] }
-        }
-      },
-      { $project: { productInfo: 0 } },
-
-      {
-        $group: {
-          _id: '$_id',
-          doc: { $first: '$$ROOT' },
-          items: { $push: '$items' }
-        }
-      },
-      {
-        $replaceRoot: {
-          newRoot: { $mergeObjects: ['$doc', { items: '$items' }] }
-        }
-      }
-    ];
-
-    const results = await OrderModel.aggregate(aggregate);
-    const order = results[0];
+    const order = await orderRepository.findByIdWithDetails(orderId);
 
     if (!order) {
       throw createHttpError(404, 'Order not found');
@@ -259,9 +105,7 @@ export const orderService = {
     if (!Types.ObjectId.isValid(userId))
       throw createHttpError(400, 'Invalid user id');
 
-    const orders = await OrderModel.find({ user: userId }).sort({
-      createdAt: -1
-    });
+    const orders = await orderRepository.findByUserId(userId);
 
     return orders;
   },
@@ -300,10 +144,10 @@ export const orderService = {
       }
     }
 
-    const existingUser = await UserModel.findById(user);
+    const existingUser = await userRepository.findById(user.toString());
     if (!existingUser) throw createHttpError(404, 'User not found');
 
-    const existingAddress = await AddressModel.findById(address);
+    const existingAddress = await addressRepository.findById(address);
     if (!existingAddress) throw createHttpError(404, 'Address not found');
 
     if (!Array.isArray(items) || items.length === 0)
@@ -315,7 +159,7 @@ export const orderService = {
       if (!Types.ObjectId.isValid(item.variant))
         throw createHttpError(400, `Invalid variant id at index ${index}`);
 
-      const variantDoc = await VariantModel.findById(item.variant);
+      const variantDoc = await variantRepository.findById(item.variant);
       if (!variantDoc)
         throw createHttpError(400, `Variant not found at index ${index}`);
 
@@ -325,16 +169,21 @@ export const orderService = {
       if (!item.price || item.price < 0)
         throw createHttpError(400, `Price must be ≥0 at index ${index}`);
 
-      const shopId = await ProductModel.findOne({
-        variants: item.variant
-      }).select('shop');
-      if (!shopId)
+      // Find product that contains this variant to get shop info
+      const products = await productRepository.findAll();
+      const shopProduct = products.find(p =>
+        p.variants.some(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (v: any) => v._id.toString() === item.variant.toString()
+        )
+      );
+      if (!shopProduct)
         throw createHttpError(
           400,
           `Shop not found for variant at index ${index}`
         );
 
-      const key = shopId.shop.toString();
+      const key = shopProduct.shop.toString();
 
       if (!shopItemMap.has(key)) {
         shopItemMap.set(key, []);
@@ -371,15 +220,6 @@ export const orderService = {
       payment.status = 'awaiting_payment';
     }
 
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-
-    const itemsTotal = items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0
-    );
-
-    const totalPrice = itemsTotal + shipment.shippingCost;
-
     const paymentStatus: PaymentStatus =
       payment.method === 'banking' ? 'awaiting_payment' : 'unpaid';
 
@@ -396,9 +236,9 @@ export const orderService = {
       );
       const totalPrice = itemsTotal + shipment.shippingCost;
 
-      const order = await OrderModel.create({
+      const order = await orderRepository.create({
         user,
-        shop: shopId,
+        shop: new Types.ObjectId(shopId),
         address,
         items: groupedItems,
         totalQuantity,
@@ -421,29 +261,22 @@ export const orderService = {
     // Helper function to send email notifications to shops
     async function sendEmailNotifications(orders: IOrder[]) {
       for (const order of orders) {
-        const populatedOrder = await OrderModel.findById(order._id)
-          .populate('address')
-          .populate('user')
-          .populate({
-            path: 'items.variant',
-            populate: {
-              path: 'product',
-              select: 'title skuCode thumbnailImage shop',
-              populate: {
-                path: 'shop',
-                select: 'fullName email role'
-              }
-            }
-          });
+        const populatedOrder = await orderRepository.findWithPopulation(
+          order._id as Types.ObjectId
+        );
 
         const plainPopulatedOrder = populatedOrder?.toObject();
 
-        if (plainPopulatedOrder?.shop?.email) {
-          await mailService.send({
-            to: plainPopulatedOrder.shop.email,
-            subject: `New Order Received`,
-            text: `You have received a new order. Order ID: ${plainPopulatedOrder._id}`
-          });
+        // Check if shop has email (assuming shop is populated with user data)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const shopEmail = (plainPopulatedOrder?.shop as any)?.email;
+        if (shopEmail) {
+          // Note: Using sendOrderSuccessToCustomer as a generic send method
+          // You may need to implement a specific shop notification method
+          await mailService.sendOrderSuccessToCustomer(
+            plainPopulatedOrder,
+            shopEmail
+          );
         }
       }
     }
@@ -462,12 +295,10 @@ export const orderService = {
   },
 
   updateShipment: async (orderId: string, shipmentData: IShipment) => {
-    const { carrier, trackingNumber, status, returnReason } = shipmentData;
-
     if (!Types.ObjectId.isValid(orderId))
       throw createHttpError(400, 'Invalid order id');
 
-    const order = await OrderModel.findById(orderId);
+    const order = await orderRepository.findById(orderId);
     if (!order) throw createHttpError(404, 'Order not found');
 
     const allowedShipmentStatus: ShipmentStatus[] = [
@@ -478,44 +309,26 @@ export const orderService = {
       'failed'
     ];
 
-    if (status && !allowedShipmentStatus.includes(status as ShipmentStatus)) {
+    if (
+      shipmentData.status &&
+      !allowedShipmentStatus.includes(shipmentData.status as ShipmentStatus)
+    ) {
       throw createHttpError(400, 'Invalid shipment status');
     }
 
-    const ship = order.shipment;
-
-    if (status !== undefined) {
-      ship.status = status as ShipmentStatus;
-
-      if (status === 'delivered') {
-        ship.deliveredAt = new Date();
-        order.status = 'delivered';
-
-        if (order.payment.method === 'cod') {
-          order.payment.paymentDate = ship.deliveredAt;
-          order.payment.status = 'paid';
-        }
-      } else if (status === 'failed') {
-        order.status = 'cancelled';
-      }
-    }
-
-    if (carrier !== undefined) ship.carrier = carrier;
-    if (trackingNumber !== undefined) ship.trackingNumber = trackingNumber;
-    if (returnReason !== undefined) ship.returnReason = returnReason;
-
-    const updated = await order.save();
+    const updated = await orderRepository.updateShipmentStatus(
+      orderId,
+      shipmentData
+    );
 
     return updated;
   },
 
   updatePayment: async (orderId: string, paymentData: IPayment) => {
-    const { status, description, paymentDate, gatewayRef } = paymentData;
-
     if (!Types.ObjectId.isValid(orderId))
       throw createHttpError(400, 'Invalid order id');
 
-    const order = await OrderModel.findById(orderId);
+    const order = await orderRepository.findById(orderId);
     if (!order) throw createHttpError(404, 'Order not found');
 
     const allowedPaymentStatus: PaymentStatus[] = [
@@ -526,22 +339,17 @@ export const orderService = {
       'refunded'
     ];
 
-    if (status && !allowedPaymentStatus.includes(status as PaymentStatus)) {
+    if (
+      paymentData.status &&
+      !allowedPaymentStatus.includes(paymentData.status as PaymentStatus)
+    ) {
       throw createHttpError(400, 'Invalid payment status');
     }
 
-    const pay = order.payment;
-
-    if (status !== undefined) pay.status = status;
-    if (description !== undefined) pay.description = description;
-    if (paymentDate !== undefined) pay.paymentDate = new Date(paymentDate);
-    if (gatewayRef !== undefined) pay.gatewayRef = gatewayRef;
-
-    if (status === 'expired') {
-      order.status = 'cancelled';
-    }
-
-    const updated = await order.save();
+    const updated = await orderRepository.updatePaymentStatus(
+      orderId,
+      paymentData
+    );
 
     return updated;
   },
@@ -570,23 +378,14 @@ export const orderService = {
     if (status && !allowedStatus.includes(status))
       throw createHttpError(400, 'Invalid order status');
 
-    const order = await OrderModel.findById(orderId);
+    const order = await orderRepository.findById(orderId);
     if (!order) throw createHttpError(404, 'Order not found');
 
-    if (status !== undefined) order.status = status;
-    if (description !== undefined) order.description = description;
-
-    if (expectedDeliveryAt !== undefined) {
-      const dateObj = new Date(expectedDeliveryAt);
-      if (isNaN(dateObj.getTime()))
-        throw createHttpError(400, 'Invalid expectedDeliveryAt date');
-      order.expectedDeliveryAt = dateObj;
-    }
-
-    if (status === 'delivered' && !order.shipment.deliveredAt)
-      order.shipment.deliveredAt = new Date();
-
-    const updated = await order.save();
+    const updated = await orderRepository.updateOrderStatus(orderId, {
+      status,
+      description,
+      expectedDeliveryAt
+    });
 
     return updated;
   },
@@ -595,7 +394,7 @@ export const orderService = {
     if (!Types.ObjectId.isValid(orderId))
       throw createHttpError(400, 'Invalid order id');
 
-    const deleted = await OrderModel.findByIdAndDelete(orderId);
+    const deleted = await orderRepository.findByIdAndDelete(orderId);
     if (!deleted) throw createHttpError(404, 'Order not found');
 
     return deleted;

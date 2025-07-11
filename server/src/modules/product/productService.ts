@@ -1,16 +1,14 @@
-import ProductModel, { IProduct } from './productModel';
-import { IVariant } from '../variant/variantModel';
-import VariantModel from '../variant/variantModel';
-import UserModel from '../user/userModel';
+import { IProduct } from './productModel';
+import { productRepository } from './productRepository';
+import { variantRepository } from '../variant/variantRepository';
+import { userRepository } from '../user/userRepository';
 import createHttpError from 'http-errors';
 import mongoose, { Types } from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
 
 export const productService = {
   list: async () => {
-    const products = await ProductModel.find().populate(
-      'categories shop variants'
-    );
+    const products = await productRepository.findAll();
     return products;
   },
 
@@ -27,7 +25,8 @@ export const productService = {
     province?: string,
     ward?: string
   ) => {
-    const matchStage: any = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const matchStage: Record<string, any> = {};
 
     if (shop) {
       if (!Types.ObjectId.isValid(shop)) {
@@ -50,7 +49,7 @@ export const productService = {
     const min = minPrice ? parseFloat(minPrice as string) : null;
     const max = maxPrice ? parseFloat(maxPrice as string) : null;
 
-    const aggregate = ProductModel.aggregate([
+    const aggregate = productRepository.aggregate([
       { $match: matchStage },
       {
         $sort: {
@@ -166,7 +165,7 @@ export const productService = {
       limit: parseInt(limit as string) || 10
     };
 
-    const result = await (ProductModel as any).aggregatePaginate(
+    const result = await productRepository.aggregatePaginate(
       aggregate,
       options
     );
@@ -178,9 +177,7 @@ export const productService = {
     if (!Types.ObjectId.isValid(productId))
       throw createHttpError(400, 'Invalid product id');
 
-    const product = await ProductModel.findById(productId).populate(
-      'categories shop variants'
-    );
+    const product = await productRepository.findById(productId);
     if (!product) throw createHttpError(404, 'Product not found');
 
     return product;
@@ -218,7 +215,9 @@ export const productService = {
     if (!Types.ObjectId.isValid(shop))
       throw createHttpError(400, 'Invalid shop id');
 
-    const shopExists = await UserModel.findOne({ _id: shop, role: 'shop' });
+    const shopExists = await userRepository.findShopWithAddress(
+      shop.toString()
+    );
     if (!shopExists) throw createHttpError(404, 'Shop not found');
 
     // if (!Types.ObjectId.isValid(category))
@@ -240,6 +239,7 @@ export const productService = {
         salePrice,
         image,
         inventory = 0
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } = variant as any;
 
       if (!title || typeof title !== 'string' || title.trim() === '') {
@@ -251,11 +251,11 @@ export const productService = {
       }
 
       let variantCode = generateSKU();
-      while (await VariantModel.findOne({ variantCode })) {
+      while (await variantRepository.findByVariantCode(variantCode)) {
         variantCode = generateSKU();
       }
 
-      const newVariant = await VariantModel.create([
+      const newVariant = await variantRepository.createMany([
         {
           variantCode,
           title,
@@ -269,11 +269,11 @@ export const productService = {
     }
 
     let productCode = generateSKU();
-    while (await ProductModel.findOne({ skuCode: productCode })) {
+    while (await productRepository.findBySKU(productCode)) {
       productCode = generateSKU();
     }
 
-    const product = await ProductModel.create({
+    const product = await productRepository.create({
       title,
       shop,
       skuCode: productCode,
@@ -306,7 +306,7 @@ export const productService = {
     if (!Types.ObjectId.isValid(productId))
       throw createHttpError(400, 'Invalid product id');
 
-    const product = await ProductModel.findById(productId);
+    const product = await productRepository.findById(productId);
     if (!product) throw createHttpError(404, 'Product not found');
 
     if (
@@ -344,6 +344,7 @@ export const productService = {
           salePrice,
           image,
           inventory = 0
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } = variant as any;
 
         if (!title || typeof title !== 'string' || title.trim() === '') {
@@ -354,11 +355,11 @@ export const productService = {
           throw createHttpError(400, 'Sale Price cannot exceed List Price');
 
         let variantCode = generateSKU();
-        while (await VariantModel.findOne({ variantCode })) {
+        while (await variantRepository.findByVariantCode(variantCode)) {
           variantCode = generateSKU();
         }
 
-        const newVariant = await VariantModel.create({
+        const newVariant = await variantRepository.create({
           variantCode,
           title,
           listPrice,
@@ -389,7 +390,7 @@ export const productService = {
     if (!Types.ObjectId.isValid(productId))
       throw createHttpError(400, 'Invalid product id');
 
-    const deleted = await ProductModel.findByIdAndDelete(productId);
+    const deleted = await productRepository.findByIdAndDelete(productId);
     if (!deleted) throw createHttpError(404, 'Product not found');
 
     return deleted;
@@ -399,9 +400,7 @@ export const productService = {
     if (!Types.ObjectId.isValid(shopId))
       throw createHttpError(400, 'Invalid shop id');
 
-    const products = await ProductModel.find({ shop: shopId }).populate(
-      'categories'
-    );
+    const products = await productRepository.findByShop(shopId);
     return products;
   },
 
@@ -409,9 +408,7 @@ export const productService = {
     if (!Types.ObjectId.isValid(categoryId))
       throw createHttpError(400, 'Invalid category id');
 
-    const products = await ProductModel.find({
-      categories: categoryId
-    }).populate('shop');
+    const products = await productRepository.findByCategory(categoryId);
 
     return products;
   }

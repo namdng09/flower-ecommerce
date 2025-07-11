@@ -1,7 +1,8 @@
-import AddressModel, { IAddress } from './addressModel';
+import { IAddress } from './addressModel';
+import addressRepository from './addressRepository';
+import { userRepository } from '../user/userRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
-import UserModel from '../user/userModel';
 
 export const addressService = {
   listByUserId: async (userId: string) => {
@@ -9,7 +10,7 @@ export const addressService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const addresses = await AddressModel.find({ user: userId });
+    const addresses = await addressRepository.findByUserId(userId);
     return addresses;
   },
 
@@ -17,7 +18,7 @@ export const addressService = {
     if (!Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid address id');
     }
-    const address = await AddressModel.findById(id);
+    const address = await addressRepository.findById(id);
     if (!address) {
       throw createHttpError(404, 'Address not found');
     }
@@ -42,7 +43,7 @@ export const addressService = {
       throw createHttpError(400, 'Invalid or missing user Id');
     }
 
-    const userExists = await UserModel.exists({ _id: user });
+    const userExists = await userRepository.findById(user.toString());
     if (!userExists) {
       throw createHttpError(404, 'User not found');
     }
@@ -59,14 +60,7 @@ export const addressService = {
       );
     }
 
-    if (isDefault) {
-      await AddressModel.updateMany(
-        { user, isDefault: true },
-        { isDefault: false }
-      );
-    }
-
-    const newAddress = await AddressModel.create({
+    const newAddress = await addressRepository.create({
       user,
       fullName,
       phone,
@@ -78,6 +72,13 @@ export const addressService = {
       addressType,
       isDefault
     });
+
+    if (isDefault && newAddress._id) {
+      await addressRepository.setDefaultAddress(
+        user,
+        newAddress._id.toString()
+      );
+    }
 
     return newAddress;
   },
@@ -112,7 +113,7 @@ export const addressService = {
       );
     }
 
-    const address = await AddressModel.findById(id);
+    const address = await addressRepository.findById(id);
     if (!address) {
       throw createHttpError(404, 'Address not found');
     }
@@ -121,29 +122,30 @@ export const addressService = {
       throw createHttpError(400, 'Invalid or missing user Id');
     }
 
-    const userExists = await UserModel.exists({ _id: user });
+    const userExists = await userRepository.findById(user.toString());
     if (!userExists) {
       throw createHttpError(404, 'User does not exist');
     }
 
-    if (user !== undefined) address.user = user;
-    if (fullName !== undefined) address.fullName = fullName;
-    if (phone !== undefined) address.phone = phone;
-    if (province !== undefined) address.province = province;
-    if (ward !== undefined) address.ward = ward;
-    if (street !== undefined) address.street = street;
-    if (location !== undefined) address.location = location;
-    if (plusCode !== undefined) address.plusCode = plusCode;
-    if (addressType !== undefined) address.addressType = addressType;
-    if (isDefault !== undefined) address.isDefault = isDefault;
+    const updateData: Partial<IAddress> = {};
+    if (user !== undefined) updateData.user = user;
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (phone !== undefined) updateData.phone = phone;
+    if (province !== undefined) updateData.province = province;
+    if (ward !== undefined) updateData.ward = ward;
+    if (street !== undefined) updateData.street = street;
+    if (location !== undefined) updateData.location = location;
+    if (plusCode !== undefined) updateData.plusCode = plusCode;
+    if (addressType !== undefined) updateData.addressType = addressType;
+    if (isDefault !== undefined) updateData.isDefault = isDefault;
 
-    const updatedAddress = await address.save();
+    const updatedAddress = await addressRepository.findByIdAndUpdate(
+      id,
+      updateData
+    );
 
-    if (isDefault === true && address.user) {
-      await AddressModel.updateMany(
-        { user: address.user, _id: { $ne: id }, isDefault: true },
-        { isDefault: false }
-      );
+    if (isDefault === true && updatedAddress?.user) {
+      await addressRepository.setDefaultAddress(updatedAddress.user, id);
     }
 
     return updatedAddress;
@@ -153,7 +155,7 @@ export const addressService = {
     if (!Types.ObjectId.isValid(id)) {
       throw createHttpError(400, 'Invalid address id');
     }
-    const deletedAddress = await AddressModel.findByIdAndDelete(id);
+    const deletedAddress = await addressRepository.findByIdAndDelete(id);
     if (!deletedAddress) {
       throw createHttpError(404, 'Address not found');
     }

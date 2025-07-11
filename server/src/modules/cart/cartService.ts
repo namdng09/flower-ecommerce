@@ -1,5 +1,6 @@
-import CartModel, { ICart, ICartItem } from './cartModel';
-import VariantModel from '../variant/variantModel';
+import { ICartItem } from './cartModel';
+import { cartRepository } from './cartRepository';
+import { variantRepository } from '../variant/variantRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { calculateCartTotals } from '~/utils/calculateCartTotals';
@@ -10,16 +11,7 @@ export const cartService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const cart = await CartModel.findOne({ userId })
-      .populate({
-        path: 'items.variantId',
-        select: 'variantCode title salePrice listPrice image product',
-        populate: {
-          path: 'product',
-          select: 'title skuCode thumbnailImage -variants'
-        }
-      })
-      .lean();
+    const cart = await cartRepository.findByUserIdWithPopulation(userId);
 
     return cart;
   },
@@ -39,12 +31,15 @@ export const cartService = {
       throw createHttpError(400, 'Quantity must be ≥ 1');
     }
 
-    const variant = await VariantModel.findById(variantId).select('salePrice');
+    const variant = await variantRepository.findById(variantId);
     if (!variant) throw createHttpError(404, 'Variant not found');
 
-    let cart = await CartModel.findOne({ userId });
+    let cart = await cartRepository.findByUserId(userId);
     if (!cart) {
-      cart = new CartModel({ userId, items: [] });
+      cart = await cartRepository.create({
+        userId: new Types.ObjectId(userId),
+        items: []
+      });
     }
 
     const existingCart = cart.items.find(item =>
@@ -61,10 +56,12 @@ export const cartService = {
     }
 
     const { totalQuantity, totalPrice } = calculateCartTotals(cart.items);
-    cart.totalQuantity = totalQuantity;
-    cart.totalPrice = totalPrice;
 
-    const savedCart = await cart.save();
+    const savedCart = await cartRepository.findByUserIdAndUpdate(userId, {
+      items: cart.items,
+      totalQuantity,
+      totalPrice
+    });
 
     return savedCart;
   },
@@ -84,9 +81,12 @@ export const cartService = {
       throw createHttpError(400, 'Quantity must be ≥ 1');
     }
 
-    let cart = await CartModel.findOne({ userId });
+    let cart = await cartRepository.findByUserId(userId);
     if (!cart) {
-      cart = new CartModel({ userId, items: [] });
+      cart = await cartRepository.create({
+        userId: new Types.ObjectId(userId),
+        items: []
+      });
     }
 
     const existingCart = cart.items.find(item =>
@@ -100,10 +100,12 @@ export const cartService = {
     existingCart.quantity = quantity;
 
     const { totalQuantity, totalPrice } = calculateCartTotals(cart.items);
-    cart.totalQuantity = totalQuantity;
-    cart.totalPrice = totalPrice;
 
-    const savedCart = await cart.save();
+    const savedCart = await cartRepository.findByUserIdAndUpdate(userId, {
+      items: cart.items,
+      totalQuantity,
+      totalPrice
+    });
 
     return savedCart;
   },
@@ -119,9 +121,12 @@ export const cartService = {
       throw createHttpError(400, 'Invalid variantId');
     }
 
-    let cart = await CartModel.findOne({ userId });
+    let cart = await cartRepository.findByUserId(userId);
     if (!cart) {
-      cart = new CartModel({ userId, items: [] });
+      cart = await cartRepository.create({
+        userId: new Types.ObjectId(userId),
+        items: []
+      });
     }
 
     const item = cart.items.findIndex(item => item.variantId.equals(variantId));
@@ -140,7 +145,11 @@ export const cartService = {
       0
     );
 
-    await cart.save();
+    await cartRepository.findByUserIdAndUpdate(userId, {
+      items: cart.items,
+      totalQuantity: cart.totalQuantity,
+      totalPrice: cart.totalPrice
+    });
 
     return cart;
   },
@@ -150,18 +159,12 @@ export const cartService = {
       throw createHttpError(400, 'Invalid userId');
     }
 
-    let cart = await CartModel.findOne({ userId });
-    if (!cart) {
-      cart = new CartModel({ userId, items: [] });
-    }
+    const updatedCart = await cartRepository.findByUserIdAndUpdate(userId, {
+      items: [],
+      totalQuantity: 0,
+      totalPrice: 0
+    });
 
-    cart.items = [];
-
-    cart.totalQuantity = 0;
-    cart.totalPrice = 0;
-
-    await cart.save();
-
-    return cart;
+    return updatedCart;
   }
 };

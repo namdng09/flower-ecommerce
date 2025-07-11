@@ -1,17 +1,13 @@
-import VariantModel, { IVariant } from './variantModel';
+import { IVariant } from './variantModel';
+import { variantRepository } from './variantRepository';
+import { productRepository } from '../product/productRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
-import ProductModel from '../product/productModel';
 
 export const variantService = {
   list: async () => {
-    const variants = await VariantModel.find()
-      .populate({
-        path: 'product',
-        select: 'title skuCode thumbnailImage'
-      })
-      .lean();
+    const variants = await variantRepository.findAll();
 
     if (!variants || variants.length === 0) {
       throw createHttpError(404, 'No variant found');
@@ -24,8 +20,9 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const product = await ProductModel.findOne({ variants: variantId }).select(
-      'shop'
+    const products = await productRepository.findAll();
+    const product = products.find(p =>
+      p.variants.some(v => v.toString() === variantId)
     );
 
     if (!product) {
@@ -40,7 +37,7 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const variant = await VariantModel.findById(variantId);
+    const variant = await variantRepository.findById(variantId);
     if (!variant) {
       throw createHttpError(404, 'Variant not found');
     }
@@ -53,9 +50,9 @@ export const variantService = {
       throw createHttpError(400, 'Variant Code is required');
     }
 
-    const variant = await VariantModel.findOne({
-      variantCode: variantCode.trim()
-    });
+    const variant = await variantRepository.findByVariantCode(
+      variantCode.trim()
+    );
 
     if (!variant) {
       throw createHttpError(404, 'Variant not found');
@@ -77,13 +74,13 @@ export const variantService = {
 
     let variantCode = generateSKU();
 
-    let existing = await VariantModel.findOne({ variantCode });
+    let existing = await variantRepository.findByVariantCode(variantCode);
     while (existing) {
       variantCode = generateSKU();
-      existing = await VariantModel.findOne({ variantCode });
+      existing = await variantRepository.findByVariantCode(variantCode);
     }
 
-    const variant = await VariantModel.create({
+    const variant = await variantRepository.create({
       variantCode,
       title,
       listPrice,
@@ -102,7 +99,7 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const variant = await VariantModel.findById(variantId);
+    const variant = await variantRepository.findById(variantId);
     if (!variant) {
       throw createHttpError(404, 'Variant not found');
     }
@@ -115,13 +112,17 @@ export const variantService = {
       throw createHttpError(400, 'Sale Price cannot exceed List Price');
     }
 
-    if (title !== undefined) variant.title = title;
-    if (listPrice !== undefined) variant.listPrice = listPrice;
-    if (salePrice !== undefined) variant.salePrice = salePrice;
-    if (image !== undefined) variant.image = image;
-    if (inventory !== undefined) variant.inventory = inventory;
+    const updateData: Partial<IVariant> = {};
+    if (title !== undefined) updateData.title = title;
+    if (listPrice !== undefined) updateData.listPrice = listPrice;
+    if (salePrice !== undefined) updateData.salePrice = salePrice;
+    if (image !== undefined) updateData.image = image;
+    if (inventory !== undefined) updateData.inventory = inventory;
 
-    const updatedVariant = await variant.save();
+    const updatedVariant = await variantRepository.findByIdAndUpdate(
+      variantId,
+      updateData
+    );
     return updatedVariant;
   },
 
@@ -130,7 +131,7 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const deleted = await VariantModel.findByIdAndDelete(variantId);
+    const deleted = await variantRepository.findByIdAndDelete(variantId);
     if (!deleted) {
       throw createHttpError(404, 'Variant not found');
     }

@@ -1,4 +1,4 @@
-import FavouriteModel, { IFavourite } from './favouriteModel';
+import { favouriteRepository } from './favouriteRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 
@@ -13,16 +13,17 @@ export const favouriteService = {
 
     const productObjectId = new Types.ObjectId(productId);
 
-    let favourite = await FavouriteModel.findOne({ userId });
+    let favourite = await favouriteRepository.findByUserId(userId);
 
     if (favourite) {
-      if (!favourite.products.some(id => id.equals(productObjectId))) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!favourite.products.some((id: any) => id.equals(productObjectId))) {
         favourite.products.push(productObjectId);
         await favourite.save();
       }
     } else {
-      favourite = await FavouriteModel.create({
-        userId,
+      favourite = await favouriteRepository.create({
+        userId: new Types.ObjectId(userId),
         products: [productObjectId]
       });
     }
@@ -34,13 +35,11 @@ export const favouriteService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    let favourite = await FavouriteModel.findOne({ userId }).populate(
-      'products'
-    );
+    let favourite = await favouriteRepository.findByUserIdWithProducts(userId);
 
     if (!favourite) {
-      favourite = await FavouriteModel.create({
-        userId
+      favourite = await favouriteRepository.create({
+        userId: new Types.ObjectId(userId)
       });
     }
 
@@ -52,17 +51,18 @@ export const favouriteService = {
       throw createHttpError(400, 'Missing required fields');
     }
 
-    let favourite = await FavouriteModel.findOne({ userId });
+    let favourite = await favouriteRepository.findByUserId(userId);
     if (!favourite) {
-      favourite = await FavouriteModel.create({
-        userId
+      favourite = await favouriteRepository.create({
+        userId: new Types.ObjectId(userId)
       });
       throw createHttpError(400, 'Favourite list is currently empty');
     }
 
     const initialLength = favourite.products.length;
     favourite.products = favourite.products.filter(
-      id => !id.equals(new Types.ObjectId(productId))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (id: any) => !id.equals(new Types.ObjectId(productId))
     );
 
     if (favourite.products.length === initialLength) {
