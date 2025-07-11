@@ -70,9 +70,7 @@ const OrderPage: React.FC = () => {
   if (loading) return <p className='text-center mt-10'>Đang tải đơn hàng...</p>;
   if (error || !order)
     return (
-      <p className='text-center mt-10 text-red-600'>
-        Không tìm thấy đơn hàng.
-      </p>
+      <p className='text-center mt-10 text-red-600'>Không tìm thấy đơn hàng.</p>
     );
 
   const {
@@ -95,25 +93,27 @@ const OrderPage: React.FC = () => {
         </div>
 
         {order.shop && (
-          <div className="flex items-center justify-between border border-gray-200 rounded-lg p-4 bg-gray-50 mb-6 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-lg">
+          <div className='flex items-center justify-between border border-gray-200 rounded-lg p-4 bg-gray-50 mb-6 shadow-sm'>
+            <div className='flex items-center gap-3'>
+              <div className='w-10 h-10 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-lg'>
                 {order.shop.fullName?.charAt(0)?.toUpperCase() || 'S'}
               </div>
 
               <div>
-                <p className="text-sm text-gray-500">Người bán:</p>
-                <p className="text-[#C4265B] font-semibold">
+                <p className='text-sm text-gray-500'>Người bán:</p>
+                <p className='text-[#C4265B] font-semibold'>
                   {order.shop.fullName}{' '}
-                  <span className="text-sm text-gray-600">({order.shop.username})</span>
+                  <span className='text-sm text-gray-600'>
+                    ({order.shop.username})
+                  </span>
                 </p>
 
-                <p className="text-sm text-gray-700 flex items-center gap-1 mt-1">
-                  <FiPhone className="text-pink-500" size={14} />
+                <p className='text-sm text-gray-700 flex items-center gap-1 mt-1'>
+                  <FiPhone className='text-pink-500' size={14} />
                   <span>{order.shop.phoneNumber}</span>
                 </p>
-                <p className="text-sm text-gray-700 flex items-center gap-1">
-                  <FiMail className="text-pink-500" size={14} />
+                <p className='text-sm text-gray-700 flex items-center gap-1'>
+                  <FiMail className='text-pink-500' size={14} />
                   <span>{order.shop.email}</span>
                 </p>
               </div>
@@ -121,7 +121,7 @@ const OrderPage: React.FC = () => {
 
             <button
               onClick={() => navigate(`/home/shop-profile/${order.shop._id}`)}
-              className="bg-pink-100 text-[#C4265B] hover:bg-pink-200 px-4 py-1 rounded-md text-sm font-medium transition whitespace-nowrap"
+              className='bg-pink-100 text-[#C4265B] hover:bg-pink-200 px-4 py-1 rounded-md text-sm font-medium transition whitespace-nowrap'
             >
               Xem shop
             </button>
@@ -159,9 +159,11 @@ const OrderPage: React.FC = () => {
           Địa chỉ giao hàng
         </h2>
         <p className='mb-4'>
-          <strong>{address.fullName || '---'}</strong> - {address.phone || '---'}
+          <strong>{address.fullName || '---'}</strong> -{' '}
+          {address.phone || '---'}
           <br />
-          {address.street || '...'}, {address.ward || '...'}, {address.province || '...'}
+          {address.street || '...'}, {address.ward || '...'},{' '}
+          {address.province || '...'}
         </p>
 
         {customization && (
@@ -186,13 +188,16 @@ const OrderPage: React.FC = () => {
             {customization.deliveryTimeRequested && (
               <div className='text-gray-800'>
                 <strong>Thời gian giao hàng mong muốn:</strong>{' '}
-                {new Date(customization.deliveryTimeRequested).toLocaleString('vi-VN', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric'
-                })}
+                {new Date(customization.deliveryTimeRequested).toLocaleString(
+                  'vi-VN',
+                  {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  }
+                )}
               </div>
             )}
           </div>
@@ -241,4 +246,3 @@ const OrderPage: React.FC = () => {
 };
 
 export default OrderPage;
-
