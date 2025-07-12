@@ -23,7 +23,6 @@ function FeaturedProductsC() {
     dispatch(fetchProducts());
   }, [dispatch]);
 
-
   const handleAddToCart = async (product: any) => {
     if (!isAuthenticated || !user?.id) {
       toast.warn('Bạn cần đăng nhập để thêm vào giỏ hàng!');
@@ -51,7 +50,7 @@ function FeaturedProductsC() {
       console.error(err);
     }
   };
-  
+
   const handleBuyNow = (product: any) => {
     handleAddToCart(product);
     navigate('/home/checkout');

@@ -61,14 +61,14 @@ const ProductList = () => {
     }
 
     try {
-      await dispatch(addToCart({ userId, variantId, quantity: 1 }))
+      await dispatch(addToCart({ userId, variantId, quantity: 1 }));
       toast.success('Đã thêm vào giỏ hàng!');
     } catch (error) {
       console.error(error);
       toast.error('Lỗi khi thêm vào giỏ hàng!');
     }
   };
-  
+
   return (
     <div className='container mx-auto px-4 pt-[200px] mb-5'>
       <div className='flex flex-col lg:flex-row gap-8'>

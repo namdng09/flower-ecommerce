@@ -6,7 +6,14 @@ import { createOrder } from '~/store/slices/orderSlice';
 import { fetchAddresses, createAddress } from '~/store/slices/addressSlice';
 import { AuthContext } from '~/contexts/authContext';
 import { FaShoppingCart, FaUserSecret, FaMoneyBillWave } from 'react-icons/fa';
-import { FiSend, FiGift, FiCalendar, FiClock, FiMapPin, FiPlus } from 'react-icons/fi';
+import {
+  FiSend,
+  FiGift,
+  FiCalendar,
+  FiClock,
+  FiMapPin,
+  FiPlus
+} from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 const OrderPage: React.FC = () => {
@@ -23,9 +30,17 @@ const OrderPage: React.FC = () => {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState('');
   const [deliveryTime, setDeliveryTime] = useState('');
-  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    null
+  );
   const [note, setNote] = useState('');
-  const [form, setForm] = useState({ fullName: '', phone: '', street: '', ward: '', province: '' });
+  const [form, setForm] = useState({
+    fullName: '',
+    phone: '',
+    street: '',
+    ward: '',
+    province: ''
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const totalPrice = cart.items.reduce(
@@ -108,7 +123,6 @@ const OrderPage: React.FC = () => {
     } else {
       navigate('/home/order-fail');
     }
-
   };
 
   const handleCreateAddress = async () => {
@@ -150,7 +164,10 @@ const OrderPage: React.FC = () => {
         ) : (
           <div className='space-y-2 mb-3'>
             {addresses.map(address => (
-              <label key={address._id} className='block border p-3 rounded cursor-pointer'>
+              <label
+                key={address._id}
+                className='block border p-3 rounded cursor-pointer'
+              >
                 <input
                   type='radio'
                   name='selectedAddress'
@@ -158,15 +175,15 @@ const OrderPage: React.FC = () => {
                   checked={selectedAddressId === address._id}
                   onChange={() => setSelectedAddressId(address._id)}
                 />
-                <span className='font-semibold'>{address.fullName}</span> - {address.phone}
-
+                <span className='font-semibold'>{address.fullName}</span> -{' '}
+                {address.phone}
                 <div className='text-sm text-gray-600'>
                   {address.street}, {address.ward}, {address.province}
                 </div>
-
                 {address.addressType && (
                   <div className='text-xs text-gray-700 italic mt-1'>
-                    📍 Loại địa chỉ: <span className='capitalize'>{address.addressType}</span>
+                    📍 Loại địa chỉ:{' '}
+                    <span className='capitalize'>{address.addressType}</span>
                   </div>
                 )}
               </label>
@@ -188,23 +205,34 @@ const OrderPage: React.FC = () => {
               {[
                 { key: 'fullName', placeholder: 'Họ và tên người nhận' },
                 { key: 'phone', placeholder: 'Số điện thoại' },
-                { key: 'street', placeholder: 'Địa chỉ cụ thể (số nhà, đường)' },
+                {
+                  key: 'street',
+                  placeholder: 'Địa chỉ cụ thể (số nhà, đường)'
+                },
                 { key: 'ward', placeholder: 'Phường / Xã' },
-                { key: 'province', placeholder: 'Tỉnh / Thành phố' },
+                { key: 'province', placeholder: 'Tỉnh / Thành phố' }
               ].map(field => (
                 <input
                   key={field.key}
                   placeholder={field.placeholder}
                   className='w-full border p-2 mb-2 rounded text-sm'
                   value={(form as any)[field.key]}
-                  onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
+                  onChange={e =>
+                    setForm(prev => ({ ...prev, [field.key]: e.target.value }))
+                  }
                 />
               ))}
               <div className='flex justify-end gap-2 mt-4'>
-                <button onClick={() => setIsModalOpen(false)} className='px-4 py-2 bg-gray-200 rounded'>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className='px-4 py-2 bg-gray-200 rounded'
+                >
                   Huỷ
                 </button>
-                <button onClick={handleCreateAddress} className='px-4 py-2 bg-[#C4265B] text-white rounded'>
+                <button
+                  onClick={handleCreateAddress}
+                  className='px-4 py-2 bg-[#C4265B] text-white rounded'
+                >
                   Lưu địa chỉ
                 </button>
               </div>
@@ -227,16 +255,23 @@ const OrderPage: React.FC = () => {
           <tbody>
             {cart.items.map((item, index) => {
               const variant = item.variantId;
-              const productTitle = variant.product?.[0]?.title || "Sản phẩm";
+              const productTitle = variant.product?.[0]?.title || 'Sản phẩm';
 
               return (
-                <tr key={index} className="border-b">
-                  <td className="py-2 flex gap-2 items-center">
-                    <img src={variant.image} className="w-16 h-16 object-cover rounded" />
+                <tr key={index} className='border-b'>
+                  <td className='py-2 flex gap-2 items-center'>
+                    <img
+                      src={variant.image}
+                      className='w-16 h-16 object-cover rounded'
+                    />
                     <div>
-                      <div className="text-sm font-bold uppercase text-[#C4265B]">{productTitle}</div>
+                      <div className='text-sm font-bold uppercase text-[#C4265B]'>
+                        {productTitle}
+                      </div>
                       <div>{variant.title}</div>
-                      <div className="text-sm text-gray-500">Mã: {variant.variantCode}</div>
+                      <div className='text-sm text-gray-500'>
+                        Mã: {variant.variantCode}
+                      </div>
                     </div>
                   </td>
                   <td>{item.quantity}</td>
@@ -301,11 +336,14 @@ const OrderPage: React.FC = () => {
 
         <label>
           <div className='flex items-center gap-2 mb-1'>
-            <FaMoneyBillWave className='text-emerald-600' /> Phương thức thanh toán
+            <FaMoneyBillWave className='text-emerald-600' /> Phương thức thanh
+            toán
           </div>
           <select
             value={paymentMethod}
-            onChange={e => setPaymentMethod(e.target.value as 'cod' | 'banking')}
+            onChange={e =>
+              setPaymentMethod(e.target.value as 'cod' | 'banking')
+            }
             className='w-full border rounded p-2'
           >
             <option value='cod'>Thanh toán khi nhận hàng (COD)</option>
@@ -330,7 +368,6 @@ const OrderPage: React.FC = () => {
           </span>
         </div>
       </div>
-
 
       <button
         onClick={handleOrder}

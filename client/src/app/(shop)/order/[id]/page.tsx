@@ -144,7 +144,9 @@ const OrderDetailPage = () => {
               {items.map((item: any, idx: number) => (
                 <tr key={idx} className='border-b hover:bg-gray-50'>
                   <td className='px-4 py-2'>{idx + 1}</td>
-                  <td className='px-4 py-2'>{item.variant}</td>
+                  <td className='px-4 py-2'>
+                    {item.variant?.variantCode || 'N/A'}
+                  </td>
                   <td className='px-4 py-2'>{item.quantity}</td>
                   <td className='px-4 py-2'>{item.price.toLocaleString()}đ</td>
                 </tr>

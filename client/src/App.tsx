@@ -10,7 +10,7 @@ const App = () => {
       <>
         <RouterProvider router={router} />
         <ToastContainer
-          position="top-right"
+          position='top-right'
           autoClose={3000}
           hideProgressBar={false}
           newestOnTop={false}
@@ -18,7 +18,7 @@ const App = () => {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="light"
+          theme='light'
         />
       </>
     </ContextWrapper>
