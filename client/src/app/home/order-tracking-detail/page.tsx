@@ -1,6 +1,6 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrdersByUser } from '~/store/slices/orderSlice';
+import { fetchOrders, updateOrder } from '~/store/slices/orderSlice';
 import type { RootState } from '~/store';
 import {
   FaStore,
@@ -13,40 +13,70 @@ import {
 import { fetchVariants } from '~/store/slices/variantSlice';
 import { AuthContext } from '~/contexts/authContext';
 import { Link } from 'react-router';
+import { toast } from 'react-toastify';
 
 const OrderListByUserPage: React.FC = () => {
   const dispatch = useDispatch<any>();
   const { user } = useContext(AuthContext);
   const userId = user?.id;
 
-  const { userOrders, loading, error } = useSelector(
+  const [page, setPage] = useState(1);
+
+  const { orders, loading, error, pagination } = useSelector(
     (state: RootState) => state.orders
   );
   const { items: variants } = useSelector((state: RootState) => state.variants);
 
   useEffect(() => {
     if (userId) {
-      dispatch(fetchOrdersByUser(userId));
       dispatch(fetchVariants());
     }
   }, [dispatch, userId]);
 
-  if (loading)
-    return <p className='text-center mt-10'>Đang tải danh sách đơn hàng...</p>;
-  if (error || !userOrders.length || !userId) {
-    return (
-      <div className='flex flex-col items-center justify-center mt-50 text-red-600'>
-        <FaExclamationCircle className='text-4xl mb-3 text-red-500' />
-        <p className='text-lg font-semibold'>Không tìm thấy đơn hàng.</p>
-        <p className='text-gray-500 mt-2'>
-          Vui lòng đăng nhập hoặc kiểm tra lại thông tin.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (userId) {
+      dispatch(
+        fetchOrders({
+          page,
+          limit: 20,
+          sortBy: 'createdAt',
+          sortOrder: 'asc',
+          user: userId
+        })
+      );
+    }
+  }, [dispatch, userId, page]);
 
-  const getVariantDetails = (variantId: string) => {
-    return variants.find((v: any) => v._id === variantId);
+  const handleCancelOrder = async (orderId: string) => {
+    const now = new Date().toISOString();
+    const cancelData = {
+      status: 'cancelled',
+      expectedDeliveryAt: now,
+      description: 'Khách đã hủy đơn hàng'
+    };
+
+    try {
+      await dispatch(
+        updateOrder({ id: orderId, updateData: cancelData })
+      ).unwrap();
+      await dispatch(
+        fetchOrders({
+          page,
+          limit: 10,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+          user: userId
+        })
+      );
+      toast.success('Đã hủy đơn hàng thành công');
+    } catch (err: any) {
+      toast.error('Hủy đơn thất bại: ' + (err?.message || 'Có lỗi xảy ra'));
+    }
+  };
+
+  const getVariantDetails = (variantId: any) => {
+    const id = typeof variantId === 'object' ? variantId._id : variantId;
+    return variants.find((v: any) => v._id === id);
   };
 
   const translateStatus = (status: string) => {
@@ -87,11 +117,28 @@ const OrderListByUserPage: React.FC = () => {
     }
   };
 
+  if (loading)
+    return <p className='text-center mt-10'>Đang tải danh sách đơn hàng...</p>;
+
+  if (error || !orders?.length || !userId) {
+    return (
+      <div className='flex flex-col items-center justify-center mt-50 text-red-600'>
+        <FaExclamationCircle className='text-4xl mb-3 text-red-500' />
+        <p className='text-lg font-semibold'>Không tìm thấy đơn hàng.</p>
+        <p className='text-gray-500 mt-2'>
+          Vui lòng đăng nhập hoặc kiểm tra lại thông tin.
+        </p>
+      </div>
+    );
+  }
+  console.log('Variants list:', variants);
+
   return (
     <div className='max-w-7xl mx-auto p-4 text-black mt-45'>
       <h2 className='text-2xl font-bold mb-6'>Lịch sử đơn hàng của bạn</h2>
+
       <div className='space-y-6'>
-        {userOrders.map(order => (
+        {orders.map((order: any) => (
           <div
             key={order._id}
             className='border-black-100 rounded-lg shadow-sm p-4 bg-white'
@@ -112,52 +159,60 @@ const OrderListByUserPage: React.FC = () => {
                 </div>
               </div>
               <button className='bg-pink-100 text-[#C4265B] px-3 py-1 rounded text-sm font-medium hover:bg-pink-200'>
-                <Link to={`/home/shop-profile/${order.shop}`}> Xem shop</Link>
+                <Link to={`/home/shop-profile/${order.shop?._id}`}>
+                  Xem shop
+                </Link>
               </button>
             </div>
 
             <div className='space-y-4'>
-              {order.items.map((item: any, index: number) => {
-                const variant = getVariantDetails(item.variant);
-                const imageUrl =
-                  variant?.image || variant?.product?.thumbnailImage;
-                return (
-                  <div
-                    key={index}
-                    className='flex gap-3 border rounded p-3 bg-gray-50'
-                  >
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt='Ảnh sản phẩm'
-                        className='w-16 h-16 object-cover border rounded'
-                      />
-                    ) : (
-                      <div className='w-16 h-16 flex items-center justify-center border rounded text-xs text-gray-400 bg-white'>
-                        Không ảnh
+              {order.items?.length > 0 ? (
+                order.items.map((item: any, index: number) => {
+                  const variant = getVariantDetails(item.variant);
+                  const imageUrl =
+                    variant?.image || variant?.product?.thumbnailImage;
+                  return (
+                    <div
+                      key={index}
+                      className='flex gap-3 border rounded p-3 bg-gray-50'
+                    >
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt='Ảnh sản phẩm'
+                          className='w-16 h-16 object-cover border rounded'
+                        />
+                      ) : (
+                        <div className='w-16 h-16 flex items-center justify-center border rounded text-xs text-gray-400 bg-white'>
+                          Không ảnh
+                        </div>
+                      )}
+                      <div className='flex-1'>
+                        <p className='text-base font-bold text-[#C4265B]'>
+                          {variant?.product?.title || ''}
+                        </p>
+                        <p className='text-base font-bold text-[#C4265B]'>
+                          {variant?.title ? `Phân Loại: ${variant.title}` : ''}{' '}
+                          {variant?.variantCode
+                            ? `| Mã: ${variant.variantCode}`
+                            : ''}
+                        </p>
+                        <p className='text-sm mt-1'>
+                          SL: {item.quantity} | Giá:{' '}
+                          {item.price.toLocaleString()}₫
+                        </p>
+                        <p className='text-sm font-medium text-[#C4265B]'>
+                          Tổng: {(item.price * item.quantity).toLocaleString()}₫
+                        </p>
                       </div>
-                    )}
-                    <div className='flex-1'>
-                      <p className='text-sm font-semibold'>
-                        {variant?.product?.title || ''}
-                      </p>
-                      <p className='text-xs text-gray-500'>
-                        {variant?.title ? `Biến thể: ${variant.title}` : ''}{' '}
-                        {variant?.variantCode
-                          ? `| Mã: ${variant.variantCode}`
-                          : ''}
-                      </p>
-                      <p className='text-sm mt-1'>
-                        SL: {item.quantity} | Giá: {item.price.toLocaleString()}
-                        ₫
-                      </p>
-                      <p className='text-sm font-medium text-[#C4265B]'>
-                        Tổng: {(item.price * item.quantity).toLocaleString()}₫
-                      </p>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <p className='text-sm text-gray-500'>
+                  Không có sản phẩm trong đơn hàng.
+                </p>
+              )}
             </div>
 
             <div className='mt-4 text-sm text-gray-600 space-y-1'>
@@ -187,15 +242,39 @@ const OrderListByUserPage: React.FC = () => {
                 {order.shipment?.shippingCost?.toLocaleString() || '0'}₫
               </p>
               <p className='text-base font-bold text-[#C4265B]'>
-                Tổng thanh toán:{' '}
-                {(
-                  order.totalPrice + (order.shipment?.shippingCost || 0)
-                ).toLocaleString()}
-                ₫
+                Tổng thanh toán: {order?.totalPrice?.toLocaleString()}₫
               </p>
+              {order.status === 'pending' && (
+                <div className='flex justify-end mt-3'>
+                  <button
+                    onClick={() => handleCancelOrder(order._id)}
+                    className='bg-red-100 font-bold text-red-600 px-3 py-1 text-sm rounded hover:bg-red-200 transition'
+                  >
+                    Hủy đơn
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
+      </div>
+
+      <div className='flex justify-center mt-6 gap-3'>
+        <button
+          disabled={page <= 1}
+          onClick={() => setPage(prev => prev - 1)}
+          className='px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50'
+        >
+          Trang trước
+        </button>
+        <span className='px-3 py-1'>Trang {page}</span>
+        <button
+          disabled={page >= (pagination?.totalPages || 1)}
+          onClick={() => setPage(prev => prev + 1)}
+          className='px-3 py-1 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50'
+        >
+          Trang tiếp
+        </button>
       </div>
     </div>
   );

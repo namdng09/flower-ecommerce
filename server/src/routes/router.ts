@@ -9,6 +9,7 @@ import reviewRoute from '~/modules/review/reviewRoute';
 import cartRoute from '~/modules/cart/cartRoute';
 import favouriteRoute from '~/modules/favourite/favouriteRoute';
 import orderRoute from '~/modules/order/orderRoute';
+import paymentRoute from '~/modules/payment/paymentRoute';
 import revenueRoute from '~/modules/revenue/revenueRoute';
 import imageRoute from '~/modules/image/imageRoute';
 import { authorize } from '~/middleware/authorize';
@@ -19,6 +20,8 @@ const router = Router();
 router.use('/auth', authRoutes);
 
 // Auth routes
+
+router.use('/payments', paymentRoute);
 
 router.use('/products', productRoute);
 
