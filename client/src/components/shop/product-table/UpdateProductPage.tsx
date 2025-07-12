@@ -253,14 +253,25 @@ const UpdateProductPage = () => {
     <div className='p-6 max-w-3xl mx-auto bg-white rounded shadow-sm'>
       <h2 className='text-xl font-bold mb-4'>Cập nhật sản phẩm</h2>
       <form onSubmit={handleSubmit} className='space-y-6'>
-        <div className='grid grid-cols-2 gap-4'>
+        {/* Thông tin sản phẩm */}
+        <h3 className='font-semibold mt-4 mb-2'>Thông tin sản phẩm</h3>
+        <div className='grid grid-cols-1 gap-4'>
           <input
+            type='text'
             name='title'
             value={form.title}
             onChange={handleChange}
             placeholder='Tên sản phẩm'
-            className='input'
+            className='input w-full'
             required
+          />
+
+          <textarea
+            name='description'
+            value={form.description}
+            onChange={handleChange}
+            placeholder='Mô tả sản phẩm'
+            className='w-full p-2 border rounded'
           />
 
           <div className='mb-4'>
@@ -340,59 +351,6 @@ const UpdateProductPage = () => {
           );
         })}
 
-        {/* Thêm input cho trọng lượng và kích thước */}
-        <div className='grid grid-cols-2 gap-4'>
-          <input
-            name='weight'
-            value={weight}
-            onChange={e => setWeight(e.target.value)}
-            placeholder='Khối lượng (kg)'
-            className='input'
-            required
-            type='number'
-            min={0.01}
-            step={0.01}
-          />
-          <div className='flex gap-2'>
-            <input
-              name='length'
-              value={dimension.length}
-              onChange={e =>
-                setDimension(d => ({ ...d, length: e.target.value }))
-              }
-              placeholder='Dài (cm)'
-              className='input'
-              required
-              type='number'
-              min={1}
-            />
-            <input
-              name='width'
-              value={dimension.width}
-              onChange={e =>
-                setDimension(d => ({ ...d, width: e.target.value }))
-              }
-              placeholder='Rộng (cm)'
-              className='input'
-              required
-              type='number'
-              min={1}
-            />
-            <input
-              name='height'
-              value={dimension.height}
-              onChange={e =>
-                setDimension(d => ({ ...d, height: e.target.value }))
-              }
-              placeholder='Cao (cm)'
-              className='input'
-              required
-              type='number'
-              min={1}
-            />
-          </div>
-        </div>
-
         {/* Thumbnail upload */}
         <div className='flex items-center gap-2'>
           <input
@@ -407,7 +365,7 @@ const UpdateProductPage = () => {
             className='px-3 py-2 bg-gray-200 rounded hover:bg-gray-300'
             onClick={() => thumbnailInputRef.current?.click()}
           >
-            Chọn tệp ảnh đại diện
+            Chọn ảnh bìa
           </button>
           {thumbnailFile ? (
             <>
@@ -478,35 +436,17 @@ const UpdateProductPage = () => {
               ))}
         </div>
 
-        {/* Status toggle */}
-        <div className='flex items-center gap-4'>
-          <span className='font-semibold'>Trạng thái:</span>
-          <button
-            type='button'
-            className={`px-3 py-1 rounded ${form.status === 'active' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-            onClick={() => setForm(prev => ({ ...prev, status: 'active' }))}
-          >
-            Active
-          </button>
-          <button
-            type='button'
-            className={`px-3 py-1 rounded ${form.status === 'inactive' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-            onClick={() => setForm(prev => ({ ...prev, status: 'inactive' }))}
-          >
-            Inactive
-          </button>
-        </div>
-
-        {/* Biến thể (Variants) */}
+        {/* Phân loại hàng (Variants) */}
+        <h1 className='font-semibold mt-4 mb-2'>II.Thông tin bán hàng</h1>
         <div>
-          <h3 className='font-semibold mt-4 mb-2'>Biến thể (Variants)</h3>
+          <h3 className='font-semibold mt-4 mb-2'>Phân loại hàng</h3>
           {form.variants.map((variant, idx) => (
             <div key={idx} className='grid grid-cols-5 gap-2 mb-2'>
               <input
                 name='title'
                 value={variant.title}
                 onChange={e => handleVariantChange(idx, e)}
-                placeholder='Tên biến thể'
+                placeholder='Tên'
                 className='input'
                 required
               />
@@ -552,7 +492,7 @@ const UpdateProductPage = () => {
                 className='px-3 py-2 bg-gray-200 rounded hover:bg-gray-300'
                 onClick={() => variantInputRefs.current[idx]?.click()}
               >
-                Chọn tệp biến thể
+                Chọn ảnh
               </button>
               {variantFiles[idx] ? (
                 <>
@@ -589,17 +529,83 @@ const UpdateProductPage = () => {
             onClick={addVariant}
             className='text-sm text-blue-600 mt-1'
           >
-            + Thêm biến thể
+            + Thêm phân loại hàng
           </button>
         </div>
 
-        <textarea
-          name='description'
-          value={form.description}
-          onChange={handleChange}
-          placeholder='Mô tả sản phẩm'
-          className='w-full p-2 border rounded'
-        />
+        {/* Thông tin vận chuyển */}
+        <h1 className='font-semibold mt-4 mb-2'>III.Thông tin vận chuyển</h1>
+        <div className='grid grid-cols-1 gap-4'>
+          <h5 className='font-semibold'>Cân nặng</h5>
+          <input
+            name='weight'
+            value={weight}
+            onChange={e => setWeight(e.target.value)}
+            placeholder='Khối lượng (kg)'
+            className='input'
+            required
+            type='number'
+            min={0.01}
+            step={0.01}
+          />
+          <div className='flex gap-2'>
+            <input
+              name='length'
+              value={dimension.length}
+              onChange={e =>
+                setDimension(d => ({ ...d, length: e.target.value }))
+              }
+              placeholder='Dài (cm)'
+              className='input'
+              required
+              type='number'
+              min={1}
+            />
+            <input
+              name='width'
+              value={dimension.width}
+              onChange={e =>
+                setDimension(d => ({ ...d, width: e.target.value }))
+              }
+              placeholder='Rộng (cm)'
+              className='input'
+              required
+              type='number'
+              min={1}
+            />
+            <input
+              name='height'
+              value={dimension.height}
+              onChange={e =>
+                setDimension(d => ({ ...d, height: e.target.value }))
+              }
+              placeholder='Cao (cm)'
+              className='input'
+              required
+              type='number'
+              min={1}
+            />
+          </div>
+        </div>
+
+        {/* Trạng thái */}
+        <div className='flex items-center gap-4'>
+          <span className='font-semibold'>Trạng thái:</span>
+          <button
+            type='button'
+            className={`px-3 py-1 rounded ${form.status === 'active' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+            onClick={() => setForm(prev => ({ ...prev, status: 'active' }))}
+          >
+            Active
+          </button>
+          <button
+            type='button'
+            className={`px-3 py-1 rounded ${form.status === 'inactive' ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+            onClick={() => setForm(prev => ({ ...prev, status: 'inactive' }))}
+          >
+            Inactive
+          </button>
+        </div>
 
         <button
           type='submit'
