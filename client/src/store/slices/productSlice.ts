@@ -133,7 +133,7 @@ const productSlice = createSlice({
 
       // Create
       .addCase(createProduct.pending, state => {
-        state.loading = true;
+        state.loading = false;
         state.error = null;
       })
       .addCase(createProduct.fulfilled, (state, action) => {
