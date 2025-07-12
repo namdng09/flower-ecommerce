@@ -74,11 +74,6 @@ const ProductTableDisplay = () => {
     }
   };
 
-  const handleFilter = () => {
-    setIsFiltering(true);
-    setPage(1);
-  };
-
   const columns = [
     {
       accessorKey: 'title',
@@ -115,14 +110,16 @@ const ProductTableDisplay = () => {
       header: 'Categories',
       render: (value: any[]) => (
         <div className='flex flex-wrap gap-1'>
-          {value?.map((cat, idx) => (
-            <span
-              key={idx}
-              className='bg-gray-100 text-xs px-2 py-[2px] rounded-full text-gray-700'
-            >
-              {cat.title}
-            </span>
-          ))}
+          {Array.isArray(value)
+            ? value.map((cat, idx) => (
+                <span
+                  key={idx}
+                  className='bg-gray-100 text-xs px-2 py-[2px] rounded-full text-gray-700'
+                >
+                  {cat.title}
+                </span>
+              ))
+            : null}
         </div>
       )
     },
@@ -172,7 +169,10 @@ const ProductTableDisplay = () => {
 
   return (
     <div className='p-6 bg-white rounded-lg shadow-sm'>
-      <FilterProduct onFilter={() => setIsFiltering(true)} />
+      <FilterProduct
+        onFilter={() => setIsFiltering(true)}
+        onReset={() => setIsFiltering(false)}
+      />
       <div className='flex justify-between items-start mb-6 flex-col sm:flex-row sm:items-center'>
         <div>
           {user && (
