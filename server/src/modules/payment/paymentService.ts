@@ -1,6 +1,5 @@
 import { payOS } from '~/utils/payos';
 import createHttpError from 'http-errors';
-import { Types } from 'mongoose';
 import { mailService } from '../email/emailService';
 
 export const paymentService = {
