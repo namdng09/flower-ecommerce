@@ -129,7 +129,6 @@ const OrderPage: React.FC = () => {
 
     try {
       const result = await dispatch(createOrder(orderData));
-      console.log('📦 Kết quả gọi createOrder:', result);
 
       if (createOrder.fulfilled.match(result)) {
         const orders = result.payload;
