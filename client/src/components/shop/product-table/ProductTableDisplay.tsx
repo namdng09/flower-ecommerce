@@ -19,13 +19,11 @@ const ProductTableDisplay = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  // Lấy state từ productSlice
   const {
     items = [],
     shopProducts = [],
     loading,
-    error,
-    shopInfo
+    error
   } = useSelector((state: RootState) => state.products);
 
   const [page, setPage] = useState(1);
@@ -40,7 +38,6 @@ const ProductTableDisplay = () => {
     }
   }, [dispatch, user]);
 
-  // Chọn dữ liệu hiển thị: nếu đang filter thì dùng items, còn lại dùng shopProducts
   const displayedProducts = isFiltering ? items : shopProducts;
   const totalItems = displayedProducts.length;
   const totalPages = Math.ceil(totalItems / limit);
@@ -77,17 +74,21 @@ const ProductTableDisplay = () => {
   const columns = [
     {
       accessorKey: 'title',
-      header: 'Product',
+      header: 'Sản phẩm',
       render: (_: any, row: any) => (
         <div className='flex items-center gap-3'>
           <img
             src={row.thumbnailImage || '/placeholder.png'}
             alt={row.title}
-            className='w-10 h-10 rounded object-cover border'
+            className='w-12 h-12 rounded-md object-cover border'
           />
           <div>
-            <div className='text-green-700 font-semibold'>{row.title}</div>
-            <div className='text-gray-400 text-xs'>{row.description}</div>
+            <p className='text-gray-800 font-medium line-clamp-1'>
+              {row.title}
+            </p>
+            <p className='text-gray-400 text-xs line-clamp-2'>
+              {row.description}
+            </p>
           </div>
         </div>
       )
@@ -98,69 +99,71 @@ const ProductTableDisplay = () => {
     },
     {
       accessorKey: 'variants',
-      header: 'Variants',
+      header: 'Biến thể',
       render: (value: any[]) => (
         <span className='text-xs text-gray-600'>
-          {Array.isArray(value) ? `${value.length} variants` : '0 variant'}
+          {Array.isArray(value) ? `${value.length} biến thể` : '0'}
         </span>
       )
     },
     {
       accessorKey: 'categories',
-      header: 'Categories',
-      render: (value: any[]) => (
+      header: 'Danh mục',
+      render: (value: any) => (
         <div className='flex flex-wrap gap-1'>
-          {Array.isArray(value)
-            ? value.map((cat, idx) => (
-                <span
-                  key={idx}
-                  className='bg-gray-100 text-xs px-2 py-[2px] rounded-full text-gray-700'
-                >
-                  {cat.title}
-                </span>
-              ))
-            : null}
+          {Array.isArray(value) && value.length > 0 ? (
+            value.map((cat: any, idx: number) => (
+              <span
+                key={idx}
+                className='bg-rose-100 text-rose-700 text-xs px-2 py-1 rounded-full font-medium'
+              >
+                {cat.title || cat._id || '--'}
+              </span>
+            ))
+          ) : (
+            <span className='text-gray-400 text-xs italic'>--</span>
+          )}
         </div>
       )
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: 'Trạng thái',
       render: (v: string) => (
         <span
-          className={`text-xs font-medium px-2 py-1 rounded-full inline-flex items-center gap-1 ${
+          className={`text-xs font-semibold px-3 py-1 rounded-full inline-block ${
             v === 'active'
               ? 'bg-green-100 text-green-700'
               : 'bg-red-100 text-red-600'
           }`}
         >
-          {v === 'active' ? '✔' : '✖'} {v}
+          {v === 'active' ? 'Đang bán' : 'Tạm ẩn'}
         </span>
       )
     },
     {
       accessorKey: 'createdAt',
-      header: 'Created At',
+      header: 'Ngày tạo',
       render: (v: string) => new Date(v).toLocaleString()
     },
     {
       accessorKey: 'action',
-      header: 'Action',
+      header: 'Thao tác',
       render: (_: any, row: any) => (
-        <div className='flex gap-2 justify-center text-gray-500'>
+        <div className='flex gap-3 justify-center text-gray-500'>
           <button
-            title='Edit'
-            className='hover:text-blue-600'
+            title='Chỉnh sửa'
+            className='hover:text-blue-600 transition'
             onClick={() => navigate(`/shop/product/update/${row._id}`)}
           >
-            <FiEdit2 size={16} />
+            <FiEdit2 size={18} />
           </button>
           <button
-            title='Delete'
+            title='Xóa'
+            className='hover:text-red-600 transition'
             onClick={() => handleDelete(row._id)}
-            className='hover:text-red-600'
           >
-            <FiTrash2 size={16} />
+            <FiTrash2 size={18} />
           </button>
         </div>
       )
@@ -168,35 +171,34 @@ const ProductTableDisplay = () => {
   ];
 
   return (
-    <div className='p-6 bg-white rounded-lg shadow-sm'>
+    <div className='p-6 bg-white rounded-xl shadow-md border border-gray-100'>
       <FilterProduct
         onFilter={() => setIsFiltering(true)}
         onReset={() => setIsFiltering(false)}
       />
-      <div className='flex justify-between items-start mb-6 flex-col sm:flex-row sm:items-center'>
+
+      <div className='flex justify-between items-center flex-col sm:flex-row mb-6 gap-2'>
         <div>
-          {user && (
-            <div className='text-gray-500 text-sm mb-1'>
-              👤 Shop:{' '}
-              <span className='font-semibold text-green-700'>
-                {user.fullName || user.email}
-              </span>
-            </div>
-          )}
-          <h1 className='text-xl font-bold'>Sản phẩm của shop</h1>
+          <p className='text-sm text-gray-500'>
+            🏪 Shop:{' '}
+            <span className='font-medium text-green-700'>
+              {user.fullName || user.email}
+            </span>
+          </p>
+          <h1 className='text-2xl font-bold text-gray-800 mt-1'>
+            Danh sách sản phẩm
+          </h1>
         </div>
-        <div className='flex gap-2 mt-2 sm:mt-0'>
-          <button
-            className='bg-green-500 text-white px-4 py-2 text-sm rounded hover:bg-green-600'
-            onClick={() => navigate('/shop/product/create')}
-          >
-            + Thêm sản phẩm
-          </button>
-        </div>
+        <button
+          className='bg-green-600 text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-green-700 transition'
+          onClick={() => navigate('/shop/product/create')}
+        >
+          + Thêm sản phẩm
+        </button>
       </div>
 
       {loading ? (
-        <p>Loading...</p>
+        <p>Đang tải...</p>
       ) : error ? (
         <p className='text-red-500'>{error}</p>
       ) : (
