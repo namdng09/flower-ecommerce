@@ -36,7 +36,7 @@ const AddressFilter: React.FC<{
 
   return (
     <div className='mb-4'>
-      <label className='block font-medium mb-1'>Lọc theo địa chỉ</label>
+      <label className='block font-medium mb-1'>Tìm theo địa chỉ</label>
       <Select
         options={[
           { value: '', label: 'Tất cả', province: '', ward: '' },
