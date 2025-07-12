@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { apiResponse } from '~/types/apiResponse';
 import { paymentService } from './paymentService';
 
 export const paymentController = {
