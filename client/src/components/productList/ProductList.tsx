@@ -129,6 +129,7 @@ const ProductList = () => {
       <div className='flex flex-col lg:flex-row gap-8'>
         {/* Sidebar */}
         <div className='lg:w-1/5 space-y-6 text-black'>
+          <AddressFilter onFilter={handleAddressFilter} />
           <div>
             <h3 className='font-semibold mb-2'>Loại sản phẩm</h3>
             <ListCategory
@@ -137,7 +138,6 @@ const ProductList = () => {
             />
           </div>
           <PriceFilter value={priceRange} onChange={setPriceRange} />
-          <AddressFilter onFilter={handleAddressFilter} />
         </div>
 
         {/* Content */}
