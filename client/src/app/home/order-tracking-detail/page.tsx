@@ -36,7 +36,7 @@ const OrderListByUserPage: React.FC = () => {
   useEffect(() => {
     if (userId) {
       dispatch(
-        filterOrders({
+        fetchOrders({
           page,
           limit: 20,
           sortBy: 'createdAt',
@@ -60,7 +60,7 @@ const OrderListByUserPage: React.FC = () => {
         updateOrder({ id: orderId, updateData: cancelData })
       ).unwrap();
       await dispatch(
-        filterOrders({
+        fetchOrders({
           page,
           limit: 10,
           sortBy: 'createdAt',
