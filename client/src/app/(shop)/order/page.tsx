@@ -1,54 +1,151 @@
-// bang order
 import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiEye, FiTrash2 } from 'react-icons/fi';
-import { fetchOrders, deleteOrder } from '~/store/slices/orderSlice';
-import type { RootState } from '~/store';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useAppDispatch, useAppSelector } from '~/store/hooks';
+import {
+  fetchOrders,
+  deleteOrder,
+  setFilters,
+  clearError
+} from '~/store/slices/orderSlice';
+import { useSearchParams } from 'react-router';
 import DynamicTable from '~/components/DynamicTable';
 import Pagination from '~/components/Pagination';
 import { ConfirmModal } from '~/components/ConfirmModal';
 import { Link } from 'react-router';
 
-const Page = () => {
-  const dispatch = useDispatch();
-  const {
-    orders = [],
-    loading,
-    error
-  } = useSelector((state: RootState) => state.orders);
+const filterSchema = z.object({
+  orderNumber: z.string(),
+  status: z.string(),
+  shop: z.string(),
+  user: z.string(),
+  sortBy: z.string(),
+  sortOrder: z.enum(['asc', 'desc'])
+});
 
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+type FilterFormData = z.infer<typeof filterSchema>;
 
-  const totalItems = orders.length;
-  const totalPages = Math.ceil(totalItems / limit);
-  const paginatedOrders = orders.slice((page - 1) * limit, page * limit);
+const OrderPage = () => {
+  const dispatch = useAppDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { orders, loading, error, pagination } = useAppSelector(
+    state => state.orders
+  );
 
-  useEffect(() => {
-    dispatch(fetchOrders());
-  }, [dispatch]);
+  const [page, setPage] = useState(() =>
+    parseInt(searchParams.get('page') || '1', 10)
+  );
+  const [limit, setLimit] = useState(() =>
+    parseInt(searchParams.get('limit') || '10', 10)
+  );
 
-  const handleDelete = (id: string) => {
-    setSelectedId(id);
-    setShowConfirm(true);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+
+  const { register, handleSubmit, watch, reset, setValue } =
+    useForm<FilterFormData>({
+      resolver: zodResolver(filterSchema),
+      defaultValues: {
+        orderNumber: searchParams.get('orderNumber') || '',
+        status: searchParams.get('status') || '',
+        shop: searchParams.get('shop') || '',
+        user: searchParams.get('user') || '',
+        sortBy: searchParams.get('sortBy') || 'createdAt',
+        sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc'
+      }
+    });
+
+  const updateURLParams = (
+    filters: FilterFormData,
+    currentPage: number,
+    currentLimit: number
+  ) => {
+    const params = new URLSearchParams();
+    if (filters.orderNumber) params.set('orderNumber', filters.orderNumber);
+    if (filters.status) params.set('status', filters.status);
+    if (filters.shop) params.set('shop', filters.shop);
+    if (filters.user) params.set('user', filters.user);
+    if (filters.sortBy !== 'createdAt') params.set('sortBy', filters.sortBy);
+    if (filters.sortOrder !== 'desc')
+      params.set('sortOrder', filters.sortOrder);
+    if (currentPage !== 1) params.set('page', currentPage.toString());
+    params.set('limit', currentLimit.toString());
+    setSearchParams(params);
   };
 
-  const confirmDelete = () => {
-    if (selectedId) {
-      dispatch(deleteOrder(selectedId));
-      setSelectedId(null);
-    }
+  useEffect(() => {
+    setValue('orderNumber', searchParams.get('orderNumber') || '');
+    setValue('status', searchParams.get('status') || '');
+    setValue('shop', searchParams.get('shop') || '');
+    setValue('user', searchParams.get('user') || '');
+    setValue('sortBy', searchParams.get('sortBy') || 'createdAt');
+    setValue(
+      'sortOrder',
+      (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc'
+    );
+    setPage(parseInt(searchParams.get('page') || '1', 10));
+    setLimit(parseInt(searchParams.get('limit') || '10', 10));
+  }, [searchParams, setValue]);
+
+  useEffect(() => {
+    const currentFilters = watch();
+    const filters = { ...currentFilters, page, limit };
+    dispatch(setFilters(filters));
+    dispatch(fetchOrders(filters));
+  }, [searchParams, dispatch, page, limit, watch]);
+
+  const onSubmit = (data: FilterFormData) => {
+    setPage(1);
+    updateURLParams(data, 1, limit);
+  };
+
+  const handleResetFilters = () => {
+    const resetFilters = {
+      orderNumber: '',
+      status: '',
+      shop: '',
+      user: '',
+      sortBy: 'createdAt',
+      sortOrder: 'desc' as const
+    };
+    reset(resetFilters);
+    setPage(1);
+    updateURLParams(resetFilters, 1, limit);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    const currentFilters = watch();
+    updateURLParams(currentFilters, newPage, limit);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
+    const currentFilters = watch();
+    updateURLParams(currentFilters, 1, newLimit);
+  };
+
+  const handleDelete = (id: string) => {
+    setOrderToDelete(id);
+    setShowConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!orderToDelete) return;
+    await dispatch(deleteOrder(orderToDelete));
+    setShowConfirmModal(false);
+    setOrderToDelete(null);
+    const currentFilters = watch();
+    const filters = { ...currentFilters, page, limit };
+    dispatch(fetchOrders(filters));
   };
 
   const columns = [
     {
       accessorKey: 'orderNumber',
-      header: 'Order',
-      render: (v: string) => (
-        <div className='font-semibold text-blue-700'>{v}</div>
-      )
+      header: 'Order'
     },
     {
       accessorKey: 'totalQuantity',
@@ -62,67 +159,41 @@ const Page = () => {
     {
       accessorKey: 'status',
       header: 'Status',
-      render: (v: string) => (
-        <span
-          className={`text-xs font-medium px-2 py-1 rounded-full ${
-            v === 'pending'
-              ? 'bg-yellow-100 text-yellow-800'
-              : v === 'completed'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          {v}
-        </span>
-      )
+      render: (v: string) => <span className={`badge badge-warning`}>{v}</span>
     },
     {
       accessorKey: 'payment',
       header: 'Payment',
-      render: (v: any) => (
-        <div className='text-xs text-gray-600'>
-          <div>
-            <b>{v.method.toUpperCase()}</b>
-          </div>
-          <div
-            className={`${v.status === 'unpaid' ? 'text-red-500' : 'text-green-600'}`}
-          >
-            {v.status}
-          </div>
-        </div>
-      )
+      render: (v: any) => `${v.method?.toUpperCase()} - ${v.status}`
     },
     {
       accessorKey: 'shipment',
       header: 'Shipment',
-      render: (v: any) => (
-        <div className='text-xs text-gray-600'>
-          <div>
-            Status: <b>{v.status}</b>
-          </div>
-          <div>Ship: {v.shippingCost?.toLocaleString()}đ</div>
-        </div>
-      )
+      render: (v: any) =>
+        `Status: ${v.status} | Ship: ${v.shippingCost?.toLocaleString()}đ`
     },
     {
       accessorKey: 'createdAt',
-      header: 'Created At',
-      render: (v: string) => new Date(v).toLocaleString()
+      header: 'Created',
+      render: (v: string) => new Date(v).toLocaleDateString()
     },
     {
       accessorKey: 'action',
-      header: 'Action',
+      header: 'Actions',
       render: (_: any, row: any) => (
-        <div className='flex gap-2 justify-center text-gray-500'>
-          <Link to={`/shop/order/${row._id}`} title='View'>
-            <FiEye size={16} className='hover:text-blue-600 cursor-pointer' />
+        <div className='flex gap-2'>
+          {/* <button className="btn btn-sm btn-outline btn-info">View</button> */}
+          <Link
+            to={`/shop/order/${row._id}`}
+            className='btn btn-sm btn-outline btn-info'
+          >
+            View
           </Link>
           <button
-            title='Delete'
+            className='btn btn-sm btn-outline btn-error'
             onClick={() => handleDelete(row._id)}
-            className='hover:text-red-600'
           >
-            <FiTrash2 size={16} />
+            Delete
           </button>
         </div>
       )
@@ -130,48 +201,80 @@ const Page = () => {
   ];
 
   return (
-    <div className='p-6 bg-white rounded-lg shadow-sm'>
-      {/* Header */}
-      <div className='flex justify-between items-center mb-6'>
-        <h1 className='text-xl font-bold'>Orders</h1>
-        <div className='flex gap-2'>
-          <button className='px-3 py-2 text-sm border rounded hover:bg-gray-100'>
-            Filter
+    <div>
+      <h2 className='text-2xl font-bold mb-2'>Order Management</h2>
+      <div className='mb-2 text-gray-500'>
+        Total: {pagination.totalDocs} orders | Page {page} of{' '}
+        {pagination.totalPages}
+      </div>
+      <div className='flex justify-between items-center mb-4'>
+        <form className='flex gap-2' onSubmit={handleSubmit(onSubmit)}>
+          <input
+            {...register('orderNumber')}
+            className='input input-bordered'
+            placeholder='Order Number'
+          />
+          <select {...register('status')} className='select select-bordered'>
+            <option value=''>All Status</option>
+            <option value='pending'>Pending</option>
+            <option value='ready_for_pickup'>Ready for Pickup</option>
+            <option value='out_for_delivery'>Out for Delivery</option>
+            <option value='delivered'>Delivered</option>
+            <option value='returned'>Returned</option>
+            <option value='cancelled'>Cancelled</option>
+          </select>
+          <select {...register('sortBy')} className='select select-bordered'>
+            <option value='createdAt'>Created Date</option>
+            <option value='totalPrice'>Total Price</option>
+          </select>
+          <select {...register('sortOrder')} className='select select-bordered'>
+            <option value='desc'>Descending</option>
+            <option value='asc'>Ascending</option>
+          </select>
+          <button className='btn btn-primary' type='submit'>
+            Apply Filters
           </button>
-        </div>
+          <button className='btn' type='button' onClick={handleResetFilters}>
+            Reset Filters
+          </button>
+        </form>
       </div>
 
-      {/* Table */}
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <p className='text-red-500'>{error}</p>
-      ) : (
-        <DynamicTable data={paginatedOrders} columns={columns} />
+      {!loading && orders.length > 0 && (
+        <>
+          <DynamicTable data={orders} columns={columns} />
+          <div className='flex justify-center mt-6'>
+            <Pagination
+              page={pagination.page}
+              setPage={handlePageChange}
+              totalPages={pagination.totalPages}
+              limit={limit}
+              setLimit={handleLimitChange}
+              totalItems={pagination.totalDocs}
+            />
+          </div>
+        </>
       )}
 
-      {/* Pagin */}
-      <div className='mt-6'>
-        <Pagination
-          page={page}
-          setPage={setPage}
-          totalPages={totalPages}
-          limit={limit}
-          setLimit={setLimit}
-          totalItems={totalItems}
-        />
-      </div>
-
-      {/* Modal */}
       <ConfirmModal
-        show={showConfirm}
-        setShow={setShowConfirm}
-        title='Delete Order'
-        message='Are you sure you want to delete this order?'
+        show={showConfirmModal}
         onConfirm={confirmDelete}
+        onCancel={() => setShowConfirmModal(false)}
+        message='Are you sure you want to delete this order?'
       />
+      {error && (
+        <div className='alert alert-error mt-4'>
+          {error}
+          <button
+            onClick={() => dispatch(clearError())}
+            className='btn btn-sm ml-2'
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
-export default Page;
+export default OrderPage;

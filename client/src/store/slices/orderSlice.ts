@@ -1,91 +1,232 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from '~/config/axiosConfig';
 
-const BASE_URL = 'http://localhost:8000/api/orders';
+export type OrderStatus =
+  | 'pending'
+  | 'ready_for_pickup'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'returned'
+  | 'cancelled';
 
-export const filterOrders = createAsyncThunk(
-  'orders/filterOrders',
-  async (params = {}, { rejectWithValue }) => {
-    try {
-      const query = new URLSearchParams(params).toString();
-      const res = await axios.get(`${BASE_URL}/filter?${query}`);
-      return res.data.data.result;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Filter failed');
-    }
-  }
-);
+export type PaymentStatus =
+  | 'awaiting_payment'
+  | 'unpaid'
+  | 'paid'
+  | 'expired'
+  | 'refunded';
+
+export type ShipmentStatus =
+  | 'pending'
+  | 'picking_up'
+  | 'out_for_delivery'
+  | 'delivered'
+  | 'failed';
+
+export interface IOrderItem {
+  variant: string;
+  quantity: number;
+  price: number;
+}
+
+export interface IPayment {
+  amount: number;
+  method: 'cod' | 'banking';
+  status: PaymentStatus;
+  description?: string;
+  paymentDate?: string;
+  gatewayRef?: string;
+}
+
+export interface IShipment {
+  carrier?: string;
+  trackingNumber?: string;
+  shippingCost: number;
+  status: ShipmentStatus;
+  deliveredAt?: string;
+  returnReason?: string;
+}
+
+export interface ICustomization {
+  giftMessage?: string;
+  isAnonymous?: boolean;
+  deliveryTimeRequested?: string;
+  notes?: string;
+}
+
+export interface IOrder {
+  _id: string;
+  orderNumber: string;
+  shop: string;
+  user: string;
+  address: string;
+  items: IOrderItem[];
+  totalQuantity: number;
+  totalPrice: number;
+  status: OrderStatus;
+  payment: IPayment;
+  shipment: IShipment;
+  customization?: ICustomization;
+  description?: string;
+  expectedDeliveryAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderFilterParams {
+  page?: number;
+  limit?: number;
+  status?: string;
+  orderNumber?: string;
+  shop?: string;
+  user?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface Pagination {
+  totalDocs: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+  pagingCounter: number;
+  hasPrevPage: boolean;
+  hasNextPage: boolean;
+  prevPage: number | null;
+  nextPage: number | null;
+}
+
+export interface OrderState {
+  orders: IOrder[];
+  currentOrder: IOrder | null;
+  loading: boolean;
+  error: string | null;
+  pagination: Pagination;
+  filters: OrderFilterParams;
+  userOrders: IOrder[];
+}
+
+const initialState: OrderState = {
+  orders: [],
+  currentOrder: null,
+  loading: false,
+  error: null,
+  pagination: {
+    totalDocs: 0,
+    limit: 10,
+    page: 1,
+    totalPages: 1,
+    pagingCounter: 1,
+    hasPrevPage: false,
+    hasNextPage: false,
+    prevPage: null,
+    nextPage: null
+  },
+  filters: {
+    page: 1,
+    limit: 10,
+    status: '',
+    orderNumber: '',
+    shop: '',
+    user: '',
+    sortBy: 'createdAt',
+    sortOrder: 'desc'
+  },
+  userOrders: []
+};
 
 export const fetchOrders = createAsyncThunk(
-  'orders/fetchAll',
-  async (params = {}, { rejectWithValue }) => {
+  'orders/fetchOrders',
+  async (params: OrderFilterParams = {}, { rejectWithValue }) => {
     try {
-      const query = new URLSearchParams(params).toString();
-      const res = await axios.get(`${BASE_URL}?${query}`);
-      return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Fetch failed');
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== '')
+          queryParams.append(key, String(value));
+      });
+      const res = await axios.get(
+        `/api/orders/filter?${queryParams.toString()}`
+      );
+      return { data: res.data.data.result, filters: params };
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to fetch orders'
+      );
     }
   }
 );
 
 export const fetchOrderById = createAsyncThunk(
-  'orders/fetchById',
+  'orders/fetchOrderById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/${id}`);
+      const res = await axios.get(`/api/orders/${id}`);
       return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Fetch failed');
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to fetch order'
+      );
     }
   }
 );
 
 export const fetchOrdersByUser = createAsyncThunk(
-  'orders/fetchByUser',
+  'orders/fetchOrdersByUser',
   async (userId: string, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/${userId}/user`);
+      const res = await axios.get(`/api/orders/${userId}/user`);
       return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Fetch failed');
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to fetch user orders'
+      );
     }
   }
 );
 
 export const createOrder = createAsyncThunk(
-  'orders/create',
-  async (orderData, { rejectWithValue }) => {
+  'orders/createOrder',
+  async (orderData: Partial<IOrder>, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`${BASE_URL}`, orderData);
+      const res = await axios.post('/api/orders', orderData);
       return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Create failed');
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to create order'
+      );
     }
   }
 );
 
 export const updateOrder = createAsyncThunk(
   'orders/updateOrder',
-  async ({ id, updateData }, { rejectWithValue }) => {
+  async (
+    { id, updateData }: { id: string; updateData: Partial<IOrder> },
+    { rejectWithValue }
+  ) => {
     try {
-      const res = await axios.put(`${BASE_URL}/${id}`, updateData);
+      const res = await axios.put(`/api/orders/${id}`, updateData);
       return res.data.data;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Update failed');
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to update order'
+      );
     }
   }
 );
 
 export const updateShipment = createAsyncThunk(
   'orders/updateShipment',
-  async ({ id, shipmentData }, { rejectWithValue }) => {
+  async (
+    { id, shipmentData }: { id: string; shipmentData: IShipment },
+    { rejectWithValue }
+  ) => {
     try {
-      const res = await axios.patch(`${BASE_URL}/${id}/shipment`, shipmentData);
+      const res = await axios.put(`/api/orders/${id}/shipment`, shipmentData);
       return res.data.data;
-    } catch (err) {
+    } catch (err: any) {
       return rejectWithValue(
-        err.response?.data?.message || 'Update shipment failed'
+        err.response?.data?.message || 'Failed to update shipment'
       );
     }
   }
@@ -93,84 +234,78 @@ export const updateShipment = createAsyncThunk(
 
 export const updatePayment = createAsyncThunk(
   'orders/updatePayment',
-  async ({ id, paymentData }, { rejectWithValue }) => {
+  async (
+    { id, paymentData }: { id: string; paymentData: IPayment },
+    { rejectWithValue }
+  ) => {
     try {
-      const res = await axios.patch(`${BASE_URL}/${id}/payment`, paymentData);
+      const res = await axios.put(`/api/orders/${id}/payment`, paymentData);
       return res.data.data;
-    } catch (err) {
+    } catch (err: any) {
       return rejectWithValue(
-        err.response?.data?.message || 'Update payment failed'
+        err.response?.data?.message || 'Failed to update payment'
       );
     }
   }
 );
 
 export const deleteOrder = createAsyncThunk(
-  'orders/delete',
+  'orders/deleteOrder',
   async (id: string, { rejectWithValue }) => {
     try {
-      await axios.delete(`${BASE_URL}/${id}`);
+      await axios.delete(`/api/orders/${id}`);
       return id;
-    } catch (err) {
-      return rejectWithValue(err.response?.data?.message || 'Delete failed');
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to delete order'
+      );
     }
   }
 );
 
-// Slice
 const orderSlice = createSlice({
   name: 'orders',
-  initialState: {
-    loading: false,
-    error: null,
-    orders: [],
-    pagination: {},
-    currentOrder: null,
-    userOrders: []
+  initialState,
+  reducers: {
+    setFilters: (state, action) => {
+      state.filters = { ...state.filters, ...action.payload };
+    },
+    clearCurrentOrder: state => {
+      state.currentOrder = null;
+    },
+    clearError: state => {
+      state.error = null;
+    }
   },
-  reducers: {},
   extraReducers: builder => {
     builder
-      .addCase(filterOrders.pending, state => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(filterOrders.fulfilled, (state, action) => {
-        state.loading = false;
-        state.orders = [...action.payload.docs].sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        state.pagination = {
-          total: action.payload.totalDocs || [],
-          page: action.payload.page,
-          limit: action.payload.limit,
-          totalPages: action.payload.totalPages
-        };
-      })
-      .addCase(filterOrders.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-
+      // Fetch orders
       .addCase(fetchOrders.pending, state => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload || [];
+        state.orders = action.payload.data.docs || [];
         state.pagination = {
-          total: action.payload.length,
-          page: 1,
-          limit: action.payload.length,
-          totalPages: 1
+          totalDocs: action.payload.data.totalDocs || 0,
+          limit: action.payload.data.limit || 10,
+          page: action.payload.data.page || 1,
+          totalPages: action.payload.data.totalPages || 1,
+          pagingCounter: action.payload.data.pagingCounter || 1,
+          hasPrevPage: action.payload.data.hasPrevPage || false,
+          hasNextPage: action.payload.data.hasNextPage || false,
+          prevPage: action.payload.data.prevPage || null,
+          nextPage: action.payload.data.nextPage || null
         };
+        state.filters = { ...state.filters, ...action.payload.filters };
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload as string;
       })
 
+      // Fetch order by ID
       .addCase(fetchOrderById.pending, state => {
         state.loading = true;
         state.error = null;
@@ -181,9 +316,10 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrderById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload as string;
       })
 
+      // Fetch orders by user
       .addCase(fetchOrdersByUser.pending, state => {
         state.loading = true;
         state.error = null;
@@ -194,8 +330,10 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrdersByUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload as string;
       })
+
+      // Create order
       .addCase(createOrder.pending, state => {
         state.loading = true;
         state.error = null;
@@ -212,19 +350,25 @@ const orderSlice = createSlice({
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload as string;
       })
 
+      // Update order
       .addCase(updateOrder.fulfilled, (state, action) => {
         state.currentOrder = action.payload;
       })
+
+      // Update shipment
       .addCase(updateShipment.fulfilled, (state, action) => {
         state.currentOrder = action.payload;
       })
+
+      // Update payment
       .addCase(updatePayment.fulfilled, (state, action) => {
         state.currentOrder = action.payload;
       })
 
+      // Delete order
       .addCase(deleteOrder.fulfilled, (state, action) => {
         state.orders = state.orders.filter(
           order => order._id !== action.payload
@@ -233,4 +377,5 @@ const orderSlice = createSlice({
   }
 });
 
+export const { setFilters, clearCurrentOrder, clearError } = orderSlice.actions;
 export default orderSlice.reducer;
