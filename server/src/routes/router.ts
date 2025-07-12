@@ -13,6 +13,7 @@ import revenueRoute from '~/modules/revenue/revenueRoute';
 import imageRoute from '~/modules/image/imageRoute';
 import { authorize } from '~/middleware/authorize';
 import jwtAuth from '~/middleware/jwtAuth';
+import paymentRoute from '~/modules/payment/paymentRoute';
 
 const router = Router();
 // Non-auth routes
@@ -20,7 +21,7 @@ router.use('/auth', authRoutes);
 
 // Auth routes
 
-router.use('/payments', paymentRoute);
+// router.use('/payments', paymentRoute);
 
 router.use('/products', productRoute);
 

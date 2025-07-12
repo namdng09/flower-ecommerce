@@ -28,8 +28,8 @@ export const mailService = {
 
       // Prepare data cho template
       const templateData = {
-        customerName: orderData.user.fullName,
-        orderNumber: orderData.orderNumber,
+        customerName: orderData.user.fullName || 'Unknown Customer',
+        orderNumber: orderData.orderNumber || 'Unknown Order Number',
         items: orderData.items.map((item: any) => ({
           variant: item.variant.product?.[0]?.title || 'Unknown Product',
           quantity: item.quantity,
@@ -62,12 +62,39 @@ export const mailService = {
         subject: `Đơn hàng ${orderData.orderNumber} đã được tạo thành công`,
         html: htmlContent
       });
-
-      console.log(
-        `Order confirmation email sent to customer: ${customerEmail}`
-      );
     } catch (error) {
       console.error('Error sending email to customer:', error);
+      throw error;
+    }
+  },
+
+  sendOrderSuccessToShop: async (orderData: any, shopEmail: string) => {
+    try {
+      const templatePath = path.join(
+        __dirname,
+        'templates',
+        'orderSuccessShop.html'
+      );
+      const htmlTemplate = fs.readFileSync(templatePath, 'utf8');
+
+      // Compile template với Handlebars
+      const template = Handlebars.compile(htmlTemplate);
+
+      // Prepare data cho template
+      const templateData = {
+        orderNumber: orderData.orderNumber
+      };
+
+      const htmlContent = template(templateData);
+
+      await transporter.sendMail({
+        from: `"Flaura" <${process.env.MAIL_ADDRESS}>`,
+        to: shopEmail,
+        subject: `Đơn hàng ${orderData.orderNumber} mới`,
+        html: htmlContent
+      });
+    } catch (error) {
+      console.error('Error sending email to shop:', error);
       throw error;
     }
   },
