@@ -20,7 +20,7 @@ router.use('/auth', authRoutes);
 
 // Auth routes
 
-router.use('/payments', productRoute);
+router.use('/payments', paymentRoute);
 
 router.use('/products', productRoute);
 
