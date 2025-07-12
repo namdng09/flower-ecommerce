@@ -10,7 +10,6 @@ import { Link } from 'react-router';
 import AddressFilter from '~/components/filter-address/AddressFilter';
 import AddressModal from '~/components/filter-address/AddressModal';
 import PriceFilter from '~/components/filter-price/PriceFilter';
-
 import { toast } from 'react-toastify';
 
 const ProductList = () => {
@@ -36,35 +35,55 @@ const ProductList = () => {
     min: number;
     max: number;
   } | null>(null);
+  const [selectedWardOption, setSelectedWardOption] = useState<any>(null);
 
+  // Lấy danh sách phường/xã và kiểm tra localStorage khi vào trang
   useEffect(() => {
     fetch('/hn_geo_names.json')
       .then(res => res.json())
       .then(data =>
         setWards(data.map((item: any) => `${item.type} ${item.name}`))
       );
+
+    // Kiểm tra sessionStorage để lấy địa chỉ đã chọn
+    const savedAddress = sessionStorage.getItem('selectedAddress');
+    if (savedAddress) {
+      const { province, ward } = JSON.parse(savedAddress);
+      setProvince(province);
+      setWard(ward);
+      setSelectedWardOption({ value: ward, label: ward, province, ward });
+      setShowAddressModal(false);
+    }
   }, []);
 
+  // Chọn địa chỉ từ modal
+  const handleAddressSelect = (province: string, ward: string) => {
+    const option = { value: ward, label: ward, province, ward };
+    setProvince(province);
+    setWard(ward);
+    setSelectedWardOption(option);
+    setShowAddressModal(false);
+    sessionStorage.setItem(
+      'selectedAddress',
+      JSON.stringify({ province, ward })
+    );
+  };
+
+  // Chọn địa chỉ từ filter sidebar
   const handleAddressFilter = (province: string, ward: string) => {
     setProvince(province);
     setWard(ward);
+    const selectedOption = { value: ward, label: ward, province, ward };
+    setSelectedWardOption(selectedOption);
+    sessionStorage.setItem(
+      'selectedAddress',
+      JSON.stringify({ province, ward })
+    );
   };
-
-  const handleAddressSelect = (province: string, ward: string) => {
-    setProvince(province);
-    setWard(ward);
-    setShowAddressModal(false);
-  };
-
-  useEffect(() => {
-    console.log('Products:', products);
-  }, [products]);
 
   useEffect(() => {
     dispatch(fetchProducts());
   }, [dispatch]);
-
-  console.log(products);
 
   useEffect(() => {
     dispatch(
@@ -106,12 +125,10 @@ const ProductList = () => {
       toast.warn('Vui lòng đăng nhập để thêm vào giỏ hàng!');
       return;
     }
-
     if (!variantId) {
       toast.error('Sản phẩm chưa có biến thể hợp lệ!');
       return;
     }
-
     try {
       await dispatch(addToCart({ userId, variantId, quantity: 1 }));
       toast.success('Đã thêm vào giỏ hàng!');
@@ -129,7 +146,10 @@ const ProductList = () => {
       <div className='flex flex-col lg:flex-row gap-8'>
         {/* Sidebar */}
         <div className='lg:w-1/5 space-y-6 text-black'>
-          <AddressFilter onFilter={handleAddressFilter} />
+          <AddressFilter
+            onFilter={handleAddressFilter}
+            selectedOption={selectedWardOption}
+          />
           <div>
             <h3 className='font-semibold mb-2'>Loại sản phẩm</h3>
             <ListCategory
@@ -139,13 +159,11 @@ const ProductList = () => {
           </div>
           <PriceFilter value={priceRange} onChange={setPriceRange} />
         </div>
-
         {/* Content */}
         <div className='flex-1'>
           <div className='mb-6'>
             <img src={banner} alt='Banner' className='w-full rounded' />
           </div>
-
           <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-4 text-black gap-4'>
             <p>
               Hiển thị {sortedProducts.length} sản phẩm
@@ -165,7 +183,6 @@ const ProductList = () => {
               </select>
             </div>
           </div>
-
           {loading ? (
             <p>Đang tải sản phẩm...</p>
           ) : error ? (
@@ -197,13 +214,11 @@ const ProductList = () => {
                         </button>
                       </div>
                     </div>
-
                     <Link to={`/home/products/${product._id}`}>
                       <h4 className='font-medium mt-5 mb-1 text-black hover:text-pink-600 transition'>
                         {product.title}
                       </h4>
                     </Link>
-
                     {variant ? (
                       <>
                         {variant.listPrice > variant.salePrice && (
