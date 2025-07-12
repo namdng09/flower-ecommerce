@@ -78,13 +78,20 @@ export const filterProducts = createAsyncThunk(
       status?: string;
       province?: string;
       ward?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      shop?: string;
     },
     { rejectWithValue }
   ) => {
     try {
-      // Truyền limit lớn để lấy toàn bộ sản phẩm
+      const queryParams = {
+        ...params,
+        limit: params.limit || 100000
+      };
+
       const res = await axios.get('/api/products/filter', {
-        params: { ...params, limit: params.limit || 100000 }
+        params: queryParams
       });
       return res.data.data;
     } catch (err: any) {
