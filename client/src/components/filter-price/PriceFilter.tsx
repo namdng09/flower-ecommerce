@@ -6,7 +6,7 @@ interface PriceRange {
 }
 
 interface PriceFilterProps {
-  value: PriceRange | null; // chỉ một khoảng giá hoặc null
+  value: PriceRange | null;
   onChange: (range: PriceRange | null) => void;
 }
 
@@ -18,34 +18,62 @@ const priceOptions = [
 ];
 
 const PriceFilter: React.FC<PriceFilterProps> = ({ value, onChange }) => {
+  const isSelected = (option: PriceRange) =>
+    value?.min === option.min && value?.max === option.max;
+
   return (
-    <div className='space-y-2'>
-      <h3 className='block font-medium mb-1'>Tìm theo mức giá</h3>
+    <div className='space-y-3'>
+      <h3 className='font-semibold text-base text-gray-800'>Khoảng giá</h3>
+
       {priceOptions.map(opt => (
-        <label
+        <button
           key={opt.label}
-          className='flex items-center gap-2 cursor-pointer'
+          onClick={() => onChange(opt.value)}
+          type='button'
+          className={`flex items-center justify-between w-full px-4 py-2 rounded-md border text-left transition duration-150
+            ${
+              isSelected(opt.value)
+                ? 'bg-rose-500 text-white border-rose-500 font-semibold'
+                : 'bg-white hover:bg-gray-100 border-gray-300 text-gray-700'
+            }`}
         >
-          <input
-            type='radio'
-            name='price-filter'
-            checked={
-              value?.min === opt.value.min && value?.max === opt.value.max
-            }
-            onChange={() => onChange(opt.value)}
-          />
-          <span>{opt.label}</span>
-        </label>
+          {opt.label}
+          <div
+            className={`w-4 h-4 border rounded-full flex items-center justify-center ${
+              isSelected(opt.value)
+                ? 'border-white bg-white'
+                : 'border-gray-400'
+            }`}
+          >
+            {isSelected(opt.value) && (
+              <div className='w-2 h-2 bg-rose-500 rounded-full' />
+            )}
+          </div>
+        </button>
       ))}
-      <label className='flex items-center gap-2 cursor-pointer'>
-        <input
-          type='radio'
-          name='price-filter'
-          checked={value === null}
-          onChange={() => onChange(null)}
-        />
-        <span>Tất cả</span>
-      </label>
+
+      {/* Tất cả */}
+      <button
+        onClick={() => onChange(null)}
+        type='button'
+        className={`flex items-center justify-between w-full px-4 py-2 rounded-md border transition duration-150
+          ${
+            value === null
+              ? 'bg-rose-500 text-white border-rose-500 font-semibold'
+              : 'bg-white hover:bg-gray-100 border-gray-300 text-gray-700'
+          }`}
+      >
+        Tất cả
+        <div
+          className={`w-4 h-4 border rounded-full flex items-center justify-center ${
+            value === null ? 'border-white bg-white' : 'border-gray-400'
+          }`}
+        >
+          {value === null && (
+            <div className='w-2 h-2 bg-rose-500 rounded-full' />
+          )}
+        </div>
+      </button>
     </div>
   );
 };
