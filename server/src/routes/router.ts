@@ -20,6 +20,8 @@ router.use('/auth', authRoutes);
 
 // Auth routes
 
+router.use('/payments', paymentRoute);
+
 router.use('/products', productRoute);
 
 router.use('/categories', categoryRoute);
