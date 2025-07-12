@@ -61,6 +61,24 @@ const OrderPage: React.FC = () => {
     }
   }, [addresses]);
 
+  const redirectToPayOS = (paymentData: any) => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${import.meta.env.VITE_API_URL}/api/payments/create-payment-link`;
+    form.style.display = 'none';
+
+    for (const key in paymentData) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = paymentData[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const handleOrder = async () => {
     if (!user) {
       toast.warn('⚠️ Vui lòng đăng nhập để tiếp tục!');
@@ -106,21 +124,45 @@ const OrderPage: React.FC = () => {
         isAnonymous,
         deliveryTimeRequested
       },
-      description: note
+      description: note.trim() || 'Gửi đơn hàng'
     };
 
-    const result = await dispatch(createOrder(orderData));
+    try {
+      const result = await dispatch(createOrder(orderData));
+      console.log('📦 Kết quả gọi createOrder:', result);
 
-    if (createOrder.fulfilled.match(result)) {
-      const orders = result.payload;
+      if (createOrder.fulfilled.match(result)) {
+        const orders = result.payload;
 
-      if (Array.isArray(orders) && orders.length > 0) {
-        navigate(`/home/order-success/${orders[0]._id}`);
+        if (Array.isArray(orders) && orders.length > 0) {
+          const orderIds = orders.map(o => o._id);
+          const orderNumbers = orders.map(o => o.orderNumber).join(', ');
+
+          if (paymentMethod === 'banking') {
+            redirectToPayOS({
+              amount: orders.reduce((sum, o) => sum + o.payment.amount, 0),
+              description: orderNumbers,
+              returnUrl: `${window.location.origin}/home/order-success/${orderIds[0]}`,
+              cancelUrl: `${window.location.origin}/home/order-fail`
+            });
+            return;
+          }
+
+          // Nếu COD
+          navigate(`/home/order-success/${orderIds[0]}`);
+        } else {
+          console.error('❗ Không có đơn hàng nào trong phản hồi:', orders);
+          toast.error('Không có đơn hàng nào được tạo.');
+          navigate('/home/order-fail');
+        }
       } else {
-        console.error('Không có đơn hàng nào trong phản hồi:', orders);
+        console.error('❌ createOrder bị reject:', result);
+        toast.error(result.payload || 'Đặt hàng thất bại. Vui lòng thử lại.');
         navigate('/home/order-fail');
       }
-    } else {
+    } catch (error) {
+      console.error('❌ Exception khi gọi createOrder:', error);
+      toast.error('Đã xảy ra lỗi khi đặt hàng!');
       navigate('/home/order-fail');
     }
   };
