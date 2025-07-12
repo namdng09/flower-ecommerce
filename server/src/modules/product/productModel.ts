@@ -65,11 +65,11 @@ const ProductSchema = new Schema<IProduct>(
 ProductSchema.plugin(aggregatePaginate);
 
 export interface ProductDocument extends mongoose.Document, IProduct {}
-export type ProductPaginateModel = mongoose.PaginateModel<ProductDocument>;
+export type ProductPaginateModel = PaginateModel<ProductDocument>;
 
-const ProductModel = mongoose.model<
-  ProductDocument,
-  PaginateModel<ProductDocument>
->('Product', ProductSchema);
+const ProductModel = mongoose.model<ProductDocument, ProductPaginateModel>(
+  'Product',
+  ProductSchema
+);
 
 export default ProductModel;

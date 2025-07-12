@@ -1,8 +1,7 @@
-import { Types } from 'mongoose';
 import { Request, Response, NextFunction } from 'express';
-import CategoryModel from './categoryModel';
+import { categoryService } from './categoryService';
 import { apiResponse } from '~/types/apiResponse';
-import createHttpError from 'http-errors';
+import { ICategory } from './categoryModel';
 
 /**
  * categoryController.ts
@@ -14,216 +13,118 @@ export const categoryController = {
    * GET /categories
    * categoryController.list()
    */
-  list: async (
-    _req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const allActiveCategories = await CategoryModel.find({
-        status: 'active'
-      }).lean();
+  list: async (req: Request, res: Response): Promise<Response> => {
+    const categories = await categoryService.list();
 
-      const categoryMap = new Map<string, any>();
-
-      allActiveCategories.forEach(cat => {
-        categoryMap.set(cat._id.toString(), { ...cat, subCategory: [] });
-      });
-
-      const rootCategories: any[] = [];
-
-      allActiveCategories.forEach(cat => {
-        if (cat.parentId) {
-          const parent = categoryMap.get(cat.parentId.toString());
-          if (parent) {
-            parent.subCategory.push(categoryMap.get(cat._id.toString()));
-          }
-        } else {
-          rootCategories.push(categoryMap.get(cat._id.toString()));
-        }
-      });
-
-      return res
-        .status(200)
-        .json(
-          apiResponse.success(
-            'Active categories fetched successfully',
-            rootCategories
-          )
-        );
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Categories listed successfully', categories));
   },
-
   /**
    * GET /categories/:id
    * categoryController.show()
    */
-  show: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { id } = req.params;
+  show: async (req: Request, res: Response): Promise<Response> => {
+    const { categoryId } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid category id');
-      }
+    const category = await categoryService.show(categoryId);
 
-      const category = await CategoryModel.findById(id);
-      if (!category) {
-        throw createHttpError(404, 'Category not found');
-      }
-
-      return res
-        .status(200)
-        .json(apiResponse.success('Category fetched successfully', category));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Category fetched successfully', category));
   },
+  /**
+   * GET /categories/filter
+   * categoryController.filterCategories()
+   */
+  filterCategories: async (req: Request, res: Response): Promise<Response> => {
+    const {
+      page = '1',
+      limit = '10',
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      title
+    } = req.query as {
+      page?: string;
+      limit?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+      title?: string;
+    };
 
+    const categories = await categoryService.filter(
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      title
+    );
+
+    return res
+      .status(200)
+      .json(
+        apiResponse.success('Categories filtered successfully', categories)
+      );
+  },
   /**
    * POST /categories
    * categoryController.create()
    */
-  create: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { title, image = '', description = '', parentId } = req.body;
+  create: async (req: Request, res: Response): Promise<Response> => {
+    const categoryData: ICategory = req.body;
 
-      if (!title?.trim()) {
-        throw createHttpError(400, 'Title field is required');
-      }
+    const newCategory = await categoryService.create(categoryData);
 
-      if (parentId !== undefined && parentId !== null) {
-        if (!Types.ObjectId.isValid(parentId))
-          throw createHttpError(400, 'Invalid parentId');
-        const parent = await CategoryModel.findById(parentId);
-        if (!parent || parent.parentId)
-          throw createHttpError(404, 'Parent category not found');
-      }
-
-      const duplicate = await CategoryModel.findOne({ title });
-      if (duplicate) {
-        throw createHttpError(409, 'Category title already exists');
-      }
-
-      const category = await CategoryModel.create({
-        title,
-        image,
-        description,
-        parentId: parentId ?? null
-      });
-
-      return res
-        .status(201)
-        .json(apiResponse.success('Category created successfully', category));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(201)
+      .json(apiResponse.success('Category created successfully', newCategory));
   },
-
   /**
    * PUT /categories/:id
    * categoryController.update()
    */
-  update: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { id } = req.params;
-      const { title, image, description, status, parentId } = req.body;
+  update: async (req: Request, res: Response): Promise<Response> => {
+    const { categoryId } = req.params;
+    const categoryData: ICategory = req.body;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid category id');
-      }
+    const category = await categoryService.update(categoryId, categoryData);
 
-      const savedCategory = await CategoryModel.findById(id);
-      if (!savedCategory) {
-        throw createHttpError(404, 'Category not found');
-      }
-
-      if (title && title !== savedCategory.title) {
-        const dup = await CategoryModel.findOne({ title });
-        if (dup) {
-          throw createHttpError(409, 'Category title already exists');
-        }
-      }
-
-      if (parentId !== undefined) {
-        if (parentId !== null && !Types.ObjectId.isValid(parentId))
-          throw createHttpError(400, 'Invalid parentId');
-        if (parentId === id)
-          throw createHttpError(400, 'Category cannot be its own parent');
-        if (parentId !== null) {
-          const parent = await CategoryModel.findById(parentId);
-          if (!parent || parent.parentId)
-            throw createHttpError(404, 'Parent category not found');
-        }
-        savedCategory.parentId = parentId;
-      }
-
-      if (title !== undefined) savedCategory.title = title;
-      if (image !== undefined) savedCategory.image = image;
-      if (description !== undefined) savedCategory.description = description;
-      if (status !== undefined) savedCategory.status = status;
-
-      const updatedCategory = await savedCategory.save();
-
-      return res
-        .status(200)
-        .json(
-          apiResponse.success('Category updated successfully', updatedCategory)
-        );
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Category updated successfully', category));
   },
-
   /**
    * DELETE /categories/:id
-   * categoryController.remove()
+   * categoryController.delete()
    */
-  remove: async (
+  delete: async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const { id } = req.params;
+      const { categoryId } = req.params;
 
-      if (!Types.ObjectId.isValid(id)) {
-        throw createHttpError(400, 'Invalid category id');
-      }
-
-      const deleted = await CategoryModel.findByIdAndDelete(id);
-      if (!deleted) {
-        throw createHttpError(404, 'Category not found');
-      }
+      const category = await categoryService.delete(categoryId);
 
       return res
         .status(200)
-        .json(apiResponse.success('Category removed successfully'));
+        .json(apiResponse.success('Category deleted successfully', category));
     } catch (error) {
       next(error);
     }
   },
-
+  /**
+   * GET /categories/parents
+   * categoryController.parents()
+   */
   parents: async (
     _req: Request,
     res: Response,
     next: NextFunction
   ): Promise<Response | void> => {
     try {
-      const parents = await CategoryModel.find({ parentId: null });
+      const parents = await categoryService.parents();
       return res
         .status(200)
         .json(
@@ -233,7 +134,10 @@ export const categoryController = {
       next(error);
     }
   },
-
+  /**
+   * GET /categories/:parentId/children
+   * categoryController.children()
+   */
   children: async (
     req: Request,
     res: Response,
@@ -241,10 +145,11 @@ export const categoryController = {
   ): Promise<Response | void> => {
     try {
       const { parentId } = req.params;
-      if (!Types.ObjectId.isValid(parentId))
-        throw createHttpError(400, 'Invalid parentId');
+      if (!parentId) {
+        throw new Error('Parent ID is required');
+      }
 
-      const children = await CategoryModel.find({ parentId });
+      const children = await categoryService.children(parentId);
       return res
         .status(200)
         .json(

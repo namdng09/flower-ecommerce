@@ -1,14 +1,17 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from '~/config/axiosConfig';
 
 export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
-  async () => {
-    const res = await fetch('http://localhost:8000/api/categories');
-    if (!res.ok) {
-      throw new Error(`HTTP error! Status: ${res.status} ${res.statusText}`);
+  async (_, thunkAPI) => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/categories');
+      return response.data.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
     }
-    const data = await res.json();
-    return data.data;
   }
 );
 
@@ -19,11 +22,19 @@ const categorySlice = createSlice({
     loading: false,
     error: null
   },
-  reducers: {},
+  reducers: {
+    // Nếu cần reset
+    resetCategories(state) {
+      state.items = [];
+      state.loading = false;
+      state.error = null;
+    }
+  },
   extraReducers: builder => {
     builder
       .addCase(fetchCategories.pending, state => {
         state.loading = true;
+        state.error = null;
       })
       .addCase(fetchCategories.fulfilled, (state, action) => {
         state.loading = false;
@@ -31,9 +42,10 @@ const categorySlice = createSlice({
       })
       .addCase(fetchCategories.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload as string;
       });
   }
 });
 
+export const { resetCategories } = categorySlice.actions;
 export default categorySlice.reducer;

@@ -1,8 +1,7 @@
-import { Types } from 'mongoose';
 import { Request, Response, NextFunction } from 'express';
-import ReviewModel from './reviewModel';
+import { reviewService } from './reviewService';
 import { apiResponse } from '~/types/apiResponse';
-import createHttpError from 'http-errors';
+import { IReviewRequest } from './reviewModel';
 
 /**
  * reviewController.ts
@@ -14,153 +13,65 @@ export const reviewController = {
    * GET /reviews
    * reviewController.list()
    */
-  list: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const reviews = await ReviewModel.find();
+  list: async (_req: Request, res: Response): Promise<Response> => {
+    const reviews = await reviewService.list();
 
-      return res
-        .status(200)
-        .json(apiResponse.success('Reviews listed successfully', reviews));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Reviews listed successfully', reviews));
   },
   /**
    * GET /reviews/:id
    * reviewController.show()
    */
-  show: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { reviewId } = req.params;
-      if (!Types.ObjectId.isValid(reviewId)) {
-        throw createHttpError(400, 'Invalid review id');
-      }
+  show: async (req: Request, res: Response): Promise<Response> => {
+    const { reviewId } = req.params;
 
-      const review = await ReviewModel.findById(reviewId);
-      if (!review) {
-        throw createHttpError(404, 'Review not found');
-      }
+    const review = await reviewService.show(reviewId);
 
-      return res
-        .status(200)
-        .json(apiResponse.success('Review fetched successfully', review));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Review fetched successfully', review));
+  },
+  /**
+   * GET /reviews/product/:productId
+   * reviewController.show()
+   */
+  getByProduct: async (req: Request, res: Response): Promise<Response> => {
+    const { productId } = req.params;
+
+    const reviews = await reviewService.getByProduct(productId);
+
+    return res
+      .status(200)
+      .json(apiResponse.success('Reviews fetched successfully', reviews));
   },
   /**
    * POST /reviews
    * reviewController.create()
    */
-  create: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const {
-        userId,
-        productId,
-        targetType,
-        rating,
-        description,
-        status = 'active',
-        images = []
-      } = req.body;
-      if (!Types.ObjectId.isValid(productId)) {
-        throw createHttpError(400, 'Invalid product id');
-      }
-      if (!Types.ObjectId.isValid(userId)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
-      if (!productId || !targetType || !rating) {
-        throw createHttpError(400, 'Missing required fields');
-      }
+  create: async (req: Request, res: Response): Promise<Response> => {
+    const reviewData: IReviewRequest = req.body;
 
-      const existingReview = await ReviewModel.findOne({
-        userId: userId,
-        productId: productId
-      });
-      if (existingReview) {
-        throw createHttpError(400, 'Review for this product already exists');
-      }
+    const newReview = await reviewService.create(reviewData);
 
-      const newReview = await ReviewModel.create({
-        userId,
-        productId,
-        targetType,
-        rating,
-        description,
-        status,
-        images
-      });
-      return res
-        .status(201)
-        .json(apiResponse.success('Review created successfully', newReview));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(201)
+      .json(apiResponse.success('Review created successfully', newReview));
   },
   /**
-   * PUT /reviews/:id
+   * PATCH /reviews/:id
    * reviewController.update()
    */
-  update: async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response | void> => {
-    try {
-      const { reviewId } = req.params;
-      if (!Types.ObjectId.isValid(reviewId)) {
-        throw createHttpError(400, 'Invalid review id');
-      }
+  update: async (req: Request, res: Response): Promise<Response> => {
+    const { reviewId } = req.params;
+    const reviewData: IReviewRequest = req.body;
 
-      const {
-        userId,
-        productId,
-        targetType,
-        rating,
-        description,
-        images = []
-      } = req.body;
+    const review = await reviewService.update(reviewId, reviewData);
 
-      if (!Types.ObjectId.isValid(userId)) {
-        throw createHttpError(400, 'Invalid user id');
-      }
-      if (!Types.ObjectId.isValid(productId)) {
-        throw createHttpError(400, 'Invalid product id');
-      }
-      if (!userId || !productId || !targetType || !rating) {
-        throw createHttpError(400, 'Missing required fields');
-      }
-
-      const review = await ReviewModel.findByIdAndUpdate(reviewId, {
-        userId,
-        productId,
-        targetType,
-        rating,
-        description,
-        images
-      });
-      if (!review) {
-        throw createHttpError(404, 'Review not found');
-      }
-
-      return res
-        .status(200)
-        .json(apiResponse.success('Review updated successfully', review));
-    } catch (error) {
-      next(error);
-    }
+    return res
+      .status(200)
+      .json(apiResponse.success('Review updated successfully', review));
   },
   /**
    * DELETE /reviews/:id
@@ -173,14 +84,8 @@ export const reviewController = {
   ): Promise<Response | void> => {
     try {
       const { reviewId } = req.params;
-      if (!Types.ObjectId.isValid(reviewId)) {
-        throw createHttpError(400, 'Invalid review id');
-      }
 
-      const review = await ReviewModel.findByIdAndDelete(reviewId);
-      if (!review) {
-        throw createHttpError(404, 'Review not found');
-      }
+      const review = await reviewService.delete(reviewId);
 
       return res
         .status(200)

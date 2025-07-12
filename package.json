@@ -12,16 +12,13 @@
     "lint-staged": "lint-staged"
   },
   "lint-staged": {
-    "client/**/*.{ts,tsx}": [
-      "tsc-files --noEmit -p client/tsconfig.app.json"
-    ],
-    "server/**/*.{ts,tsx}": [
-      "tsc-files --noEmit -p server/tsconfig.json"
-    ],
-    "*.{ts,tsx,js,mjs}": [
+    "*.{js,mjs,ts,tsx}": [
       "npm run lint",
       "npm run format",
       "git add"
+    ],
+    "package.json": [
+      "npm run lint"
     ]
   },
   "keywords": [],

@@ -20,7 +20,7 @@ const ResetPasswordForm: React.FC = () => {
 
   const onSubmit = async (data: ResetPasswordFormFields) => {
     try {
-      await axiosInstance.post('/api/auth/reset-password', data);
+      await axiosInstance.post('/api/auth/request-reset-password', data);
       reset();
     } finally {
       alert(
