@@ -16,9 +16,6 @@
       "npm run lint",
       "npm run format",
       "git add"
-    ],
-    "package.json": [
-      "npm run lint"
     ]
   },
   "keywords": [],

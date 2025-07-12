@@ -338,6 +338,11 @@ const orderSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
+      // .addCase(createOrder.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.orders.unshift(action.payload);
+      // })
+
       .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = false;
         state.orders.unshift(action.payload);

@@ -1,12 +1,16 @@
 import { useEffect, useState, useContext } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
-import { fetchProducts } from '~/store/slices/productSlice';
+import { fetchProducts, filterProducts } from '~/store/slices/productSlice';
 import { addToCart } from '~/store/slices/cartSlice';
 import ListCategory from '~/components/listcategory/ListCategory';
 import { AuthContext } from '~/contexts/authContext';
 import banner from '~/assets/banner1.webp';
 import { Link } from 'react-router';
+import AddressFilter from '~/components/filter-address/AddressFilter';
+import AddressModal from '~/components/filter-address/AddressModal';
+import PriceFilter from '~/components/filter-price/PriceFilter';
+
 import { toast } from 'react-toastify';
 
 const ProductList = () => {
@@ -24,6 +28,37 @@ const ProductList = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
+  const [province, setProvince] = useState('');
+  const [ward, setWard] = useState('');
+  const [showAddressModal, setShowAddressModal] = useState(true);
+  const [wards, setWards] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<{
+    min: number;
+    max: number;
+  } | null>(null);
+
+  useEffect(() => {
+    fetch('/hn_geo_names.json')
+      .then(res => res.json())
+      .then(data =>
+        setWards(data.map((item: any) => `${item.type} ${item.name}`))
+      );
+  }, []);
+
+  const handleAddressFilter = (province: string, ward: string) => {
+    setProvince(province);
+    setWard(ward);
+  };
+
+  const handleAddressSelect = (province: string, ward: string) => {
+    setProvince(province);
+    setWard(ward);
+    setShowAddressModal(false);
+  };
+
+  useEffect(() => {
+    console.log('Products:', products);
+  }, [products]);
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -31,21 +66,38 @@ const ProductList = () => {
 
   console.log(products);
 
-  const filteredProducts = selectedCategoryId
-    ? products.filter(
-        p =>
-          Array.isArray(p.categories) &&
-          p.categories.some(cat => cat._id === selectedCategoryId)
-      )
-    : products;
+  useEffect(() => {
+    dispatch(
+      filterProducts({
+        province,
+        ward,
+        category: selectedCategoryId || undefined,
+        sortBy:
+          sortBy === 'PriceLowHigh' || sortBy === 'PriceHighLow'
+            ? 'salePrice'
+            : 'title',
+        sortOrder:
+          sortBy === 'Z-A'
+            ? 'desc'
+            : sortBy === 'PriceHighLow'
+              ? 'desc'
+              : 'asc',
+        minPrice: priceRange?.min,
+        maxPrice: priceRange?.max,
+        limit: 100000
+      })
+    );
+  }, [dispatch, province, ward, selectedCategoryId, sortBy, priceRange]);
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  const sortedProducts = [...products].sort((a, b) => {
     const aVar = a.variants?.[0];
     const bVar = b.variants?.[0];
     if (sortBy === 'A-Z') return a.title.localeCompare(b.title);
     if (sortBy === 'Z-A') return b.title.localeCompare(a.title);
     if (sortBy === 'PriceLowHigh')
       return (aVar?.salePrice ?? 0) - (bVar?.salePrice ?? 0);
+    if (sortBy === 'PriceHighLow')
+      return (bVar?.salePrice ?? 0) - (aVar?.salePrice ?? 0);
     return 0;
   });
 
@@ -71,9 +123,13 @@ const ProductList = () => {
 
   return (
     <div className='container mx-auto px-4 pt-[200px] mb-5'>
+      {showAddressModal && (
+        <AddressModal wards={wards} onSelect={handleAddressSelect} />
+      )}
       <div className='flex flex-col lg:flex-row gap-8'>
         {/* Sidebar */}
         <div className='lg:w-1/5 space-y-6 text-black'>
+          <AddressFilter onFilter={handleAddressFilter} />
           <div>
             <h3 className='font-semibold mb-2'>Loại sản phẩm</h3>
             <ListCategory
@@ -81,6 +137,7 @@ const ProductList = () => {
               selectedCategoryId={selectedCategoryId}
             />
           </div>
+          <PriceFilter value={priceRange} onChange={setPriceRange} />
         </div>
 
         {/* Content */}
@@ -104,6 +161,7 @@ const ProductList = () => {
                 <option value='A-Z'>A-Z</option>
                 <option value='Z-A'>Z-A</option>
                 <option value='PriceLowHigh'>Giá: Thấp đến Cao</option>
+                <option value='PriceHighLow'>Giá: Cao đến Thấp</option>
               </select>
             </div>
           </div>
