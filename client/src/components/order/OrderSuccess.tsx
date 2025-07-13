@@ -43,9 +43,9 @@
 // export default OrderSuccess;
 
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrderById } from '~/store/slices/orderSlice';
+import { fetchOrderById, updatePayment } from '~/store/slices/orderSlice';
 import type { RootState } from '~/store';
 import { FaCheckCircle, FaGift } from 'react-icons/fa';
 import { FiBox, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
@@ -54,6 +54,9 @@ const OrderPage: React.FC = () => {
   const { orderId } = useParams();
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const paymentStatus = searchParams.get('status');
 
   const {
     currentOrder: order,
@@ -66,6 +69,23 @@ const OrderPage: React.FC = () => {
       dispatch(fetchOrderById(orderId));
     }
   }, [dispatch, orderId]);
+
+  useEffect(() => {
+    const syncPaymentStatus = async () => {
+      if (
+        order &&
+        order.payment?.method === 'banking' &&
+        order.payment?.status !== 'paid' &&
+        paymentStatus?.toUpperCase() === 'PAID'
+      ) {
+        await dispatch(updatePayment({ id: order._id, paymentData: { status: 'paid' } }));
+        await dispatch(fetchOrderById(order._id));
+      }
+    };
+
+    syncPaymentStatus();
+  }, [order, paymentStatus, dispatch]);
+  
 
   if (loading) return <p className='text-center mt-10'>Đang tải đơn hàng...</p>;
   if (error || !order)
@@ -220,8 +240,8 @@ const OrderPage: React.FC = () => {
           </div>
           <div className='flex justify-between pt-2'>
             <span>Thanh toán:</span>
-            <span className='capitalize'>
-              {payment.method} - {payment.status}
+            <span className='capitalize font-semibold'>
+              {payment.method} - {payment.status === 'paid' ? 'đã thanh toán' : 'chờ thanh toán'}
             </span>
           </div>
         </div>
