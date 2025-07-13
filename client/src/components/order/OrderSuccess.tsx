@@ -240,7 +240,12 @@ const OrderPage: React.FC = () => {
           </div>
           <div className='flex justify-between pt-2'>
             <span>Thanh toán:</span>
-            <span className='capitalize font-semibold'>
+            <span
+              className={`capitalize font-semibold ${payment.status === 'paid'
+                  ? 'text-green-600'
+                  : 'text-yellow-600'
+                }`}
+            >
               {payment.method} - {payment.status === 'paid' ? 'đã thanh toán' : 'chờ thanh toán'}
             </span>
           </div>
