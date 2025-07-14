@@ -266,6 +266,17 @@ export const orderService = {
     return orders;
   },
 
+  getByShopId: async (shopId: string) => {
+    if (!Types.ObjectId.isValid(shopId))
+      throw createHttpError(400, 'Invalid shop id');
+
+    const orders = await OrderModel.find({ shop: shopId }).sort({
+      createdAt: -1
+    });
+
+    return orders;
+  },
+
   create: async (orderData: IOrder) => {
     const { user, address, items, payment, shipment, customization } =
       orderData;

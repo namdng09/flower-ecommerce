@@ -119,6 +119,28 @@ export const orderController = {
   },
 
   /**
+   * GET /orders/:shopId/shop
+   * orderController.getByShopId()
+   */
+  getByShopId: async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response | void> => {
+    try {
+      const { shopId } = req.params;
+
+      const orders = await orderService.getByShopId(shopId);
+
+      return res
+        .status(200)
+        .json(apiResponse.success('Order created successfully', orders));
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  /**
    * POST /orders
    * orderController.create()
    *

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,7 @@ import DynamicTable from '~/components/DynamicTable';
 import Pagination from '~/components/Pagination';
 import { ConfirmModal } from '~/components/ConfirmModal';
 import { Link } from 'react-router';
+import { AuthContext } from '~/contexts/authContext';
 
 const filterSchema = z.object({
   orderNumber: z.string(),
@@ -43,13 +44,16 @@ const OrderPage = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
+  const { user } = useContext(AuthContext);
+  const shopId = user?.role === 'shop' ? user._id || user.id : '';
+
   const { register, handleSubmit, watch, reset, setValue } =
     useForm<FilterFormData>({
       resolver: zodResolver(filterSchema),
       defaultValues: {
         orderNumber: searchParams.get('orderNumber') || '',
         status: searchParams.get('status') || '',
-        shop: searchParams.get('shop') || '',
+        shop: shopId || '',
         user: searchParams.get('user') || '',
         sortBy: searchParams.get('sortBy') || 'createdAt',
         sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc'
@@ -77,7 +81,7 @@ const OrderPage = () => {
   useEffect(() => {
     setValue('orderNumber', searchParams.get('orderNumber') || '');
     setValue('status', searchParams.get('status') || '');
-    setValue('shop', searchParams.get('shop') || '');
+    setValue('shop', shopId || '');
     setValue('user', searchParams.get('user') || '');
     setValue('sortBy', searchParams.get('sortBy') || 'createdAt');
     setValue(
@@ -90,7 +94,7 @@ const OrderPage = () => {
 
   useEffect(() => {
     const currentFilters = watch();
-    const filters = { ...currentFilters, page, limit };
+    const filters = { ...currentFilters, shop: shopId, page, limit };
     dispatch(setFilters(filters));
     dispatch(fetchOrders(filters));
   }, [searchParams, dispatch, page, limit, watch]);
@@ -104,7 +108,7 @@ const OrderPage = () => {
     const resetFilters = {
       orderNumber: '',
       status: '',
-      shop: '',
+      shop: shopId,
       user: '',
       sortBy: 'createdAt',
       sortOrder: 'desc' as const
