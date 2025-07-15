@@ -134,7 +134,7 @@ export const orderController = {
 
       return res
         .status(200)
-        .json(apiResponse.success('Order created successfully', orders));
+        .json(apiResponse.success('Orders retrieved successfully', orders));
     } catch (error) {
       next(error);
     }
