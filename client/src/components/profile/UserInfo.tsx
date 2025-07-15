@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Link } from 'react-router';
+import { Link,useNavigate } from 'react-router';
 import { FaUserCircle } from 'react-icons/fa';
 import { FiCamera } from 'react-icons/fi';
 import uploadAssets from '~/utils/uploadAssets';
@@ -32,6 +32,7 @@ const UserInfo: React.FC<UserInfoProps> = ({
   setForm
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -57,6 +58,16 @@ const UserInfo: React.FC<UserInfoProps> = ({
     } catch {
       alert('Upload ảnh thất bại!');
     }
+  };
+
+  const handleUnifiedLogout = () => {
+    localStorage.removeItem('accessToken');
+    sessionStorage.removeItem('accessToken');
+    // Nếu có refreshToken ở cookie, có thể gọi API logout ở backend
+    // await axiosInstance.post('/api/auth/logout');
+    if (handleLogout) handleLogout();
+    navigate('/auth/login');
+    window.location.reload();
   };
 
   return (

@@ -1,23 +1,39 @@
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate,useLocation } from 'react-router';
 import logo1 from '../../../src/assets/logo1.svg';
 import { jwtDecode } from 'jwt-decode';
 import { useSelector } from 'react-redux';
 import type { RootState } from '~/store';
 import { FiShoppingCart } from 'react-icons/fi';
-
+import { useEffect, useState } from 'react';
 function HeaderC() {
-  const navigate = useNavigate();
+   const navigate = useNavigate();
+  const location = useLocation();
 
-  const accessToken = sessionStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState<string | null>(
+    localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken')
+  );
   let userId = '';
   if (accessToken) {
-    try {
-      const decoded = jwtDecode(accessToken);
-      userId = decoded.id;
-    } catch (error) {
-      console.error('Invalid token:', error);
-    }
+  try {
+    const decoded = jwtDecode(accessToken);
+    userId = decoded.id; 
+  } catch (error) {
+    console.error('Invalid token:', error);
   }
+}
+
+useEffect(() => {
+    setAccessToken(localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken'));
+  }, [location]);
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setAccessToken(localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken'));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
 
   const totalQuantity = useSelector((state: RootState) =>
     state.carts.items.reduce((sum, item) => sum + item.quantity, 0)
@@ -36,7 +52,7 @@ function HeaderC() {
               <Link to='/home'>Trang Chủ</Link>
             </li>
             <li>
-              <Link to='/home/shop'>Cửa Hàng</Link>
+              <Link to='/home/shop'>Sản Phẩm</Link>
             </li>
             <li>
               <Link to='/home/about'>Về Chúng Tôi</Link>

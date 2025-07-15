@@ -20,7 +20,7 @@ const Login = () => {
           className='flex items-center gap-2 px-4 py-2 rounded-full font-medium text-gray-700 bg-white border border-gray-200 shadow hover:bg-blue-50 transition-all duration-200 mt-3 mx-auto mb-4'
           style={{ minWidth: 0, width: 'fit-content' }}
           onClick={() => {
-            window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
+            window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google?redirect=/home`;
           }}
         >
           <img src={googlelogo} alt='Google' className='w-5 h-5' />

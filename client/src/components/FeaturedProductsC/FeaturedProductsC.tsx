@@ -59,7 +59,7 @@ function FeaturedProductsC() {
   return (
     <div className='max-w-screen-xl mx-auto py-12 px-4 pt-5'>
       <h2 className='text-2xl font-semibold text-black mb-6'>
-        Featured Products
+        Hoa Nổi Bật
       </h2>
 
       {loading ? (

@@ -6,7 +6,7 @@ import pic2 from '../../../src/assets/carousel1.jpg';
 import pic3 from '../../../src/assets/carousel2.jpg';
 import pic4 from '../../../src/assets/carousel3.jpg';
 import pic5 from '../../../src/assets/carousel4.jpg';
-
+import hoa55 from '../../../src/assets/hoa55.jpg';
 const images = [pic1, pic2, pic3, pic4, pic5];
 
 function CarouselC() {

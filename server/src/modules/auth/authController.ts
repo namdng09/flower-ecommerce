@@ -100,15 +100,7 @@ const authController = {
         sameSite: 'strict'
       });
 
-      return res.status(200).json(
-        apiResponse.success('Login successful', {
-          accessToken: result.accessToken,
-          user: {
-            id: result.user.id,
-            email: result.user.email
-          }
-        })
-      );
+      res.redirect(`http://localhost:5173/home?accessToken=${result.accessToken}`);
     } catch (error) {
       next(error);
     }

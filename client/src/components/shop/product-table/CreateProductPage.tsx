@@ -7,6 +7,11 @@ import { AuthContext } from '~/contexts/authContext';
 import { useNavigate } from 'react-router';
 import uploadAssets from '~/utils/uploadAssets';
 
+const formatCurrency = (value: string) => {
+  const num = value.replace(/\D/g, '');
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 const CreateProductPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -22,7 +27,6 @@ const CreateProductPage = () => {
   const [variantFiles, setVariantFiles] = useState<(File | null)[]>([null]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
 
-  // Thêm state cho dimension và weight
   const [dimension, setDimension] = useState({
     length: '',
     width: '',
@@ -88,7 +92,11 @@ const CreateProductPage = () => {
   const handleVariantChange = (index: number, e: any) => {
     const { name, value } = e.target;
     const updatedVariants = [...form.variants];
-    updatedVariants[index][name] = value;
+    if (name === 'listPrice' || name === 'salePrice') {
+      updatedVariants[index][name] = formatCurrency(value);
+    } else {
+      updatedVariants[index][name] = value;
+    }
     setForm(prev => ({ ...prev, variants: updatedVariants }));
   };
 
@@ -124,7 +132,7 @@ const CreateProductPage = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setFormError('');
-    if (submitting) return; // Ngăn double submit
+    if (submitting) return;
     setSubmitting(true);
 
     const err = validateForm();
@@ -134,7 +142,6 @@ const CreateProductPage = () => {
       return;
     }
 
-    // Upload thumbnail nếu có file
     let thumbnailUrl = form.thumbnailImage;
     if (thumbnailFile) {
       const result = await uploadAssets(
@@ -145,7 +152,6 @@ const CreateProductPage = () => {
       thumbnailUrl = (result as any).url;
     }
 
-    // Upload mảng imageFiles (tối đa 5 ảnh)
     let imageUrls: string[] = [];
     if (imageFiles.length > 0) {
       imageUrls = await Promise.all(
@@ -161,7 +167,6 @@ const CreateProductPage = () => {
       );
     }
 
-    // Upload ảnh biến thể nếu có file
     const variantImages = await Promise.all(
       form.variants.map(async (v, idx) => {
         if (variantFiles[idx]) {
@@ -191,15 +196,14 @@ const CreateProductPage = () => {
       variants: form.variants.map((v, idx) => ({
         ...v,
         image: variantImages[idx],
-        listPrice: Number(v.listPrice),
-        salePrice: Number(v.salePrice),
+        listPrice: Number(v.listPrice.replace(/\D/g, '')),
+        salePrice: Number(v.salePrice.replace(/\D/g, '')),
         inventory: Number(v.inventory)
       }))
     };
     try {
       await dispatch(createProduct(payload)).unwrap();
       alert('Tạo sản phẩm thành công!');
-      // Reset form nếu muốn, hoặc navigate
       navigate('/shop/product');
     } catch (err: any) {
       setFormError(err?.message || 'Tạo thất bại');
@@ -213,7 +217,6 @@ const CreateProductPage = () => {
       <h2 className='text-xl font-bold mb-4'>Tạo sản phẩm mới</h2>
       <form onSubmit={handleSubmit} className='space-y-6'>
         {/* Biến thể (Variants) */}
-
         {/* Thông tin sản phẩm */}
         <h3 className='font-semibold mt-4 mb-2'>Thông tin sản phẩm</h3>
         <div className='grid grid-cols-1 gap-4'>
@@ -226,9 +229,6 @@ const CreateProductPage = () => {
             className='input w-full'
             required
           />
-
-          {/* Mô tả sản phẩm */}
-
           <textarea
             name='description'
             value={form.description}
@@ -236,7 +236,6 @@ const CreateProductPage = () => {
             placeholder='Mô tả sản phẩm'
             className='w-full p-2 border rounded'
           />
-
           <div className='mb-4'>
             <select
               value=''
@@ -254,13 +253,11 @@ const CreateProductPage = () => {
             </select>
           </div>
         </div>
-
         {selectedParents.map(parentId => {
           const parent = parentCategories.find(
             (cat: any) => cat._id === parentId
           );
           const subCategories = parent?.subCategory || [];
-
           return (
             <div
               key={parentId}
@@ -285,7 +282,6 @@ const CreateProductPage = () => {
                     ))}
                 </select>
               </div>
-
               {subCategories.some((s: any) =>
                 form.categories.includes(s._id)
               ) && (
@@ -313,7 +309,6 @@ const CreateProductPage = () => {
             </div>
           );
         })}
-
         {/* Thumbnail upload */}
         <div className='flex items-center gap-2'>
           <input
@@ -341,7 +336,6 @@ const CreateProductPage = () => {
             </>
           )}
         </div>
-
         {/* Upload nhiều ảnh sản phẩm (tối đa 5 ảnh) */}
         <div className='flex items-center gap-2 mt-2'>
           <input
@@ -379,7 +373,6 @@ const CreateProductPage = () => {
             />
           ))}
         </div>
-
         {/* Phân loại hàng (Variants) */}
         <h1 className='font-semibold mt-4 mb-2'>II.Thông tin bán hàng</h1>
         <div>
@@ -401,6 +394,9 @@ const CreateProductPage = () => {
                 placeholder='Giá niêm yết'
                 className='input'
                 required
+                type='text'
+                inputMode='numeric'
+                pattern='[0-9.]*'
               />
               <input
                 name='salePrice'
@@ -409,6 +405,9 @@ const CreateProductPage = () => {
                 placeholder='Giá bán'
                 className='input'
                 required
+                type='text'
+                inputMode='numeric'
+                pattern='[0-9.]*'
               />
               <input
                 name='inventory'
@@ -417,6 +416,8 @@ const CreateProductPage = () => {
                 placeholder='Tồn kho'
                 className='input'
                 required
+                type='number'
+                min={0}
               />
               {/* Ảnh biến thể */}
               <input
@@ -430,7 +431,6 @@ const CreateProductPage = () => {
                 }}
                 className='hidden'
               />
-
               <button
                 type='button'
                 className='px-3 py-2 bg-gray-200 rounded hover:bg-gray-300'
@@ -468,7 +468,6 @@ const CreateProductPage = () => {
             + Thêm phân loại hàng
           </button>
         </div>
-
         {/* Thêm input cho trọng lượng và kích thước */}
         <h1 className='font-semibold mt-4 mb-2'>III.Thông tin vận chuyển</h1>
         <div className='grid grid-cols-1 gap-4'>
@@ -523,7 +522,6 @@ const CreateProductPage = () => {
             />
           </div>
         </div>
-
         <button
           type='submit'
           className='bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700'

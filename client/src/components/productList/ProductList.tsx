@@ -5,7 +5,7 @@ import { fetchProducts, filterProducts } from '~/store/slices/productSlice';
 import { addToCart } from '~/store/slices/cartSlice';
 import ListCategory from '~/components/listcategory/ListCategory';
 import { AuthContext } from '~/contexts/authContext';
-import banner from '~/assets/banner1.webp';
+import banner from '~/assets/pb.jpg';
 import { Link } from 'react-router';
 import AddressFilter from '~/components/filter-address/AddressFilter';
 import AddressModal from '~/components/filter-address/AddressModal';

@@ -42,7 +42,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
       navigate(redirectUrl);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: Error | unknown) {
-      alert('Registration failed. Please try again later.');
+      alert(error.response.data.message || 'An error occurred during registration.');
     }
   };
 

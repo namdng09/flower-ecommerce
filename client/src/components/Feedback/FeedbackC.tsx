@@ -6,7 +6,7 @@ const testimonials = [
     background: hoa1,
     avatar: hoa2,
     quote:
-      'This theme is so smooth, flexible, and easy to use. The support team is also very helpful whenever I need assistance.',
+      'Giao diện này thật mượt mà, linh hoạt và dễ sử dụng. Đội ngũ hỗ trợ cũng rất nhiệt tình mỗi khi tôi cần sự trợ giúp.',
     name: 'Minh Anh',
     theme: 'spring'
   }
