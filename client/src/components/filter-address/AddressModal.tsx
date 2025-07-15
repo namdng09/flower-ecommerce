@@ -2,14 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import Select from 'react-select';
 import { X } from 'lucide-react';
 
-interface WardOption {
-  value: string;
-  label: string;
+interface AddressOption {
+  name?: string;
+  type: string;
+  province?: string;
+  ward?: string;
 }
 
 interface AddressModalProps {
   onSelect: (province: string, ward: string) => void;
-  wards: string[];
+  wards: string[]; // truyền mảng từ hn_geo_names.json
   onClose?: () => void;
 }
 
@@ -18,19 +20,43 @@ const AddressModal: React.FC<AddressModalProps> = ({
   wards,
   onClose
 }) => {
-  const [selectedWard, setSelectedWard] = useState<WardOption | null>(null);
+  const [selectedWard, setSelectedWard] = useState<any>(null);
   const [error, setError] = useState('');
   const selectRef = useRef<any>(null);
+  const [options, setOptions] = useState<any[]>([]);
 
-  const options: WardOption[] = wards.map(ward => ({
-    value: ward,
-    label: ward
-  }));
+  // Tạo options giống AddressFilter
+  useEffect(() => {
+    // Nếu wards là mảng string, cần chuyển thành AddressOption
+    const addressObjects: AddressOption[] = wards.map((ward: any) => {
+      if (typeof ward === 'string') {
+        // Tách type và name nếu có
+        const match = ward.match(/^(Phường|Xã|Thị trấn)\s(.+)$/);
+        return match
+          ? {
+              type: match[1],
+              name: match[2],
+              province: 'Hà Nội',
+              ward: match[2]
+            }
+          : { type: ward, name: '', province: 'Hà Nội', ward: ward };
+      }
+      return ward;
+    });
+
+    const opts = addressObjects.map(addr => ({
+      value: addr.name ? `${addr.type} ${addr.name}` : addr.type,
+      label: addr.name ? `${addr.type} ${addr.name}` : addr.type,
+      province: 'Hà Nội',
+      ward: addr.name || ''
+    }));
+    setOptions(opts);
+  }, [wards]);
 
   useEffect(() => {
     setTimeout(() => {
       selectRef.current?.focus();
-    }, 100); // slight delay to allow modal mount
+    }, 100);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,11 +66,11 @@ const AddressModal: React.FC<AddressModalProps> = ({
       return;
     }
     setError('');
-    onSelect('Hà Nội', selectedWard.value);
+    onSelect(selectedWard.province, selectedWard.ward);
   };
 
   return (
-    <div className='fixed inset-0 bg-opacity-50 flex items-center justify-center z-50'>
+    <div className='fixed inset-0 z-50 bg-black/20 backdrop-blur-sm flex items-center justify-center'>
       <div className='relative bg-white rounded-2xl shadow-2xl w-[380px] p-6 animate-fade-in'>
         {onClose && (
           <button
@@ -76,7 +102,10 @@ const AddressModal: React.FC<AddressModalProps> = ({
             </label>
             <Select
               ref={selectRef}
-              options={options}
+              options={[
+                { value: '', label: 'Tất cả', province: '', ward: '' },
+                ...options
+              ]}
               value={selectedWard}
               onChange={option => setSelectedWard(option)}
               placeholder='Tìm địa chỉ...'

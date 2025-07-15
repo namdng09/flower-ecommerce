@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import hoa1 from '../../../src/assets/hoa1.webp';
+import hoa1 from '../../../src/assets/hoa66.jpg';
 
 function BestSellingProductsC() {
   type TimeLeft = {
@@ -45,15 +45,14 @@ function BestSellingProductsC() {
       </div>
 
       <div className='flex-1 text-black'>
-        <h2 className='text-2xl font-semibold mb-2'>Best Selling Products</h2>
+        <h2 className='text-2xl font-semibold mb-2'>Sản Phẩm Bán Chạy</h2>
         <hr className='mb-4' />
-        <h3 className='text-[#B9205A] text-3xl italic mb-2'>Hungry Up!</h3>
+        <h3 className='text-[#B9205A] text-3xl italic mb-2'>Nhanh tay!</h3>
         <h1 className='text-4xl font-bold mb-4'>
-          Hot Deal! Sale Up To <span className='text-[#FF3C2D]'>20% Off</span>
+          Deal sốc, giảm tới <span className='text-[#FF3C2D]'>20% Off</span>
         </h1>
         <p className='text-gray-600 mb-6'>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Bó hoa tỏa sáng lấp lánh với từng lớp hoa được sắp xếp tinh tế, mang đến cảm giác vừa dịu dàng vừa sang trọng như một tác phẩm nghệ thuật.
         </p>
 
         <div className='flex space-x-4 mb-6'>
@@ -69,7 +68,7 @@ function BestSellingProductsC() {
         </div>
 
         <button className='bg-[#FF3C2D] text-white px-6 py-3 rounded hover:bg-[#e62c1c]'>
-          SHOP NOW
+          Mua Ngay
         </button>
       </div>
     </div>

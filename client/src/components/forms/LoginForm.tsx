@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type LoginFormFields, loginSchema } from '~/types/login';
 import { AuthContext } from '~/contexts/authContext';
 import { useNavigate } from 'react-router';
-
+import { VITE_API_URL } from '~/constants/env';
 interface LoginFormProps {
   title?: string;
   redirectUrl?: string;
@@ -34,6 +34,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
     } catch {
       alert('Login failed. Please check your credentials and try again.');
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}api/auth/google`;
   };
 
   return (

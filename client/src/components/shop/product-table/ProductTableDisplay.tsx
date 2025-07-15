@@ -12,6 +12,9 @@ import type { RootState } from '~/store';
 import { AuthContext } from '~/contexts/authContext';
 import { useNavigate } from 'react-router';
 import FilterProduct from './FilterProduct';
+import ProductDetailModal from './ProductDetailModal';
+import { fetchVariants } from '~/store/slices/variantSlice';
+
 import React from 'react';
 
 const ProductTableDisplay = () => {
@@ -25,12 +28,21 @@ const ProductTableDisplay = () => {
     loading,
     error
   } = useSelector((state: RootState) => state.products);
+  const [detailProduct, setDetailProduct] = useState<any>(null);
+  const [showDetail, setShowDetail] = useState(false);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isFiltering, setIsFiltering] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === 'shop' && user.id) {
+      dispatch(fetchProductsByShop(user.id));
+    }
+    dispatch(fetchVariants()); // <-- Thêm dòng này để lấy biến thể
+  }, [dispatch, user]);
 
   useEffect(() => {
     if (user?.role === 'shop' && user.id) {
@@ -99,10 +111,10 @@ const ProductTableDisplay = () => {
     },
     {
       accessorKey: 'variants',
-      header: 'Biến thể',
+      header: 'Phân loại',
       render: (value: any[]) => (
         <span className='text-xs text-gray-600'>
-          {Array.isArray(value) ? `${value.length} biến thể` : '0'}
+          {Array.isArray(value) ? `${value.length} phân loại` : '0'}
         </span>
       )
     },
@@ -165,6 +177,18 @@ const ProductTableDisplay = () => {
           >
             <FiTrash2 size={18} />
           </button>
+          <button
+            title='Xem chi tiết'
+            className='hover:text-green-600 transition'
+            onClick={() => {
+              setDetailProduct(row);
+              setShowDetail(true);
+            }}
+          >
+            <span className='material-icons' style={{ fontSize: 18 }}>
+              info
+            </span>
+          </button>
         </div>
       )
     }
@@ -222,6 +246,12 @@ const ProductTableDisplay = () => {
         title='Xóa Sản Phẩm'
         message='Bạn có chắc chắn muốn xóa sản phẩm này không?'
         onConfirm={confirmDelete}
+      />
+
+      <ProductDetailModal
+        product={detailProduct}
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
       />
     </div>
   );

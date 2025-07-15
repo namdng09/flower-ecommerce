@@ -28,9 +28,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string>('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
-
-  // Set loading state to true initially
-  // Because we need to wait for the auth initialization
   const [loading, setLoading] = useState<boolean>(true);
 
   const isTokenExpired = (token: string): boolean => {
@@ -40,9 +37,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const currentTimeInSecond = Date.now() / 1000;
       return decodedToken.exp
         ? decodedToken.exp < currentTimeInSecond + 30
-        : true; // 30 seconds buffer
-    } catch (error) {
-      console.error('Error decoding token:', error);
+        : true;
+    } catch {
       return true;
     }
   };
@@ -51,20 +47,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await axiosInstance.post('/api/auth/refresh-token');
       const newToken = response.data.accessToken;
-
-      if (localStorage.getItem('accessToken')) {
-        localStorage.setItem('accessToken', newToken);
-      } else {
-        sessionStorage.setItem('accessToken', newToken);
-      }
-
+      localStorage.setItem('accessToken', newToken);
       setAccessToken(newToken);
       setIsAuthenticated(true);
-      const decodedUser = jwtDecode<User>(newToken);
-      setUser(decodedUser);
+      setUser(jwtDecode<User>(newToken));
       return newToken;
-    } catch (error) {
-      console.error('Error refreshing token:', error);
+    } catch {
       logout();
       return null;
     }
@@ -74,41 +62,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await axiosInstance.post('/api/auth/login', data);
       const { accessToken } = response.data.data;
-
-      if (data.rememberMe) {
-        localStorage.setItem('accessToken', accessToken);
-      } else {
-        sessionStorage.setItem('accessToken', accessToken);
-      }
-
+      localStorage.setItem('accessToken', accessToken);
       setAccessToken(accessToken);
       setIsAuthenticated(true);
-      const decodedUser = jwtDecode<User>(accessToken);
-      setUser(decodedUser);
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw new Error('Login failed. Please check your credentials.');
+      setUser(jwtDecode<User>(accessToken));
+    } catch {
+      throw new Error('Login failed');
     }
   };
 
   const signUp = async (data: RegisterFormFields) => {
     try {
       const response = await axiosInstance.post('/api/auth/register', data);
+      if (response.data.status == 'failed') {
+        throw new Error(response.data.message);
+      }
       const { accessToken } = response.data.data;
 
-      if (localStorage.getItem('accessToken')) {
-        localStorage.setItem('accessToken', accessToken);
-      } else {
-        sessionStorage.setItem('accessToken', accessToken);
-      }
-
+      localStorage.setItem('accessToken', accessToken);
       setAccessToken(accessToken);
       setIsAuthenticated(true);
-      const decodedUser = jwtDecode<User>(accessToken);
-      setUser(decodedUser);
-    } catch (error) {
+      setUser(jwtDecode<User>(accessToken));
+    } catch (error: any) {
       console.error('Registration failed:', error);
-      throw new Error('Registration failed. Please try again.');
+      throw error;
+      
     }
   };
 
@@ -124,42 +102,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         {},
         { withCredentials: true }
       );
-    } catch (error) {
-      console.error('Error during logout:', error);
-    }
+    } catch {}
   };
 
   useEffect(() => {
     const initAuth = async () => {
+      // Ưu tiên lấy accessToken từ localStorage (Google login sẽ lưu ở đây)
       const savedToken =
         localStorage.getItem('accessToken') ||
         sessionStorage.getItem('accessToken');
-      try {
-        if (!savedToken) {
+      if (!savedToken) {
+        setLoading(false);
+        return;
+      }
+      if (isTokenExpired(savedToken)) {
+        const newToken = await refreshToken();
+        if (!newToken) {
           setLoading(false);
           return;
         }
-
-        if (isTokenExpired(savedToken)) {
-          const newToken = await refreshToken();
-          if (!newToken) {
-            setLoading(false);
-            return;
-          }
-        } else {
-          setAccessToken(savedToken);
-          setIsAuthenticated(true);
-          const decodedUser = jwtDecode<User>(savedToken);
-          setUser(decodedUser);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setLoading(false);
+      } else {
+        setAccessToken(savedToken);
+        setIsAuthenticated(true);
+        setUser(jwtDecode<User>(savedToken));
       }
+      setLoading(false);
     };
     initAuth();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

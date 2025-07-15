@@ -10,9 +10,9 @@ interface AddressOption {
 
 const AddressFilter: React.FC<{
   onFilter: (province: string, ward: string) => void;
-}> = ({ onFilter }) => {
+  selectedOption: any;
+}> = ({ onFilter, selectedOption }) => {
   const [addresses, setAddresses] = useState<AddressOption[]>([]);
-  const [selected, setSelected] = useState<any>(null);
 
   useEffect(() => {
     fetch('/hn_geo_names.json')
@@ -20,17 +20,14 @@ const AddressFilter: React.FC<{
       .then(data => setAddresses(data));
   }, []);
 
-  // Tạo danh sách options cho Select
   const options = addresses.map(addr => ({
     value: addr.name ? `${addr.type} ${addr.name}` : addr.type,
     label: addr.name ? `${addr.type} ${addr.name}` : addr.type,
-    province: 'Hà Nội', // Nếu chỉ lọc Hà Nội
+    province: 'Hà Nội',
     ward: addr.name || ''
   }));
 
   const handleChange = (option: any) => {
-    setSelected(option);
-    // Truyền province và ward cho filter ngoài
     onFilter(option?.province || '', option?.ward || '');
   };
 
@@ -42,7 +39,7 @@ const AddressFilter: React.FC<{
           { value: '', label: 'Tất cả', province: '', ward: '' },
           ...options
         ]}
-        value={selected}
+        value={selectedOption}
         onChange={handleChange}
         isClearable
         placeholder='Tìm địa chỉ...'

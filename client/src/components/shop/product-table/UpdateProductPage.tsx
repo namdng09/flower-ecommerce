@@ -7,6 +7,11 @@ import { AuthContext } from '~/contexts/authContext';
 import { useNavigate, useParams } from 'react-router';
 import uploadAssets from '~/utils/uploadAssets';
 
+const formatCurrency = (value: string) => {
+  const num = value.replace(/\D/g, '');
+  return num.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+};
+
 const UpdateProductPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -44,7 +49,7 @@ const UpdateProductPage = () => {
     title: '',
     categories: [] as string[],
     thumbnailImage: '',
-    image: [] as string[], // Thêm image vào form
+    image: [] as string[],
     description: '',
     status: 'active',
     variants: [
@@ -73,8 +78,8 @@ const UpdateProductPage = () => {
         status: product.status || 'active',
         variants: product.variants?.map((v: any) => ({
           title: v.title || '',
-          listPrice: v.listPrice?.toString() || '',
-          salePrice: v.salePrice?.toString() || '',
+          listPrice: v.listPrice ? formatCurrency(v.listPrice.toString()) : '',
+          salePrice: v.salePrice ? formatCurrency(v.salePrice.toString()) : '',
           inventory: v.inventory?.toString() || '',
           image: v.image || ''
         })) || [
@@ -137,7 +142,11 @@ const UpdateProductPage = () => {
   const handleVariantChange = (index: number, e: any) => {
     const { name, value } = e.target;
     const updatedVariants = [...form.variants];
-    updatedVariants[index][name] = value;
+    if (name === 'listPrice' || name === 'salePrice') {
+      updatedVariants[index][name] = formatCurrency(value);
+    } else {
+      updatedVariants[index][name] = value;
+    }
     setForm(prev => ({ ...prev, variants: updatedVariants }));
   };
 
@@ -225,7 +234,7 @@ const UpdateProductPage = () => {
       ...form,
       shop: shopId,
       thumbnailImage: thumbnailUrl,
-      image: imageUrls.length > 0 ? imageUrls : form.image, // Giữ lại ảnh cũ nếu chưa upload mới
+      image: imageUrls.length > 0 ? imageUrls : form.image,
       weight: Number(weight),
       dimension: {
         length: Number(dimension.length),
@@ -235,8 +244,8 @@ const UpdateProductPage = () => {
       variants: form.variants.map((v, idx) => ({
         ...v,
         image: variantImages[idx],
-        listPrice: Number(v.listPrice),
-        salePrice: Number(v.salePrice),
+        listPrice: Number(v.listPrice.replace(/\D/g, '')),
+        salePrice: Number(v.salePrice.replace(/\D/g, '')),
         inventory: Number(v.inventory)
       }))
     };
@@ -457,6 +466,9 @@ const UpdateProductPage = () => {
                 placeholder='Giá niêm yết'
                 className='input'
                 required
+                type='text'
+                inputMode='numeric'
+                pattern='[0-9.]*'
               />
               <input
                 name='salePrice'
@@ -465,6 +477,9 @@ const UpdateProductPage = () => {
                 placeholder='Giá bán'
                 className='input'
                 required
+                type='text'
+                inputMode='numeric'
+                pattern='[0-9.]*'
               />
               <input
                 name='inventory'
@@ -473,6 +488,8 @@ const UpdateProductPage = () => {
                 placeholder='Tồn kho'
                 className='input'
                 required
+                type='number'
+                min={0}
               />
               {/* Ảnh biến thể */}
               <input
