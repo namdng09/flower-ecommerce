@@ -104,6 +104,7 @@ export interface OrderState {
   pagination: Pagination;
   filters: OrderFilterParams;
   userOrders: IOrder[];
+  shopOrders: IOrder[];
 }
 
 const initialState: OrderState = {
@@ -132,7 +133,8 @@ const initialState: OrderState = {
     sortBy: 'createdAt',
     sortOrder: 'desc'
   },
-  userOrders: []
+  userOrders: [],
+  shopOrders: []
 };
 
 export const fetchOrders = createAsyncThunk(
@@ -179,6 +181,20 @@ export const fetchOrdersByUser = createAsyncThunk(
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || 'Failed to fetch user orders'
+      );
+    }
+  }
+);
+
+export const fetchOrdersByShop = createAsyncThunk(
+  'orders/fetchOrdersByShop',
+  async (shopId: string, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`/api/orders/${shopId}/shop`);
+      return res.data.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Failed to fetch shop orders'
       );
     }
   }
@@ -333,11 +349,30 @@ const orderSlice = createSlice({
         state.error = action.payload as string;
       })
 
+      // Fetch orders by shop
+      .addCase(fetchOrdersByShop.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOrdersByShop.fulfilled, (state, action) => {
+        state.loading = false;
+        state.shopOrders = action.payload;
+      })
+      .addCase(fetchOrdersByShop.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
       // Create order
       .addCase(createOrder.pending, state => {
         state.loading = true;
         state.error = null;
       })
+      // .addCase(createOrder.fulfilled, (state, action) => {
+      //   state.loading = false;
+      //   state.orders.unshift(action.payload);
+      // })
+
       .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = false;
         state.orders.unshift(action.payload);

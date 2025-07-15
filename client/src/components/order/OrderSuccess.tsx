@@ -1,51 +1,7 @@
-// import React from 'react';
-// import { useNavigate, useParams } from 'react-router';
-// import { AiOutlineCheckCircle } from 'react-icons/ai';
-
-// const OrderSuccess: React.FC = () => {
-//   const navigate = useNavigate();
-//   const { orderId } = useParams();
-
-//   return (
-//     <div className='min-h-screen flex items-center justify-center bg-gray-100 px-4 mt-10'>
-//       <div className='bg-white shadow-lg rounded-xl p-8 max-w-md text-center'>
-//         <AiOutlineCheckCircle
-//           className='text-green-500 mx-auto mb-4'
-//           size={64}
-//         />
-//         <h2 className='text-2xl font-semibold text-gray-800 mb-2'>
-//           Đặt hàng thành công!
-//         </h2>
-//         <p className='text-gray-600 mb-6'>
-//           Cảm ơn bạn đã mua hàng. Mã đơn hàng của bạn là:
-//           <span className='font-semibold text-black'> {orderId}</span>
-//         </p>
-
-//         <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
-//           <button
-//             onClick={() => navigate('/home')}
-//             className='bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded font-medium transition'
-//           >
-//             Về trang chủ
-//           </button>
-//           <button
-//             onClick={() => navigate(`/home/order-tracking/${orderId}`)}
-//             className='border border-green-600 text-green-600 hover:bg-blue-100 px-6 py-2 rounded font-medium transition'
-//           >
-//             Xem đơn hàng
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default OrderSuccess;
-
 import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router';
+import { useParams, useNavigate, useSearchParams } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchOrderById } from '~/store/slices/orderSlice';
+import { fetchOrderById, updatePayment } from '~/store/slices/orderSlice';
 import type { RootState } from '~/store';
 import { FaCheckCircle, FaGift } from 'react-icons/fa';
 import { FiBox, FiMapPin, FiPhone, FiMail } from 'react-icons/fi';
@@ -54,6 +10,9 @@ const OrderPage: React.FC = () => {
   const { orderId } = useParams();
   const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+  const paymentStatus = searchParams.get('status');
 
   const {
     currentOrder: order,
@@ -66,6 +25,23 @@ const OrderPage: React.FC = () => {
       dispatch(fetchOrderById(orderId));
     }
   }, [dispatch, orderId]);
+
+  useEffect(() => {
+    const syncPaymentStatus = async () => {
+      if (
+        order &&
+        order.payment?.method === 'banking' &&
+        order.payment?.status !== 'paid' &&
+        paymentStatus?.toUpperCase() === 'PAID'
+      ) {
+        await dispatch(updatePayment({ id: order._id, paymentData: { status: 'paid' } }));
+        await dispatch(fetchOrderById(order._id));
+      }
+    };
+
+    syncPaymentStatus();
+  }, [order, paymentStatus, dispatch]);
+  
 
   if (loading) return <p className='text-center mt-10'>Đang tải đơn hàng...</p>;
   if (error || !order)
@@ -220,8 +196,13 @@ const OrderPage: React.FC = () => {
           </div>
           <div className='flex justify-between pt-2'>
             <span>Thanh toán:</span>
-            <span className='capitalize'>
-              {payment.method} - {payment.status}
+            <span
+              className={`capitalize font-semibold ${payment.status === 'paid'
+                  ? 'text-green-600'
+                  : 'text-yellow-600'
+                }`}
+            >
+              {payment.method} - {payment.status === 'paid' ? 'đã thanh toán' : 'chờ thanh toán'}
             </span>
           </div>
         </div>

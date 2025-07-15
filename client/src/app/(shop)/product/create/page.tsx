@@ -1,7 +1,11 @@
 import React from 'react';
-
+import CreateProductPage from '~/components/shop/product-table/CreateProductPage';
 const Page = () => {
-  return <div>Page</div>;
+  return (
+    <div>
+      <CreateProductPage />
+    </div>
+  );
 };
 
 export default Page;

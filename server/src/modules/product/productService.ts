@@ -99,7 +99,7 @@ export const productService = {
               $match: {
                 $expr: {
                   $and: [
-                    { $eq: ['$userId', '$$shopId'] },
+                    { $eq: ['$user', '$$shopId'] },
                     { $eq: ['$isDefault', true] }
                   ]
                 }

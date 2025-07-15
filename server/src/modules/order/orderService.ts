@@ -266,13 +266,23 @@ export const orderService = {
     return orders;
   },
 
+  getByShopId: async (shopId: string) => {
+    if (!Types.ObjectId.isValid(shopId))
+      throw createHttpError(400, 'Invalid shop id');
+
+    const orders = await OrderModel.find({ shop: shopId }).sort({
+      createdAt: -1
+    });
+
+    return orders;
+  },
+
   create: async (orderData: IOrder) => {
     const { user, address, items, payment, shipment, customization } =
       orderData;
 
     if (!Types.ObjectId.isValid(user))
       throw createHttpError(400, 'Invalid user id');
-
     if (!Types.ObjectId.isValid(address))
       throw createHttpError(400, 'Invalid address id');
 
@@ -281,67 +291,24 @@ export const orderService = {
         customization.giftMessage &&
         (typeof customization.giftMessage !== 'string' ||
           customization.giftMessage.length > 255)
-      ) {
+      )
         throw createHttpError(400, 'Invalid giftMessage');
-      }
 
       if (
         customization.isAnonymous !== undefined &&
         typeof customization.isAnonymous !== 'boolean'
-      ) {
+      )
         throw createHttpError(400, 'Invalid isAnonymous value');
-      }
 
       if (
         customization.deliveryTimeRequested &&
         isNaN(new Date(customization.deliveryTimeRequested).getTime())
-      ) {
+      )
         throw createHttpError(400, 'Invalid deliveryTimeRequested');
-      }
     }
-
-    const existingUser = await UserModel.findById(user);
-    if (!existingUser) throw createHttpError(404, 'User not found');
-
-    const existingAddress = await AddressModel.findById(address);
-    if (!existingAddress) throw createHttpError(404, 'Address not found');
 
     if (!Array.isArray(items) || items.length === 0)
       throw createHttpError(400, 'Order must contain at least one item');
-
-    const shopItemMap = new Map<string, typeof items>();
-
-    for (const [index, item] of items.entries()) {
-      if (!Types.ObjectId.isValid(item.variant))
-        throw createHttpError(400, `Invalid variant id at index ${index}`);
-
-      const variantDoc = await VariantModel.findById(item.variant);
-      if (!variantDoc)
-        throw createHttpError(400, `Variant not found at index ${index}`);
-
-      if (!item.quantity || item.quantity < 1)
-        throw createHttpError(400, `Quantity must be ≥1 at index ${index}`);
-
-      if (!item.price || item.price < 0)
-        throw createHttpError(400, `Price must be ≥0 at index ${index}`);
-
-      const shopId = await ProductModel.findOne({
-        variants: item.variant
-      }).select('shop');
-      if (!shopId)
-        throw createHttpError(
-          400,
-          `Shop not found for variant at index ${index}`
-        );
-
-      const key = shopId.shop.toString();
-
-      if (!shopItemMap.has(key)) {
-        shopItemMap.set(key, []);
-      }
-
-      shopItemMap.get(key)!.push(item);
-    }
 
     if (
       !shipment ||
@@ -357,33 +324,58 @@ export const orderService = {
       'delivered',
       'failed'
     ];
-    if (
-      shipment.status &&
-      !allowedShipmentStatus.includes(shipment.status as ShipmentStatus)
-    ) {
+    if (shipment.status && !allowedShipmentStatus.includes(shipment.status))
       throw createHttpError(400, 'Invalid shipment status');
-    }
 
     if (!payment || !['cod', 'banking'].includes(payment.method))
       throw createHttpError(400, 'Invalid or missing payment method');
 
-    if (payment.method === 'banking') {
-      payment.status = 'awaiting_payment';
-    }
-
-    const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-
-    const itemsTotal = items.reduce(
-      (sum, item) => sum + item.quantity * item.price,
-      0
-    );
-
-    const totalPrice = itemsTotal + shipment.shippingCost;
-
     const paymentStatus: PaymentStatus =
       payment.method === 'banking' ? 'awaiting_payment' : 'unpaid';
 
-    const orders = [];
+    const [existingUser, existingAddress] = await Promise.all([
+      UserModel.findById(user),
+      AddressModel.findById(address)
+    ]);
+    if (!existingUser) throw createHttpError(404, 'User not found');
+    if (!existingAddress) throw createHttpError(404, 'Address not found');
+
+    const variantChecks = items.map(async (item, index) => {
+      if (!Types.ObjectId.isValid(item.variant))
+        throw createHttpError(400, `Invalid variant id at index ${index}`);
+      if (!item.quantity || item.quantity < 1)
+        throw createHttpError(400, `Quantity must be ≥1 at index ${index}`);
+      if (!item.price || item.price < 0)
+        throw createHttpError(400, `Price must be ≥0 at index ${index}`);
+
+      const [variantDoc, product] = await Promise.all([
+        VariantModel.findById(item.variant),
+        ProductModel.findOne({ variants: item.variant }).select('shop')
+      ]);
+
+      if (!variantDoc)
+        throw createHttpError(400, `Variant not found at index ${index}`);
+      if (!product)
+        throw createHttpError(
+          400,
+          `Shop not found for variant at index ${index}`
+        );
+
+      return {
+        ...item,
+        shopId: product.shop.toString()
+      };
+    });
+
+    const validatedItems = await Promise.all(variantChecks);
+
+    const shopItemMap = new Map<string, typeof validatedItems>();
+    for (const item of validatedItems) {
+      if (!shopItemMap.has(item.shopId)) shopItemMap.set(item.shopId, []);
+      shopItemMap.get(item.shopId)!.push(item);
+    }
+
+    const orders: IOrder[] = [];
 
     for (const [shopId, groupedItems] of shopItemMap.entries()) {
       const totalQuantity = groupedItems.reduce(
@@ -400,7 +392,7 @@ export const orderService = {
         user,
         shop: shopId,
         address,
-        items: groupedItems,
+        items: groupedItems.map(({ shopId, ...rest }) => rest),
         totalQuantity,
         totalPrice,
         payment: {
@@ -418,40 +410,31 @@ export const orderService = {
       orders.push(order);
     }
 
-    // Helper function to send email notifications to shops
-    async function sendEmailNotifications(orders: IOrder[]) {
-      for (const order of orders) {
-        const populatedOrder = (await OrderModel.findById(order._id)
-          .populate('address')
-          .populate('user')
-          .populate('shop')
+    await Promise.all(
+      orders.map(async order => {
+        const populatedOrder = await OrderModel.findById(order._id)
+          .populate('address user shop')
           .populate({
             path: 'items.variant',
             populate: {
               path: 'product',
               select: 'title skuCode thumbnailImage shop'
             }
-          })) as any;
+          });
 
-        const plainPopulatedOrder = populatedOrder?.toObject();
-
-        if (plainPopulatedOrder?.shop?.email) {
+        const plainOrder = populatedOrder?.toObject();
+        if (plainOrder?.shop?.email)
           await mailService.sendOrderSuccessToShop(
-            plainPopulatedOrder,
-            plainPopulatedOrder.shop.email
+            plainOrder,
+            plainOrder.shop.email
           );
-        }
-
-        if (existingUser?.email) {
+        if (existingUser?.email)
           await mailService.sendOrderSuccessToCustomer(
-            plainPopulatedOrder,
+            plainOrder,
             existingUser.email
           );
-        }
-      }
-    }
-
-    await sendEmailNotifications(orders);
+      })
+    );
 
     return orders;
   },

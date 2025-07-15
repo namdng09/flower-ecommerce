@@ -12,13 +12,14 @@ import {
 } from 'react-icons/fa';
 import { fetchVariants } from '~/store/slices/variantSlice';
 import { AuthContext } from '~/contexts/authContext';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { toast } from 'react-toastify';
 
 const OrderListByUserPage: React.FC = () => {
   const dispatch = useDispatch<any>();
   const { user } = useContext(AuthContext);
   const userId = user?.id;
+  const [searchParams] = useSearchParams();
 
   const [page, setPage] = useState(1);
 
@@ -26,6 +27,8 @@ const OrderListByUserPage: React.FC = () => {
     (state: RootState) => state.orders
   );
   const { items: variants } = useSelector((state: RootState) => state.variants);
+
+  const paymentStatusQuery = searchParams.get('status');
 
   useEffect(() => {
     if (userId) {
@@ -45,7 +48,7 @@ const OrderListByUserPage: React.FC = () => {
         })
       );
     }
-  }, [dispatch, userId, page]);
+  }, [dispatch, userId, page, paymentStatusQuery]);
 
   const handleCancelOrder = async (orderId: string) => {
     const now = new Date().toISOString();
@@ -56,15 +59,13 @@ const OrderListByUserPage: React.FC = () => {
     };
 
     try {
-      await dispatch(
-        updateOrder({ id: orderId, updateData: cancelData })
-      ).unwrap();
+      await dispatch(updateOrder({ id: orderId, updateData: cancelData })).unwrap();
       await dispatch(
         fetchOrders({
           page,
-          limit: 10,
+          limit: 20,
           sortBy: 'createdAt',
-          sortOrder: 'desc',
+          sortOrder: 'asc',
           user: userId
         })
       );
@@ -117,6 +118,26 @@ const OrderListByUserPage: React.FC = () => {
     }
   };
 
+  const getPaymentStatusLabel = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'Đã thanh toán';
+      case 'awaiting_payment':
+      case 'unpaid':
+      default:
+        return 'Chờ thanh toán';
+    }
+  };
+
+  const getPaymentColor = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return 'text-green-600 font-semibold';
+      default:
+        return 'text-yellow-600 font-medium';
+    }
+  };
+
   if (loading)
     return <p className='text-center mt-10'>Đang tải danh sách đơn hàng...</p>;
 
@@ -131,7 +152,6 @@ const OrderListByUserPage: React.FC = () => {
       </div>
     );
   }
-  console.log('Variants list:', variants);
 
   return (
     <div className='max-w-7xl mx-auto p-4 text-black mt-45'>
@@ -146,9 +166,7 @@ const OrderListByUserPage: React.FC = () => {
             <div className='flex items-center justify-between mb-4'>
               <div className='flex items-center gap-3'>
                 <div className='w-10 h-10 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-lg'>
-                  {order.shop?.fullName?.charAt(0)?.toUpperCase() || (
-                    <FaStore />
-                  )}
+                  {order.shop?.fullName?.charAt(0)?.toUpperCase() || <FaStore />}
                 </div>
                 <div>
                   <p className='text-sm text-gray-500'>Người bán:</p>
@@ -234,7 +252,9 @@ const OrderListByUserPage: React.FC = () => {
                 <FaMoneyBillWave className='text-green-500' />
                 <strong>Phương thức thanh toán:</strong>{' '}
                 {order.payment?.method?.toUpperCase() || '---'} -{' '}
-                {order.payment?.status || '---'}
+                <span className={getPaymentColor(order.payment?.status)}>
+                  {getPaymentStatusLabel(order.payment?.status)}
+                </span>
               </p>
               <p className='flex items-center gap-2'>
                 <FaShippingFast className='text-blue-500' />
