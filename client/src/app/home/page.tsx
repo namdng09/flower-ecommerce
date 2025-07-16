@@ -15,10 +15,9 @@ function Homepage() {
     const accessToken = params.get('accessToken');
     if (accessToken) {
       localStorage.setItem('accessToken', accessToken);
-   
+
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-    
   }, [navigate]);
 
   return (

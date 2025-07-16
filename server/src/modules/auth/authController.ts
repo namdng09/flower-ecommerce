@@ -100,7 +100,9 @@ const authController = {
         sameSite: 'strict'
       });
 
-      res.redirect(`http://localhost:5173/home?accessToken=${result.accessToken}`);
+      res.redirect(
+        `http://localhost:5173/home?accessToken=${result.accessToken}`
+      );
     } catch (error) {
       next(error);
     }

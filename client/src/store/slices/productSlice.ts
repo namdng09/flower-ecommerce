@@ -190,7 +190,7 @@ const productSlice = createSlice({
       })
       .addCase(filterProducts.fulfilled, (state, action) => {
         state.loading = false;
-        // Xử lý mọi kiểu trả về từ backend
+
         if (Array.isArray(action.payload)) {
           state.items = action.payload;
         } else if (action.payload.result?.docs) {

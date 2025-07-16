@@ -59,7 +59,9 @@ const OrderListByUserPage: React.FC = () => {
     };
 
     try {
-      await dispatch(updateOrder({ id: orderId, updateData: cancelData })).unwrap();
+      await dispatch(
+        updateOrder({ id: orderId, updateData: cancelData })
+      ).unwrap();
       await dispatch(
         fetchOrders({
           page,
@@ -166,7 +168,9 @@ const OrderListByUserPage: React.FC = () => {
             <div className='flex items-center justify-between mb-4'>
               <div className='flex items-center gap-3'>
                 <div className='w-10 h-10 flex items-center justify-center rounded-full bg-pink-100 text-pink-600 font-bold text-lg'>
-                  {order.shop?.fullName?.charAt(0)?.toUpperCase() || <FaStore />}
+                  {order.shop?.fullName?.charAt(0)?.toUpperCase() || (
+                    <FaStore />
+                  )}
                 </div>
                 <div>
                   <p className='text-sm text-gray-500'>Người bán:</p>
