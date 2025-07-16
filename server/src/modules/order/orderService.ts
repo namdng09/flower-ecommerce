@@ -1,11 +1,11 @@
 import OrderModel, { IOrder, IPayment, IShipment } from './orderModel';
 import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
-import VariantModel from '../variant/variantModel';
-import UserModel from '../user/userModel';
+import VariantRepository from '../variant/variantRepository';
+import UserRepository from '../user/userRepository';
 import AddressModel from '../address/addressModel';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
-import ProductModel from '../product/productModel';
+import ProductRepository from '../product/productRepository';
 import { mailService } from '../email/emailService';
 
 export const orderService = {
@@ -334,7 +334,7 @@ export const orderService = {
       payment.method === 'banking' ? 'awaiting_payment' : 'unpaid';
 
     const [existingUser, existingAddress] = await Promise.all([
-      UserModel.findById(user),
+      UserRepository.findById(user),
       AddressModel.findById(address)
     ]);
     if (!existingUser) throw createHttpError(404, 'User not found');
@@ -349,8 +349,8 @@ export const orderService = {
         throw createHttpError(400, `Price must be ≥0 at index ${index}`);
 
       const [variantDoc, product] = await Promise.all([
-        VariantModel.findById(item.variant),
-        ProductModel.findOne({ variants: item.variant }).select('shop')
+        VariantRepository.findById(item.variant),
+        ProductRepository.findOne({ variants: item.variant }).select('shop')
       ]);
 
       if (!variantDoc)

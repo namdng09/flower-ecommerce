@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
+import { Schema } from 'mongoose';
 
 export interface IVariant {
   variantCode: string;
@@ -11,7 +11,7 @@ export interface IVariant {
   updatedAt?: Date;
 }
 
-const VariantSchema = new Schema<IVariant>(
+const VariantEntity = new Schema<IVariant>(
   {
     variantCode: { type: String, required: true, trim: true, immutable: true },
     title: { type: String, required: true, trim: true },
@@ -37,14 +37,11 @@ const VariantSchema = new Schema<IVariant>(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-VariantSchema.virtual('product', {
+VariantEntity.virtual('product', {
   ref: 'Product',
   localField: '_id',
   foreignField: 'variants',
   justOne: false
 });
 
-// VariantSchema.index({ variantCode: 1 }, { unique: false });
-
-const VariantModel: Model<IVariant> = mongoose.model('Variant', VariantSchema);
-export default VariantModel;
+export default VariantEntity;

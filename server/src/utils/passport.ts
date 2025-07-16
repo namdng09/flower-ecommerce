@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import UserModel from '~/modules/user/userModel';
+import UserRepository from '~/modules/user/userRepository';
 
 const configurePassport = () => {
   const options = {
@@ -12,7 +12,7 @@ const configurePassport = () => {
   passport.use(
     new JwtStrategy(options, async (jwtPayload, done) => {
       try {
-        const user = await UserModel.findById(jwtPayload.id).select(
+        const user = await UserRepository.findById(jwtPayload.id).select(
           '-password'
         );
         if (!user) {

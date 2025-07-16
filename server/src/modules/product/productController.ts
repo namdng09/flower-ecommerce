@@ -1,12 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import mongoose, { Types } from 'mongoose';
-import ProductModel, { IProduct } from './productModel';
-import VariantModel from '../variant/variantModel';
+import { IProduct } from './productEntity';
 import { apiResponse } from '~/types/apiResponse';
-import UserModel from '../user/userModel';
-import CategoryModel from '../category/categoryModel';
-import createHttpError from 'http-errors';
-import { generateSKU } from '~/utils/generateSKU';
 import { productService } from './productService';
 
 /**
