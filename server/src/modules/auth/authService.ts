@@ -1,4 +1,4 @@
-import UserModel, { IUser } from '../user/userModel';
+import UserModel, { IUser } from '../user/userEntity';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { comparePassword } from '~/utils/bcrypt';

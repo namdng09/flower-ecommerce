@@ -1,7 +1,6 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, Document } from 'mongoose';
 import { hashPassword } from '~/utils/bcrypt';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
-import { PaginateModel, PaginateOptions, PaginateResult } from 'mongoose';
 import CartModel from '../cart/cartModel';
 import FavouriteModel from '../favourite/favouriteModel';
 
@@ -19,7 +18,7 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const UserSchema = new Schema<IUser>(
+const UserEntity = new Schema<IUser>(
   {
     googleId: { type: String },
     fullName: { type: String, required: true },
@@ -58,14 +57,14 @@ const UserSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-UserSchema.pre<IUser>('save', async function (next) {
+UserEntity.pre<IUser>('save', async function (next) {
   if (this.isModified('password')) {
     this.password = await hashPassword(this.password);
   }
   next();
 });
 
-UserSchema.post('save', async (doc: IUser, next) => {
+UserEntity.post('save', async (doc: IUser, next) => {
   try {
     if (doc.role === 'customer') {
       await CartModel.updateOne(
@@ -86,14 +85,6 @@ UserSchema.post('save', async (doc: IUser, next) => {
   }
 });
 
-UserSchema.plugin(aggregatePaginate);
+UserEntity.plugin(aggregatePaginate);
 
-export interface UserDocument extends mongoose.Document, IUser {}
-export type UserPaginateModel = mongoose.PaginateModel<UserDocument>;
-
-const UserModel = mongoose.model<UserDocument, PaginateModel<UserDocument>>(
-  'User',
-  UserSchema
-);
-
-export default UserModel;
+export default UserEntity;

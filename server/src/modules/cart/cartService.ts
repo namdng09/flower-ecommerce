@@ -1,5 +1,5 @@
 import CartModel, { ICart, ICartItem } from './cartModel';
-import VariantModel from '../variant/variantModel';
+import VariantModel from '../variant/variantEntity';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { calculateCartTotals } from '~/utils/calculateCartTotals';

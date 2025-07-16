@@ -1,11 +1,11 @@
 import OrderModel, { IOrder, IPayment, IShipment } from './orderModel';
 import { OrderStatus, PaymentStatus, ShipmentStatus } from './orderModel';
-import VariantModel from '../variant/variantModel';
-import UserModel from '../user/userModel';
+import VariantModel from '../variant/variantEntity';
+import UserModel from '../user/userEntity';
 import AddressModel from '../address/addressModel';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
-import ProductModel from '../product/productModel';
+import ProductModel from '../product/productEntity';
 import { mailService } from '../email/emailService';
 
 export const orderService = {

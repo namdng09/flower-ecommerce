@@ -1,7 +1,7 @@
 import AddressModel, { IAddress } from './addressModel';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
-import UserModel from '../user/userModel';
+import UserModel from '../user/userEntity';
 
 export const addressService = {
   listByUserId: async (userId: string) => {

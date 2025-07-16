@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import UserModel from '~/modules/user/userModel';
+import UserModel from '~/modules/user/userEntity';
 
 const configurePassport = () => {
   const options = {
