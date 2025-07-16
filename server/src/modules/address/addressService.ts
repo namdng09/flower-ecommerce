@@ -1,7 +1,7 @@
 import AddressModel, { IAddress } from './addressModel';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
-import UserModel from '../user/userEntity';
+import UserRepository from '../user/userRepository';
 
 export const addressService = {
   listByUserId: async (userId: string) => {
@@ -42,7 +42,7 @@ export const addressService = {
       throw createHttpError(400, 'Invalid or missing user Id');
     }
 
-    const userExists = await UserModel.exists({ _id: user });
+    const userExists = await UserRepository.exists({ _id: user });
     if (!userExists) {
       throw createHttpError(404, 'User not found');
     }
@@ -121,7 +121,7 @@ export const addressService = {
       throw createHttpError(400, 'Invalid or missing user Id');
     }
 
-    const userExists = await UserModel.exists({ _id: user });
+    const userExists = await UserRepository.exists({ _id: user });
     if (!userExists) {
       throw createHttpError(404, 'User does not exist');
     }
