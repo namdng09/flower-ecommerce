@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import axiosInstance from '../config/axiosConfig';
 import type { RegisterFormFields } from '~/types/register';
 import type { LoginFormFields } from '~/types/login';
+import { error } from 'console';
 
 const initialAuthToken: Auth = {
   accessToken: '',
@@ -86,7 +87,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error: any) {
       console.error('Registration failed:', error);
       throw error;
-      
     }
   };
 
@@ -102,7 +102,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         {},
         { withCredentials: true }
       );
-    } catch {}
+    } catch {
+      console.error('Logout failed');
+    }
   };
 
   useEffect(() => {
