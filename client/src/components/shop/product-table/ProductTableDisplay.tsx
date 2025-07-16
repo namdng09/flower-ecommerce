@@ -121,22 +121,25 @@ const ProductTableDisplay = () => {
     {
       accessorKey: 'categories',
       header: 'Danh mục',
-      render: (value: any) => (
-        <div className='flex flex-wrap gap-1'>
-          {Array.isArray(value) && value.length > 0 ? (
-            value.map((cat: any, idx: number) => (
-              <span
-                key={idx}
-                className='bg-rose-100 text-rose-700 text-xs px-2 py-1 rounded-full font-medium'
-              >
-                {cat.title || cat._id || '--'}
-              </span>
-            ))
-          ) : (
-            <span className='text-gray-400 text-xs italic'>--</span>
-          )}
-        </div>
-      )
+      render: (value: any, row: any) => {
+        console.log('categories value:', value, row);
+        return (
+          <div className='flex flex-wrap gap-1'>
+            {Array.isArray(value) && value.length > 0 ? (
+              value.map((cat: any, idx: number) => (
+                <span
+                  key={idx}
+                  className='bg-rose-100 text-rose-700 text-xs px-2 py-1 rounded-full font-medium'
+                >
+                  {cat.title || cat._id || '--'}
+                </span>
+              ))
+            ) : (
+              <span className='text-gray-400 text-xs italic'>--</span>
+            )}
+          </div>
+        );
+      }
     },
     {
       accessorKey: 'status',
