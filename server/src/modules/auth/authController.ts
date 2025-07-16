@@ -7,7 +7,7 @@ import createHttpError from 'http-errors';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { sendMail } from '~/utils/mailer';
-import { IUser } from '../user/userModel';
+import { IUser } from '../user/userEntity';
 import passport from 'passport';
 
 const authController = {

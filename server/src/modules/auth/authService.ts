@@ -1,4 +1,5 @@
-import UserModel, { IUser } from '../user/userModel';
+import { IUser } from '../user/userEntity';
+import UserRepository from '../user/userRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { comparePassword } from '~/utils/bcrypt';
@@ -22,7 +23,7 @@ export const authService = {
       throw createHttpError(400, 'Missing required fields');
     }
 
-    const existingUser = await UserModel.findOne({
+    const existingUser = await UserRepository.findOne({
       $or: [{ email }, { username }, { phoneNumber }]
     });
 
@@ -38,7 +39,7 @@ export const authService = {
       }
     }
 
-    const createdUser = await UserModel.create({
+    const createdUser = await UserRepository.create({
       fullName,
       username,
       email,
@@ -59,7 +60,7 @@ export const authService = {
   login: async (userData: IUser) => {
     const { email, password } = userData;
 
-    const user = await UserModel.findOne({ email });
+    const user = await UserRepository.findOne({ email });
     if (!user) throw createHttpError(400, 'Invalid email or password');
 
     if (!user.password) {
@@ -88,12 +89,12 @@ export const authService = {
     username: string;
     avatarUrl?: string;
   }) => {
-    let user = await UserModel.findOne({
+    let user = await UserRepository.findOne({
       $or: [{ googleId: googleUser.googleId }, { email: googleUser.email }]
     }).select('-password');
 
     if (!user) {
-      user = await UserModel.create({
+      user = await UserRepository.create({
         googleId: googleUser.googleId,
         email: googleUser.email,
         fullName: googleUser.fullName,
@@ -118,7 +119,7 @@ export const authService = {
     googleId: string;
     email: string;
   }) => {
-    const user = await UserModel.findOne({ email: googleUser.email });
+    const user = await UserRepository.findOne({ email: googleUser.email });
 
     if (!user || !['shop', 'admin'].includes(user.role)) {
       throw createHttpError(401, 'Account not found or not permitted');
@@ -164,7 +165,7 @@ export const authService = {
   },
 
   requestResetPassword: async (email: string) => {
-    const user = await UserModel.findOne({ email }).select('-password');
+    const user = await UserRepository.findOne({ email }).select('-password');
     if (!user) {
       throw createHttpError(404, 'User not found');
     }

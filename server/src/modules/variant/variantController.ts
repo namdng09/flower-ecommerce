@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { Types } from 'mongoose';
-import { IVariant } from './variantModel';
+import { IVariant } from './variantEntity';
 import { apiResponse } from '~/types/apiResponse';
-import createHttpError from 'http-errors';
 import { variantService } from './variantService';
 
 /**
