@@ -111,6 +111,14 @@ export const productService = {
         }
       },
       { $unwind: { path: '$address', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'categories',
+          localField: 'categories',
+          foreignField: '_id',
+          as: 'categories'
+        }
+      },
       // 4. Match theo salePrice sau khi có variants
       ...(min != null || max != null
         ? [
