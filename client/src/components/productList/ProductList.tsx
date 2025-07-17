@@ -10,6 +10,7 @@ import { Link } from 'react-router';
 import AddressFilter from '~/components/filter-address/AddressFilter';
 import AddressModal from '~/components/filter-address/AddressModal';
 import PriceFilter from '~/components/filter-price/PriceFilter';
+import ProductFilter from '~/components/filter-product/ProductFilter';
 import { toast } from 'react-toastify';
 
 const ProductList = () => {
@@ -27,6 +28,7 @@ const ProductList = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
+  const [searchTerm, setSearchTerm] = useState('');
   const [province, setProvince] = useState('');
   const [ward, setWard] = useState('');
   const [showAddressModal, setShowAddressModal] = useState(true);
@@ -91,6 +93,7 @@ const ProductList = () => {
         province,
         ward,
         category: selectedCategoryId || undefined,
+        title: searchTerm || undefined,
         sortBy:
           sortBy === 'PriceLowHigh' || sortBy === 'PriceHighLow'
             ? 'salePrice'
@@ -106,7 +109,15 @@ const ProductList = () => {
         limit: 100000
       })
     );
-  }, [dispatch, province, ward, selectedCategoryId, sortBy, priceRange]);
+  }, [
+    dispatch,
+    province,
+    ward,
+    selectedCategoryId,
+    searchTerm,
+    sortBy,
+    priceRange
+  ]);
 
   const sortedProducts = [...products].sort((a, b) => {
     const aVar = a.variants?.[0];
@@ -119,6 +130,11 @@ const ProductList = () => {
       return (bVar?.salePrice ?? 0) - (aVar?.salePrice ?? 0);
     return 0;
   });
+
+  // Handler cho search function
+  const handleSearchFilter = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
+  };
 
   const handleAddToCart = async (variantId: string) => {
     if (!userId) {
@@ -164,10 +180,21 @@ const ProductList = () => {
           <div className='mb-6'>
             <img src={banner} alt='Banner' className='w-full rounded' />
           </div>
+
+          {/* Search Filter */}
+          <div className='mb-6'>
+            <ProductFilter
+              onFilter={handleSearchFilter}
+              placeholder='Tìm kiếm sản phẩm theo tên...'
+              className='w-full max-w-md'
+            />
+          </div>
+
           <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-4 text-black gap-4'>
             <p>
               Hiển thị {sortedProducts.length} sản phẩm
               {selectedCategoryId && ` theo danh mục đã chọn`}
+              {searchTerm && ` với từ khóa "${searchTerm}"`}
             </p>
             <div>
               <label className='mr-2'>Sắp xếp theo</label>
