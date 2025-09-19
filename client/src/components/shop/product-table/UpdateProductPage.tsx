@@ -102,6 +102,8 @@ const UpdateProductPage = () => {
         )
         .map((cat: any) => cat._id);
       setSelectedParents(parentIds);
+      console.log('Product loaded:', parentIds);
+      console.log('cate', categories, 'product:', product);
     }
   }, [id, products, categories]);
 
@@ -305,6 +307,7 @@ const UpdateProductPage = () => {
           const parent = parentCategories.find(
             (cat: any) => cat._id === parentId
           );
+
           const subCategories = parent?.subCategory || [];
 
           return (

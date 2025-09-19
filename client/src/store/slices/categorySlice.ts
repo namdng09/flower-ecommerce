@@ -1,11 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from '~/config/axiosConfig';
+import axiosInstance from '~/config/axiosConfig';
+
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/categories`;
 
 export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
   async (_, thunkAPI) => {
     try {
-      const response = await axios.get('http://localhost:8000/api/categories');
+      const response = await axiosInstance.get(BASE_URL);
       return response.data.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(
@@ -20,10 +22,7 @@ export const createCategory = createAsyncThunk(
   'categories/createCategory',
   async (categoryData, thunkAPI) => {
     try {
-      const response = await axios.post(
-        'http://localhost:8000/api/categories',
-        categoryData
-      );
+      const response = await axiosInstance.post(BASE_URL, categoryData);
       return response.data.data;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(
@@ -38,11 +37,26 @@ export const updateCategory = createAsyncThunk(
   'categories/updateCategory',
   async ({ id, updatedData }: { id: string; updatedData: any }, thunkAPI) => {
     try {
-      const response = await axios.put(
-        `http://localhost:8000/api/categories/${id}`,
+      const response = await axiosInstance.put(
+        `${BASE_URL}/${id}`,
         updatedData
       );
       return response.data.data;
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message
+      );
+    }
+  }
+);
+
+// Thêm deleteCategory
+export const deleteCategory = createAsyncThunk(
+  'categories/deleteCategory',
+  async (id: string, thunkAPI) => {
+    try {
+      await axiosInstance.delete(`${BASE_URL}/${id}`);
+      return id;
     } catch (error: any) {
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || error.message
@@ -107,6 +121,21 @@ const categorySlice = createSlice({
         }
       })
       .addCase(updateCategory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      // Xử lý deleteCategory
+      .addCase(deleteCategory.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteCategory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = state.items.filter(
+          (cat: any) => cat._id !== action.payload
+        );
+      })
+      .addCase(deleteCategory.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

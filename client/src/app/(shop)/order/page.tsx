@@ -16,6 +16,9 @@ import { ConfirmModal } from '~/components/ConfirmModal';
 import { Link } from 'react-router';
 import { AuthContext } from '~/contexts/authContext';
 
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
 const filterSchema = z.object({
   orderNumber: z.string(),
   status: z.string(),
@@ -60,6 +63,7 @@ const OrderPage = () => {
       }
     });
 
+  // Đồng bộ filter với URL params
   const updateURLParams = (
     filters: FilterFormData,
     currentPage: number,
@@ -90,14 +94,14 @@ const OrderPage = () => {
     );
     setPage(parseInt(searchParams.get('page') || '1', 10));
     setLimit(parseInt(searchParams.get('limit') || '10', 10));
-  }, [searchParams, setValue]);
+  }, [searchParams, setValue, shopId]);
 
   useEffect(() => {
     const currentFilters = watch();
     const filters = { ...currentFilters, shop: shopId, page, limit };
     dispatch(setFilters(filters));
     dispatch(fetchOrders(filters));
-  }, [searchParams, dispatch, page, limit, watch]);
+  }, [searchParams, dispatch, page, limit, watch, shopId]);
 
   const onSubmit = (data: FilterFormData) => {
     setPage(1);
@@ -146,6 +150,20 @@ const OrderPage = () => {
     dispatch(fetchOrders(filters));
   };
 
+  // FE sort nếu backend chưa sort
+  const sortBy = watch('sortBy');
+  const sortOrder = watch('sortOrder');
+  const sortedOrders = [...orders].sort((a, b) => {
+    let result = 0;
+    if (sortBy === 'totalPrice') {
+      result = a.totalPrice - b.totalPrice;
+    } else if (sortBy === 'createdAt') {
+      result =
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    }
+    return sortOrder === 'asc' ? result : -result;
+  });
+
   const columns = [
     {
       accessorKey: 'orderNumber',
@@ -186,7 +204,6 @@ const OrderPage = () => {
       header: 'Actions',
       render: (_: any, row: any) => (
         <div className='flex gap-2'>
-          {/* <button className="btn btn-sm btn-outline btn-info">View</button> */}
           <Link
             to={`/shop/order/${row._id}`}
             className='btn btn-sm btn-outline btn-info'
@@ -203,6 +220,30 @@ const OrderPage = () => {
       )
     }
   ];
+
+  const handleExportPaidOrders = () => {
+    const paidOrders = orders.filter(order => order.payment?.status === 'paid');
+    if (paidOrders.length === 0) {
+      alert('Không có hóa đơn đã thanh toán để xuất!');
+      return;
+    }
+    const data = paidOrders.map(order => ({
+      'Mã đơn': order.orderNumber,
+      'Khách hàng': order.user?.fullName || order.user,
+      'Tổng SL': order.totalQuantity,
+      'Tổng tiền': order.totalPrice,
+      'Trạng thái': order.status,
+      'Phương thức thanh toán': order.payment?.method,
+      'Trạng thái thanh toán': order.payment?.status,
+      'Ngày tạo': new Date(order.createdAt).toLocaleString()
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Paid Orders');
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(blob, 'shop_paid_orders.xlsx');
+  };
 
   return (
     <div>
@@ -241,12 +282,19 @@ const OrderPage = () => {
           <button className='btn' type='button' onClick={handleResetFilters}>
             Reset Filters
           </button>
+          <button
+            className='btn btn-success ml-2'
+            type='button'
+            onClick={handleExportPaidOrders}
+          >
+            Xuất hóa đơn đã thanh toán (Excel)
+          </button>
         </form>
       </div>
 
       {!loading && orders.length > 0 && (
         <>
-          <DynamicTable data={orders} columns={columns} />
+          <DynamicTable data={sortedOrders} columns={columns} />
           <div className='flex justify-center mt-6'>
             <Pagination
               page={pagination.page}
