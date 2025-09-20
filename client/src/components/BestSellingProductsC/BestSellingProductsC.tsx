@@ -52,7 +52,8 @@ function BestSellingProductsC() {
           Deal sốc, giảm tới <span className='text-[#FF3C2D]'>20% Off</span>
         </h1>
         <p className='text-gray-600 mb-6'>
-          Bó hoa tỏa sáng lấp lánh với từng lớp hoa được sắp xếp tinh tế, mang đến cảm giác vừa dịu dàng vừa sang trọng như một tác phẩm nghệ thuật.
+          Bó hoa tỏa sáng lấp lánh với từng lớp hoa được sắp xếp tinh tế, mang
+          đến cảm giác vừa dịu dàng vừa sang trọng như một tác phẩm nghệ thuật.
         </p>
 
         <div className='flex space-x-4 mb-6'>

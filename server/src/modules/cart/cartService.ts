@@ -1,5 +1,5 @@
 import CartModel, { ICart, ICartItem } from './cartModel';
-import VariantModel from '../variant/variantModel';
+import VariantRepository from '../variant/variantRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { calculateCartTotals } from '~/utils/calculateCartTotals';
@@ -39,7 +39,8 @@ export const cartService = {
       throw createHttpError(400, 'Quantity must be ≥ 1');
     }
 
-    const variant = await VariantModel.findById(variantId).select('salePrice');
+    const variant =
+      await VariantRepository.findById(variantId).select('salePrice');
     if (!variant) throw createHttpError(404, 'Variant not found');
 
     let cart = await CartModel.findOne({ userId });

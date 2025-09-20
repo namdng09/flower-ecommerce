@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import createHttpError from 'http-errors';
-import { IUser } from '~/modules/user/userModel';
+import { IUser } from '~/modules/user/userEntity';
 
 export const authorize =
   (...allowedRoles: string[]) =>

@@ -1,12 +1,13 @@
-import VariantModel, { IVariant } from './variantModel';
+import { IVariant } from './variantEntity';
+import VariantRepository from './variantRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
-import ProductModel from '../product/productModel';
+import ProductRepository from '../product/productRepository';
 
 export const variantService = {
   list: async () => {
-    const variants = await VariantModel.find()
+    const variants = await VariantRepository.find()
       .populate({
         path: 'product',
         select: 'title skuCode thumbnailImage'
@@ -24,9 +25,9 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const product = await ProductModel.findOne({ variants: variantId }).select(
-      'shop'
-    );
+    const product = await ProductRepository.findOne({
+      variants: variantId
+    }).select('shop');
 
     if (!product) {
       throw createHttpError(400, 'No product found for this variant');
@@ -40,7 +41,7 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const variant = await VariantModel.findById(variantId);
+    const variant = await VariantRepository.findById(variantId);
     if (!variant) {
       throw createHttpError(404, 'Variant not found');
     }
@@ -53,7 +54,7 @@ export const variantService = {
       throw createHttpError(400, 'Variant Code is required');
     }
 
-    const variant = await VariantModel.findOne({
+    const variant = await VariantRepository.findOne({
       variantCode: variantCode.trim()
     });
 
@@ -77,13 +78,13 @@ export const variantService = {
 
     let variantCode = generateSKU();
 
-    let existing = await VariantModel.findOne({ variantCode });
+    let existing = await VariantRepository.findOne({ variantCode });
     while (existing) {
       variantCode = generateSKU();
-      existing = await VariantModel.findOne({ variantCode });
+      existing = await VariantRepository.findOne({ variantCode });
     }
 
-    const variant = await VariantModel.create({
+    const variant = await VariantRepository.create({
       variantCode,
       title,
       listPrice,
@@ -102,7 +103,7 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const variant = await VariantModel.findById(variantId);
+    const variant = await VariantRepository.findById(variantId);
     if (!variant) {
       throw createHttpError(404, 'Variant not found');
     }
@@ -130,7 +131,7 @@ export const variantService = {
       throw createHttpError(400, 'Invalid variant id');
     }
 
-    const deleted = await VariantModel.findByIdAndDelete(variantId);
+    const deleted = await VariantRepository.findByIdAndDelete(variantId);
     if (!deleted) {
       throw createHttpError(404, 'Variant not found');
     }

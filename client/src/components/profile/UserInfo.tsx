@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Link,useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { FaUserCircle } from 'react-icons/fa';
 import { FiCamera } from 'react-icons/fi';
 import uploadAssets from '~/utils/uploadAssets';
@@ -162,13 +162,13 @@ const UserInfo: React.FC<UserInfoProps> = ({
           >
             Cập nhật
           </button>
-          <Link
-            to='/auth/login'
-            onClick={handleLogout}
+          <button
+            type='button'
+            onClick={handleUnifiedLogout}
             className='bg-pink-600 hover:bg-pink-700 text-white px-6 py-2 rounded-lg font-medium transition duration-200'
           >
             Đăng xuất
-          </Link>
+          </button>
         </div>
       </form>
     </div>

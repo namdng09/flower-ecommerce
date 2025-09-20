@@ -34,14 +34,15 @@ const OrderPage: React.FC = () => {
         order.payment?.status !== 'paid' &&
         paymentStatus?.toUpperCase() === 'PAID'
       ) {
-        await dispatch(updatePayment({ id: order._id, paymentData: { status: 'paid' } }));
+        await dispatch(
+          updatePayment({ id: order._id, paymentData: { status: 'paid' } })
+        );
         await dispatch(fetchOrderById(order._id));
       }
     };
 
     syncPaymentStatus();
   }, [order, paymentStatus, dispatch]);
-  
 
   if (loading) return <p className='text-center mt-10'>Đang tải đơn hàng...</p>;
   if (error || !order)
@@ -197,12 +198,12 @@ const OrderPage: React.FC = () => {
           <div className='flex justify-between pt-2'>
             <span>Thanh toán:</span>
             <span
-              className={`capitalize font-semibold ${payment.status === 'paid'
-                  ? 'text-green-600'
-                  : 'text-yellow-600'
-                }`}
+              className={`capitalize font-semibold ${
+                payment.status === 'paid' ? 'text-green-600' : 'text-yellow-600'
+              }`}
             >
-              {payment.method} - {payment.status === 'paid' ? 'đã thanh toán' : 'chờ thanh toán'}
+              {payment.method} -{' '}
+              {payment.status === 'paid' ? 'đã thanh toán' : 'chờ thanh toán'}
             </span>
           </div>
         </div>

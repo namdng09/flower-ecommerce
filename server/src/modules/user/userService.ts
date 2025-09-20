@@ -1,4 +1,5 @@
-import UserModel, { IUser } from './userModel';
+import { IUser } from './userEntity';
+import UserRepository from './userRepository';
 import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import crypto from 'crypto';
@@ -14,7 +15,7 @@ export const userService = {
     }
 
     const filter = role ? { role } : {};
-    const users = await UserModel.find(filter).select('-password');
+    const users = await UserRepository.find(filter).select('-password');
 
     return users;
   },
@@ -55,7 +56,7 @@ export const userService = {
       ...(phoneNumber && { phoneNumber: makeRegex(phoneNumber) })
     };
 
-    const aggregate = UserModel.aggregate([
+    const aggregate = UserRepository.aggregate([
       { $match: matchStage },
       { $sort: { [sortField as string]: sortDirection } }
     ]);
@@ -65,7 +66,7 @@ export const userService = {
       limit: parseInt(limit as string) || 10
     };
 
-    const result = await (UserModel as any).aggregatePaginate(
+    const result = await (UserRepository as any).aggregatePaginate(
       aggregate,
       options
     );
@@ -77,7 +78,7 @@ export const userService = {
     if (!Types.ObjectId.isValid(userId)) {
       throw createHttpError(400, 'Invalid user id');
     }
-    const user = await UserModel.findById(userId);
+    const user = await UserRepository.findById(userId);
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
@@ -95,19 +96,19 @@ export const userService = {
       throw createHttpError(400, 'Invalid role value');
     }
 
-    if (await UserModel.findOne({ username })) {
+    if (await UserRepository.findOne({ username })) {
       throw createHttpError(409, 'Username already exists');
     }
-    if (await UserModel.findOne({ email })) {
+    if (await UserRepository.findOne({ email })) {
       throw createHttpError(409, 'Email already exists');
     }
-    if (await UserModel.findOne({ phoneNumber })) {
+    if (await UserRepository.findOne({ phoneNumber })) {
       throw createHttpError(409, 'Phone number already exists');
     }
 
     const password = crypto.randomBytes(4).toString('hex');
 
-    const newUser = await UserModel.create({
+    const newUser = await UserRepository.create({
       fullName,
       username,
       email,
@@ -138,7 +139,7 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const user = await UserModel.findById(userId);
+    const user = await UserRepository.findById(userId);
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
@@ -152,19 +153,22 @@ export const userService = {
     }
 
     if (username && username !== user.username) {
-      const dup = await UserModel.findOne({ username, _id: { $ne: userId } });
+      const dup = await UserRepository.findOne({
+        username,
+        _id: { $ne: userId }
+      });
       if (dup) throw createHttpError(409, 'Username already exists');
       user.username = username;
     }
 
     if (email && email !== user.email) {
-      const dup = await UserModel.findOne({ email, _id: { $ne: userId } });
+      const dup = await UserRepository.findOne({ email, _id: { $ne: userId } });
       if (dup) throw createHttpError(409, 'Email already exists');
       user.email = email;
     }
 
     if (phoneNumber && phoneNumber !== user.phoneNumber) {
-      const dup = await UserModel.findOne({
+      const dup = await UserRepository.findOne({
         phoneNumber,
         _id: { $ne: userId }
       });
@@ -190,7 +194,7 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const deleted = await UserModel.findByIdAndDelete(userId);
+    const deleted = await UserRepository.findByIdAndDelete(userId);
     if (!deleted) throw createHttpError(404, 'User not found');
 
     return deleted;
@@ -206,7 +210,7 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const existingUser = await UserModel.findByIdAndUpdate(
+    const existingUser = await UserRepository.findByIdAndUpdate(
       userId,
       { avatarUrl },
       { new: true }
@@ -227,7 +231,7 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const existingUser = await UserModel.findByIdAndUpdate(
+    const existingUser = await UserRepository.findByIdAndUpdate(
       userId,
       { coverUrl },
       { new: true }
@@ -249,7 +253,7 @@ export const userService = {
       throw createHttpError(400, 'New Password must be at least 6 characters');
     }
 
-    const user = await UserModel.findOne({ email });
+    const user = await UserRepository.findOne({ email });
     if (!user) throw createHttpError(404, 'User not found');
 
     const isMatch = await comparePassword(oldPassword, user.password);
@@ -269,7 +273,7 @@ export const userService = {
       throw createHttpError(400, 'Invalid user id');
     }
 
-    const user = await UserModel.findById(userId);
+    const user = await UserRepository.findById(userId);
     if (!user) {
       throw createHttpError(404, 'User not found');
     }

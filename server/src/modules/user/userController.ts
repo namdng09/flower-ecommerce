@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { IUser } from './userModel';
+import { IUser } from './userEntity';
 import { userService } from './userService';
 import { apiResponse } from '~/types/apiResponse';
 
