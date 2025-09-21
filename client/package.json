@@ -20,6 +20,7 @@
     "axios": "^1.9.0",
     "chart.js": "^4.5.0",
     "draft-js": "^0.11.7",
+    "file-saver": "^2.0.5",
     "flowbite": "^3.1.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.525.0",
@@ -37,6 +38,7 @@
     "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
     "tailwindcss": "^4.1.6",
+    "xlsx": "^0.18.5",
     "zod": "^3.25.30"
   },
   "devDependencies": {

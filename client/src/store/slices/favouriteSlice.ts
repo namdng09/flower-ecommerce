@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '~/config/axiosConfig';
 
-const BASE_URL = 'http://localhost:8000/api/favourites';
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/favourites`;
 
 // GET /favourites/:userId
 export const fetchFavouritesByUser = createAsyncThunk(
@@ -42,7 +42,7 @@ export const removeFavouriteItem = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      await axiosInstance.delete(`/api/favourites/${userId}/items`, {
+      await axiosInstance.delete(`${BASE_URL}/${userId}/items`, {
         data: { productId }
       });
       return productId;

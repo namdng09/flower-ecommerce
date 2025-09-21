@@ -10,6 +10,20 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
+export const fetchProductById = createAsyncThunk(
+  'products/fetchProductById',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`/api/products/${id}`);
+      return res.data.data;
+    } catch (err: any) {
+      return rejectWithValue(
+        err.response?.data?.message || 'Không tìm thấy sản phẩm'
+      );
+    }
+  }
+);
+
 export const createProduct = createAsyncThunk(
   'products/createProduct',
   async (newProduct, { rejectWithValue }) => {
@@ -107,6 +121,7 @@ const initialState = {
   items: [],
   shopProducts: [],
   shopInfo: null,
+  currentProduct: null,
   loading: false,
   error: null as string | null
 };
@@ -114,7 +129,11 @@ const initialState = {
 const productSlice = createSlice({
   name: 'products',
   initialState,
-  reducers: {},
+  reducers: {
+    clearCurrentProduct: state => {
+      state.currentProduct = null;
+    }
+  },
   extraReducers: builder => {
     builder
       // Fetch all
@@ -129,6 +148,27 @@ const productSlice = createSlice({
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || null;
+      })
+
+      .addCase(fetchProductById.pending, state => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProductById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentProduct = action.payload;
+        // Cũng cập nhật vào items nếu chưa có
+        const exists = state.items.find(
+          item => item._id === action.payload._id
+        );
+        if (!exists) {
+          state.items.push(action.payload);
+        }
+      })
+      .addCase(fetchProductById.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          (action.payload as string) || action.error.message || null;
       })
 
       // Create
@@ -226,5 +266,6 @@ const productSlice = createSlice({
       });
   }
 });
+export const { clearCurrentProduct } = productSlice.actions;
 
 export default productSlice.reducer;
