@@ -184,9 +184,9 @@ const ProductPage = () => {
             </button>
           </div>
 
-          <p className='text-sm text-gray-600'>
+          {/* <p className='text-sm text-gray-600'>
             {product.description.replace(/"/g, '')}
-          </p>
+          </p> */}
 
           {product.variants.map(v => (
             <div
@@ -272,6 +272,22 @@ const ProductPage = () => {
             >
               Xem shop
             </Link>
+          </div>
+
+          <div className='mt-6 p-4 border rounded-lg shadow-sm bg-gray-50'>
+            <h3 className='text-lg font-semibold text-gray-800 mb-3'>
+              Mô tả sản phẩm
+            </h3>
+            <div className='text-sm text-gray-700 leading-relaxed'>
+              {product.description
+                .replace(/"/g, '')
+                .split('\n')
+                .map((line, index) => (
+                  <p key={index} className='mb-2 last:mb-0'>
+                    {line.trim()}
+                  </p>
+                ))}
+            </div>
           </div>
         </div>
       </div>
