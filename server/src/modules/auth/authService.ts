@@ -170,7 +170,7 @@ export const authService = {
       throw createHttpError(404, 'User not found');
     }
 
-    const resetLink = 'http://localhost:5173/auth/change-password';
+    const resetLink = `${process.env.CLIENT_URL}/auth/change-password`;
 
     // Gửi email qua emailService với template động
     await mailService.sendResetPassword(email, resetLink, user.fullName);
