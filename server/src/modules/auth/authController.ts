@@ -101,7 +101,7 @@ const authController = {
       });
 
       res.redirect(
-        `http://localhost:5173/home?accessToken=${result.accessToken}`
+        `${process.env.CLIENT_URL}/home?accessToken=${result.accessToken}`
       );
     } catch (error) {
       next(error);
