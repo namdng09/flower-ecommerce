@@ -1,14 +1,14 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '~/config/axiosConfig';
 
-const BASE_URL = 'http://localhost:8000/api/reviews';
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/reviews`;
 
 export const fetchReviews = createAsyncThunk(
   'reviews/fetchAll',
   async (params: Record<string, any> = {}, { rejectWithValue }) => {
     try {
       const query = new URLSearchParams(params).toString();
-      const res = await axios.get(`${BASE_URL}?${query}`);
+      const res = await axiosInstance.get(`${BASE_URL}?${query}`);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Fetch failed');
@@ -20,7 +20,7 @@ export const fetchReviewById = createAsyncThunk(
   'reviews/fetchById',
   async (id: string, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/${id}`);
+      const res = await axiosInstance.get(`${BASE_URL}/${id}`);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Fetch failed');
@@ -32,7 +32,7 @@ export const fetchReviewByProductId = createAsyncThunk(
   'reviews/fetchByProductId',
   async (id: string, { rejectWithValue }) => {
     try {
-      const res = await axios.get(`${BASE_URL}/product/${id}`);
+      const res = await axiosInstance.get(`${BASE_URL}/product/${id}`);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Fetch failed');
@@ -44,7 +44,7 @@ export const createReview = createAsyncThunk(
   'reviews/create',
   async (reviewData, { rejectWithValue }) => {
     try {
-      const res = await axios.post(`${BASE_URL}`, reviewData);
+      const res = await axiosInstance.post(`${BASE_URL}`, reviewData);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Create failed');
@@ -59,7 +59,7 @@ export const updateReview = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const res = await axios.patch(`${BASE_URL}/${id}`, updateData);
+      const res = await axiosInstance.patch(`${BASE_URL}/${id}`, updateData);
       return res.data.data;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Update failed');
@@ -71,7 +71,7 @@ export const deleteReview = createAsyncThunk(
   'reviews/delete',
   async (id: string, { rejectWithValue }) => {
     try {
-      await axios.delete(`${BASE_URL}/${id}`);
+      await axiosInstance.delete(`${BASE_URL}/${id}`);
       return id;
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || 'Delete failed');
