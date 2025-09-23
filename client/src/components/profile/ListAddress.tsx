@@ -13,6 +13,7 @@ interface ListAddressProps {
   handleSubmitEdit: () => void;
   handleDeleteAddress: (id: string) => void;
   setEditingAddressId: React.Dispatch<React.SetStateAction<string | null>>;
+  userRole?: string; // Thêm prop userRole
 }
 
 const ListAddress: React.FC<ListAddressProps> = ({
@@ -24,13 +25,37 @@ const ListAddress: React.FC<ListAddressProps> = ({
   handleChangeEdit,
   handleSubmitEdit,
   handleDeleteAddress,
-  setEditingAddressId
+  setEditingAddressId,
+  userRole
 }) => {
+  const getAddressTypeDisplay = (addressType: string) => {
+    if (userRole === 'shop') {
+      switch (addressType) {
+        case 'home':
+          return '🏪 Nhà riêng';
+        case 'office':
+          return '🏭 Cửa hàng';
+        case 'other':
+          return '🏢 Khác';
+        default:
+          return '🏢 Khác';
+      }
+    } else {
+      switch (addressType) {
+        case 'home':
+          return '🏠 Nhà riêng';
+        case 'office':
+          return '🏢 Công ty';
+        case 'other':
+          return '🏬 Khác';
+        default:
+          return '🏬 Khác';
+      }
+    }
+  };
+
   return (
     <div className='bg-white border border-gray-200 rounded-xl shadow-md p-6'>
-      <h3 className='text-lg font-bold mb-4 flex items-center text-indigo-600 gap-2'>
-        <FaMapMarkerAlt className='text-xl' /> Danh sách địa chỉ
-      </h3>
       {addressLoading ? (
         <p className='text-gray-500 italic'>Đang tải địa chỉ...</p>
       ) : addresses.length === 0 ? (
@@ -48,7 +73,9 @@ const ListAddress: React.FC<ListAddressProps> = ({
                     name='fullName'
                     value={editForm.fullName}
                     onChange={handleChangeEdit}
-                    placeholder='Họ tên'
+                    placeholder={
+                      userRole === 'shop' ? 'Tên cửa hàng' : 'Họ tên'
+                    }
                     className='border border-gray-300 w-full px-3 py-2 rounded-md'
                   />
                   <input
@@ -62,7 +89,11 @@ const ListAddress: React.FC<ListAddressProps> = ({
                     name='street'
                     value={editForm.street}
                     onChange={handleChangeEdit}
-                    placeholder='Số nhà, đường'
+                    placeholder={
+                      userRole === 'shop'
+                        ? 'Địa chỉ cửa hàng (số nhà, đường)'
+                        : 'Số nhà, đường'
+                    }
                     className='border border-gray-300 w-full px-3 py-2 rounded-md'
                   />
                   <input
@@ -85,9 +116,19 @@ const ListAddress: React.FC<ListAddressProps> = ({
                     onChange={handleChangeEdit}
                     className='border border-gray-300 w-full px-3 py-2 rounded-md'
                   >
-                    <option value='home'>🏠 Nhà riêng</option>
-                    <option value='office'>🏢 Công ty</option>
-                    <option value='other'>🏬 Khác</option>
+                    {userRole === 'shop' ? (
+                      <>
+                        <option value='home'>🏪 Nhà riêng</option>
+                        <option value='office'>🏭 Cửa hàng</option>
+                        <option value='other'>🏢 Khác</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value='home'>🏠 Nhà riêng</option>
+                        <option value='office'>🏢 Công ty</option>
+                        <option value='other'>🏬 Khác</option>
+                      </>
+                    )}
                   </select>
                   <label className='flex items-center gap-2 mt-2'>
                     <input
@@ -96,7 +137,9 @@ const ListAddress: React.FC<ListAddressProps> = ({
                       checked={editForm.isDefault}
                       onChange={handleChangeEdit}
                     />
-                    Đặt làm địa chỉ mặc định
+                    {userRole === 'shop'
+                      ? 'Đặt làm địa chỉ cửa hàng chính'
+                      : 'Đặt làm địa chỉ mặc định'}
                   </label>
                   <div className='flex justify-end gap-2'>
                     <button
@@ -122,14 +165,12 @@ const ListAddress: React.FC<ListAddressProps> = ({
                     {addr.street}, {addr.ward}, {addr.province}
                   </div>
                   <div className='text-xs text-gray-500 mt-1 italic'>
-                    {addr.addressType === 'home'
-                      ? '🏠 Nhà riêng'
-                      : addr.addressType === 'office'
-                        ? '🏢 Công ty'
-                        : '🏬 Khác'}
+                    {getAddressTypeDisplay(addr.addressType)}
                     {addr.isDefault && (
                       <span className='ml-2 text-green-600 font-medium'>
-                        [Mặc định]
+                        {userRole === 'shop'
+                          ? '[Cửa hàng chính]'
+                          : '[Mặc định]'}
                       </span>
                     )}
                   </div>

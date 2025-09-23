@@ -114,7 +114,7 @@ const Page = () => {
       header: 'Action',
       render: (_: any, row: any) => (
         <div className='flex gap-2 justify-center text-gray-500'>
-          <Link to={`/shop/order/${row._id}`} title='View'>
+          <Link to={`/admin/order/${row._id}`} title='View'>
             <FiEye size={16} className='hover:text-blue-600 cursor-pointer' />
           </Link>
           <button

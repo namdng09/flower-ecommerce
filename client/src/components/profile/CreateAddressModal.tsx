@@ -22,24 +22,36 @@ const CreateAddressModal: React.FC<CreateAddressModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const handleSubmit = () => {
+    // Log để debug
+    console.log('Creating address with data:', {
+      ...newAddressForm,
+      userRole
+    });
+    onSubmit();
+  };
+
   return (
     <div className='fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50'>
       <div className='bg-white p-6 rounded-lg w-[95%] max-w-md shadow-lg border'>
-        <h3 className='text-lg font-bold mb-4'>Thêm địa chỉ mới</h3>
-        {/* Nếu không phải shop thì hiển thị trường họ tên người nhận */}
-        {userRole !== 'shop' && (
-          <input
-            placeholder='Họ và tên người nhận'
-            className='w-full border p-2 mb-2 rounded text-sm'
-            value={newAddressForm.fullName}
-            onChange={e =>
-              setNewAddressForm((prev: any) => ({
-                ...prev,
-                fullName: e.target.value
-              }))
-            }
-          />
-        )}
+        <h3 className='text-lg font-bold mb-4'>
+          {userRole === 'shop' ? 'Thêm địa chỉ cửa hàng' : 'Thêm địa chỉ mới'}
+        </h3>
+
+        <input
+          placeholder={
+            userRole === 'shop' ? 'Tên cửa hàng' : 'Họ và tên người nhận'
+          }
+          className='w-full border p-2 mb-2 rounded text-sm'
+          value={newAddressForm.fullName}
+          onChange={e =>
+            setNewAddressForm((prev: any) => ({
+              ...prev,
+              fullName: e.target.value
+            }))
+          }
+        />
+
         <input
           placeholder='Số điện thoại'
           className='w-full border p-2 mb-2 rounded text-sm'
@@ -52,7 +64,11 @@ const CreateAddressModal: React.FC<CreateAddressModalProps> = ({
           }
         />
         <input
-          placeholder='Địa chỉ cụ thể (số nhà, đường)'
+          placeholder={
+            userRole === 'shop'
+              ? 'Địa chỉ cửa hàng (số nhà, đường)'
+              : 'Địa chỉ cụ thể (số nhà, đường)'
+          }
           className='w-full border p-2 mb-2 rounded text-sm'
           value={newAddressForm.street}
           onChange={e =>
@@ -62,7 +78,7 @@ const CreateAddressModal: React.FC<CreateAddressModalProps> = ({
             }))
           }
         />
-        {/* Phường/Xã dạng react-select có thể tìm kiếm */}
+
         <Select
           options={wards}
           value={wards.find(w => w.value === newAddressForm.ward) || null}
@@ -76,12 +92,13 @@ const CreateAddressModal: React.FC<CreateAddressModalProps> = ({
           isClearable
           className='mb-2'
         />
-        {/* Tỉnh/Thành phố cố định là Hà Nội */}
+
         <input
           value='Hà Nội'
           disabled
           className='w-full border p-2 mb-2 rounded text-sm bg-gray-100 text-gray-500'
         />
+
         <select
           name='addressType'
           value={newAddressForm.addressType}
@@ -93,11 +110,21 @@ const CreateAddressModal: React.FC<CreateAddressModalProps> = ({
           }
           className='w-full border p-2 mb-2 rounded text-sm'
         >
-          <option value='home'>🏠 Nhà riêng</option>
-          <option value='office'>🏢 Công ty</option>
-          <option value='other'>🏬 Khác</option>
+          {userRole === 'shop' ? (
+            <>
+              <option value='home'>🏪 Nhà riêng</option>
+              <option value='office'>🏭 Cửa hàng</option>
+              <option value='other'>🏢 Khác</option>
+            </>
+          ) : (
+            <>
+              <option value='home'>🏠 Nhà riêng</option>
+              <option value='office'>🏢 Công ty</option>
+              <option value='other'>🏬 Khác</option>
+            </>
+          )}
         </select>
-        {/* Checkbox mặc định */}
+
         <label className='flex items-center gap-2 mt-2'>
           <input
             type='checkbox'
@@ -109,14 +136,17 @@ const CreateAddressModal: React.FC<CreateAddressModalProps> = ({
               }))
             }
           />
-          Đặt làm địa chỉ mặc định
+          {userRole === 'shop'
+            ? 'Đặt làm địa chỉ cửa hàng chính'
+            : 'Đặt làm địa chỉ mặc định'}
         </label>
+
         <div className='flex justify-end gap-2 mt-4'>
           <button onClick={onClose} className='px-4 py-2 bg-gray-200 rounded'>
             Huỷ
           </button>
           <button
-            onClick={onSubmit}
+            onClick={handleSubmit}
             className='px-4 py-2 bg-[#C4265B] text-white rounded'
           >
             Lưu địa chỉ

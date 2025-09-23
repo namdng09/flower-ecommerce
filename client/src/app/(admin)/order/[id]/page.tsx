@@ -1,19 +1,18 @@
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '~/store/hooks';
 import { fetchOrderById } from '~/store/slices/orderSlice';
 import { useParams } from 'react-router';
-import type { RootState } from '~/store';
 
-const Page = () => {
-  const dispatch = useDispatch();
+const OrderDetailPage = () => {
+  const dispatch = useAppDispatch();
   const { id } = useParams();
-  const { currentOrder, loading, error } = useSelector(
-    (state: RootState) => state.orders
+  const { currentOrder, loading, error } = useAppSelector(
+    state => state.orders
   );
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchOrderById(id));
+      dispatch(fetchOrderById(id as string));
     }
   }, [dispatch, id]);
 
@@ -144,7 +143,9 @@ const Page = () => {
               {items.map((item: any, idx: number) => (
                 <tr key={idx} className='border-b hover:bg-gray-50'>
                   <td className='px-4 py-2'>{idx + 1}</td>
-                  <td className='px-4 py-2'>{item.variant}</td>
+                  <td className='px-4 py-2'>
+                    {item.variant?.variantCode || item.variant || 'N/A'}
+                  </td>
                   <td className='px-4 py-2'>{item.quantity}</td>
                   <td className='px-4 py-2'>{item.price.toLocaleString()}đ</td>
                 </tr>
@@ -157,4 +158,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default OrderDetailPage;

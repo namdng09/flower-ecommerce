@@ -211,7 +211,16 @@ const EditProfile: React.FC = () => {
       toast.warn('⚠️ Vui lòng đăng nhập để tiếp tục!');
       return;
     }
-    const newAddress = { ...newAddressForm, user: userId };
+
+    // Thêm userRole vào dữ liệu gửi đi
+    const newAddress = {
+      ...newAddressForm,
+      user: userId,
+      userRole: user?.role // Thêm role của user
+    };
+
+    console.log('Creating address for user role:', user?.role, newAddress);
+
     try {
       await dispatch(createAddress(newAddress)).unwrap();
       toast.success('🎉 Đã thêm địa chỉ mới thành công!');
@@ -221,12 +230,13 @@ const EditProfile: React.FC = () => {
         street: '',
         ward: '',
         province: 'Hà Nội',
-        addressType: 'home',
+        addressType: user?.role === 'shop' ? 'shop' : 'home', // Set default dựa trên role
         isDefault: false
       });
       setIsModalOpen(false);
       dispatch(fetchAddresses(userId));
     } catch (error) {
+      console.error('Create address error:', error);
       toast.error('❌ Thêm địa chỉ thất bại!');
     }
   };
