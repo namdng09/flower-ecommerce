@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchProducts, filterProducts } from '~/store/slices/productSlice';
@@ -6,7 +6,7 @@ import { addToCart } from '~/store/slices/cartSlice';
 import ListCategory from '~/components/listcategory/ListCategory';
 import { AuthContext } from '~/contexts/authContext';
 import banner from '~/assets/pb.jpg';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import AddressFilter from '~/components/filter-address/AddressFilter';
 import AddressModal from '~/components/filter-address/AddressModal';
 import PriceFilter from '~/components/filter-price/PriceFilter';
@@ -17,6 +17,7 @@ const ProductList = () => {
   const dispatch = useDispatch();
   const auth = useContext(AuthContext);
   const userId = auth?.user?.id;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     items: products,
@@ -39,7 +40,32 @@ const ProductList = () => {
   } | null>(null);
   const [selectedWardOption, setSelectedWardOption] = useState<any>(null);
 
-  // Lấy danh sách phường/xã và kiểm tra localStorage khi vào trang
+  // Đọc category từ URL params
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl) {
+      setSelectedCategoryId(categoryFromUrl);
+    }
+  }, [searchParams]);
+
+  // Handler cho category filter
+  const handleCategoryFilter = useCallback(
+    (categoryId: string | null) => {
+      setSelectedCategoryId(categoryId);
+
+      // Cập nhật URL
+      const params = new URLSearchParams(searchParams);
+      if (categoryId) {
+        params.set('category', categoryId);
+      } else {
+        params.delete('category');
+      }
+      setSearchParams(params, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+
+  // Lấy danh sách phường/xã và kiểm tra sessionStorage khi vào trang
   useEffect(() => {
     fetch('/hn_geo_names.json')
       .then(res => res.json())
@@ -50,38 +76,50 @@ const ProductList = () => {
     // Kiểm tra sessionStorage để lấy địa chỉ đã chọn
     const savedAddress = sessionStorage.getItem('selectedAddress');
     if (savedAddress) {
-      const { province, ward } = JSON.parse(savedAddress);
-      setProvince(province);
-      setWard(ward);
-      setSelectedWardOption({ value: ward, label: ward, province, ward });
-      setShowAddressModal(false);
+      try {
+        const { province, ward } = JSON.parse(savedAddress);
+        setProvince(province);
+        setWard(ward);
+        setSelectedWardOption({ value: ward, label: ward, province, ward });
+        setShowAddressModal(false);
+      } catch (error) {
+        console.error('Error parsing saved address:', error);
+      }
     }
   }, []);
 
   // Chọn địa chỉ từ modal
-  const handleAddressSelect = (province: string, ward: string) => {
+  const handleAddressSelect = useCallback((province: string, ward: string) => {
     const option = { value: ward, label: ward, province, ward };
     setProvince(province);
     setWard(ward);
     setSelectedWardOption(option);
     setShowAddressModal(false);
-    sessionStorage.setItem(
-      'selectedAddress',
-      JSON.stringify({ province, ward })
-    );
-  };
+    try {
+      sessionStorage.setItem(
+        'selectedAddress',
+        JSON.stringify({ province, ward })
+      );
+    } catch (error) {
+      console.error('Error saving address:', error);
+    }
+  }, []);
 
   // Chọn địa chỉ từ filter sidebar
-  const handleAddressFilter = (province: string, ward: string) => {
+  const handleAddressFilter = useCallback((province: string, ward: string) => {
     setProvince(province);
     setWard(ward);
     const selectedOption = { value: ward, label: ward, province, ward };
     setSelectedWardOption(selectedOption);
-    sessionStorage.setItem(
-      'selectedAddress',
-      JSON.stringify({ province, ward })
-    );
-  };
+    try {
+      sessionStorage.setItem(
+        'selectedAddress',
+        JSON.stringify({ province, ward })
+      );
+    } catch (error) {
+      console.error('Error saving address:', error);
+    }
+  }, []);
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -90,8 +128,8 @@ const ProductList = () => {
   useEffect(() => {
     dispatch(
       filterProducts({
-        province,
-        ward,
+        province: province || undefined,
+        ward: ward || undefined,
         category: selectedCategoryId || undefined,
         title: searchTerm || undefined,
         sortBy:
@@ -132,27 +170,30 @@ const ProductList = () => {
   });
 
   // Handler cho search function
-  const handleSearchFilter = (searchTerm: string) => {
+  const handleSearchFilter = useCallback((searchTerm: string) => {
     setSearchTerm(searchTerm);
-  };
+  }, []);
 
-  const handleAddToCart = async (variantId: string) => {
-    if (!userId) {
-      toast.warn('Vui lòng đăng nhập để thêm vào giỏ hàng!');
-      return;
-    }
-    if (!variantId) {
-      toast.error('Sản phẩm chưa có biến thể hợp lệ!');
-      return;
-    }
-    try {
-      await dispatch(addToCart({ userId, variantId, quantity: 1 }));
-      toast.success('Đã thêm vào giỏ hàng!');
-    } catch (error) {
-      console.error(error);
-      toast.error('Lỗi khi thêm vào giỏ hàng!');
-    }
-  };
+  const handleAddToCart = useCallback(
+    async (variantId: string) => {
+      if (!userId) {
+        toast.warn('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+        return;
+      }
+      if (!variantId) {
+        toast.error('Sản phẩm chưa có biến thể hợp lệ!');
+        return;
+      }
+      try {
+        await dispatch(addToCart({ userId, variantId, quantity: 1 }));
+        toast.success('Đã thêm vào giỏ hàng!');
+      } catch (error) {
+        console.error(error);
+        toast.error('Lỗi khi thêm vào giỏ hàng!');
+      }
+    },
+    [dispatch, userId]
+  );
 
   return (
     <div className='container mx-auto px-4 pt-[200px] mb-5'>
@@ -169,7 +210,7 @@ const ProductList = () => {
           <div>
             <h3 className='font-semibold mb-2'>Loại sản phẩm</h3>
             <ListCategory
-              onFilter={setSelectedCategoryId}
+              onFilter={handleCategoryFilter}
               selectedCategoryId={selectedCategoryId}
             />
           </div>
@@ -195,6 +236,8 @@ const ProductList = () => {
               Hiển thị {sortedProducts.length} sản phẩm
               {selectedCategoryId && ` theo danh mục đã chọn`}
               {searchTerm && ` với từ khóa "${searchTerm}"`}
+              {province && ` tại ${province}`}
+              {ward && `, ${ward}`}
             </p>
             <div>
               <label className='mr-2'>Sắp xếp theo</label>
@@ -230,9 +273,12 @@ const ProductList = () => {
                         className='w-[450px] h-[450px] object-cover rounded transition-transform duration-300 group-hover:scale-105'
                       />
                       <div className='absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
-                        <button className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'>
-                          Mua ngay
-                        </button>
+                        <Link
+                          to={`/home/products/${product._id}`}
+                          className='bg-pink-500 text-white px-4 py-2 rounded-full font-semibold'
+                        >
+                          Xem chi tiết
+                        </Link>
                         <button
                           onClick={() => handleAddToCart(variant?._id)}
                           className='border border-white text-white px-4 py-2 rounded-full font-semibold bg-transparent'

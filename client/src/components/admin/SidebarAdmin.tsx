@@ -68,7 +68,7 @@ const SidebarAdmin = () => {
       </div>
 
       {/* COMPONENTS */}
-      <div className='mb-6'>
+      {/* <div className='mb-6'>
         <p className='text-[11px] font-semibold text-gray-400 uppercase mb-3 px-2 tracking-wide'>
           Components
         </p>
@@ -89,10 +89,10 @@ const SidebarAdmin = () => {
             Tables
           </NavLink>
         </nav>
-      </div>
+      </div> */}
 
       {/* CRAFTED */}
-      <div>
+      {/* <div>
         <p className='text-[11px] font-semibold text-gray-400 uppercase mb-3 px-2 tracking-wide'>
           Crafted
         </p>
@@ -108,7 +108,7 @@ const SidebarAdmin = () => {
             Authentication
           </NavLink>
         </nav>
-      </div>
+      </div> */}
     </aside>
   );
 };

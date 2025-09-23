@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import React, { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router';
 import PrivateRoutes from '../components/privateRoutes';
 
@@ -116,7 +116,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    Component: lazy(() => import('../layouts/adminLayout')),
+    element: (
+      <PrivateRoutes allowedRoles={['admin']}>
+        {React.createElement(lazy(() => import('../layouts/adminLayout')))}
+      </PrivateRoutes>
+    ),
     children: [
       {
         index: true,
@@ -178,7 +182,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/shop',
-    Component: lazy(() => import('../layouts/shopLayout')),
+    element: (
+      <PrivateRoutes allowedRoles={['shop', 'seller']}>
+        {React.createElement(lazy(() => import('../layouts/shopLayout')))}
+      </PrivateRoutes>
+    ),
     children: [
       {
         index: true,
