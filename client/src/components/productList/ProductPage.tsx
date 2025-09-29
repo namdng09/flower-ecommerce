@@ -11,6 +11,8 @@ import {
   addFavouriteItem,
   removeFavouriteItem
 } from '~/store/slices/favouriteSlice';
+// Thêm import cho fetchProductsByShop
+import { fetchProductsByShop } from '~/store/slices/productSlice';
 import { FaHeart, FaRegHeart } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
@@ -23,7 +25,11 @@ const ProductPage = () => {
   const { product, loading, error } = useAppSelector(
     state => state.productDetail
   );
-  const { items: favourites } = useAppSelector(state => state.favourites); // FavouriteItem[]
+  const { items: favourites } = useAppSelector(state => state.favourites);
+  // Thêm selector cho shopProducts
+  const { shopProducts, loading: shopProductsLoading } = useAppSelector(
+    state => state.products
+  );
 
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [mainImage, setMainImage] = useState<string>('');
@@ -44,6 +50,13 @@ const ProductPage = () => {
       }
     }
   }, [product]);
+
+  // Thêm useEffect để fetch sản phẩm khác của shop
+  useEffect(() => {
+    if (product?.shop?._id) {
+      dispatch(fetchProductsByShop(product.shop._id));
+    }
+  }, [dispatch, product]);
 
   useEffect(() => {
     dispatch(fetchVariants());
@@ -122,6 +135,9 @@ const ProductPage = () => {
     }
   };
 
+  // Lọc sản phẩm khác của shop (loại bỏ sản phẩm hiện tại)
+  const otherShopProducts = shopProducts.filter(p => p._id !== product?._id);
+
   if (loading)
     return <p className='pt-[200px] text-center'>Đang tải sản phẩm...</p>;
   if (error)
@@ -184,10 +200,6 @@ const ProductPage = () => {
             </button>
           </div>
 
-          {/* <p className='text-sm text-gray-600'>
-            {product.description.replace(/"/g, '')}
-          </p> */}
-
           {product.variants.map(v => (
             <div
               key={v._id}
@@ -241,14 +253,14 @@ const ProductPage = () => {
               <strong>Danh mục:</strong>{' '}
               {product.categories.map(c => c.title).join(', ')}
             </p>
-            <p>
+            {/* <p>
               <strong>Người bán:</strong> {product.shop.fullName} (
               {product.shop.username})
-            </p>
-            <p>
+            </p> */}
+            {/* <p>
               <strong>Liên hệ:</strong> {product.shop.phoneNumber} -{' '}
               {product.shop.email}
-            </p>
+            </p> */}
           </div>
 
           <div className='flex items-center gap-4 p-4 border rounded-lg shadow-sm bg-gray-50 mt-4'>
@@ -291,6 +303,90 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Phần hiển thị sản phẩm khác của shop với thanh kéo ngang */}
+      {otherShopProducts.length > 0 && (
+        <div className='mt-12'>
+          <div className='flex items-center justify-between mb-6'>
+            <h2 className='text-2xl font-bold text-gray-800'>
+              Sản phẩm khác của {product.shop.fullName}
+            </h2>
+            <Link
+              to={`/home/shop-profile/${product.shop._id}`}
+              className='text-pink-600 hover:text-pink-800 font-medium text-sm'
+            >
+              Xem tất cả →
+            </Link>
+          </div>
+
+          {shopProductsLoading ? (
+            <p className='text-center text-gray-500'>
+              Đang tải sản phẩm khác...
+            </p>
+          ) : (
+            <div className='relative'>
+              {/* Scrollable container */}
+              <div
+                className='flex gap-4 overflow-x-auto scrollbar-hide pb-4'
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                }}
+              >
+                {otherShopProducts.map(shopProduct => (
+                  <Link
+                    key={shopProduct._id}
+                    to={`/home/products/${shopProduct._id}`} // Sửa từ 'products' thành 'product' cho khớp với routing
+                    className='group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 flex-none w-64'
+                  >
+                    <div className='aspect-square overflow-hidden'>
+                      <img
+                        src={shopProduct.thumbnailImage}
+                        alt={shopProduct.title}
+                        className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-300'
+                      />
+                    </div>
+                    <div className='p-4'>
+                      <h3 className='font-medium text-gray-800 text-sm mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors'>
+                        {shopProduct.title}
+                      </h3>
+
+                      {shopProduct.variants &&
+                        shopProduct.variants.length > 0 &&
+                        shopProduct.variants[0] &&
+                        typeof shopProduct.variants[0].salePrice ===
+                          'number' && (
+                          <div className='space-y-1'>
+                            {shopProduct.variants[0].listPrice &&
+                              shopProduct.variants[0].listPrice >
+                                shopProduct.variants[0].salePrice && (
+                                <span className='text-xs text-gray-400 line-through'>
+                                  {shopProduct.variants[0].listPrice.toLocaleString()}
+                                  đ
+                                </span>
+                              )}
+                            <p className='text-pink-600 font-bold text-sm'>
+                              {shopProduct.variants[0].salePrice.toLocaleString()}
+                              đ
+                            </p>
+                          </div>
+                        )}
+
+                      <p className='text-xs text-gray-500 mt-2'>
+                        {shopProduct.categories?.map(c => c.title).join(', ') ||
+                          'Chưa phân loại'}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Gradient fade effect */}
+              <div className='absolute top-0 right-0 w-16 h-full bg-gradient-to-l from-white to-transparent pointer-events-none'></div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

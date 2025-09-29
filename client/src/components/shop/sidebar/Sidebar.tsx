@@ -45,22 +45,22 @@ const Sidebar = () => {
           <NavLink to='/shop/product' className={linkClass}>
             {indicator}
             <FiBox size={16} />
-            Products
+            Sản Phẩm
           </NavLink>
           <NavLink to='/shop/order' className={linkClass}>
             {indicator}
             <AiOutlineShoppingCart size={16} />
-            Orders
+            Đơn hàng
           </NavLink>
           <NavLink to='/shop/review' className={linkClass}>
             {indicator}
             <FiStar size={16} />
-            Reviews
+            Đánh giá
           </NavLink>
         </nav>
       </div>
 
-      {/* COMPONENTS */}
+      {/* COMPONENTS
       <div className='mb-6'>
         <p className='text-[11px] font-semibold text-gray-400 uppercase mb-3 px-2 tracking-wide'>
           Components
@@ -110,26 +110,26 @@ const Sidebar = () => {
             Email Templates
           </NavLink>
         </nav>
-      </div>
+      </div> */}
 
       {/* CRAFTED */}
-      <div>
-        <p className='text-[11px] font-semibold text-gray-400 uppercase mb-3 px-2 tracking-wide'>
-          Crafted
-        </p>
-        <nav className='space-y-1'>
-          <NavLink to='#' className={linkClass}>
-            {indicator}
-            <FiFileText size={16} />
-            Pages
-          </NavLink>
-          <NavLink to='#' className={linkClass}>
-            {indicator}
-            <FiLock size={16} />
-            Authentication
-          </NavLink>
-        </nav>
-      </div>
+      {/* <div>
+          <p className='text-[11px] font-semibold text-gray-400 uppercase mb-3 px-2 tracking-wide'>
+            Crafted
+          </p>
+          <nav className='space-y-1'>
+            <NavLink to='#' className={linkClass}>
+              {indicator}
+              <FiFileText size={16} />
+              Pages
+            </NavLink>
+            <NavLink to='#' className={linkClass}>
+              {indicator}
+              <FiLock size={16} />
+              Authentication
+            </NavLink>
+          </nav>
+        </div> */}
     </aside>
   );
 };
