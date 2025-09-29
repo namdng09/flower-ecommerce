@@ -87,7 +87,8 @@ const reviewSlice = createSlice({
     error: null as string | null,
     reviews: [] as any[],
     pagination: {},
-    currentReview: null as any
+    currentReview: null as any,
+    productReviews: [] as any[] // Thêm field mới để lưu reviews của product
   },
   reducers: {},
   extraReducers: builder => {
@@ -130,7 +131,10 @@ const reviewSlice = createSlice({
       })
       .addCase(fetchReviewByProductId.fulfilled, (state, action) => {
         state.loading = false;
-        state.currentReview = action.payload;
+        // Sửa: Gán vào productReviews thay vì currentReview
+        state.productReviews = Array.isArray(action.payload)
+          ? action.payload
+          : [];
       })
       .addCase(fetchReviewByProductId.rejected, (state, action) => {
         state.loading = false;
@@ -144,7 +148,8 @@ const reviewSlice = createSlice({
       .addCase(createReview.fulfilled, (state, action) => {
         state.loading = false;
         state.reviews.unshift(action.payload);
-        state.currentReview = action.payload;
+        // Thêm review mới vào productReviews
+        state.productReviews.unshift(action.payload);
       })
       .addCase(createReview.rejected, (state, action) => {
         state.loading = false;
@@ -157,6 +162,9 @@ const reviewSlice = createSlice({
 
       .addCase(deleteReview.fulfilled, (state, action) => {
         state.reviews = state.reviews.filter(
+          review => review._id !== action.payload
+        );
+        state.productReviews = state.productReviews.filter(
           review => review._id !== action.payload
         );
       });
