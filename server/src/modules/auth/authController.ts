@@ -1,14 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './authService';
-import { generateToken, verifyRefreshToken } from '~/utils/jwt';
-import { comparePassword } from '~/utils/bcrypt';
 import { apiResponse } from '~/types/apiResponse';
-import createHttpError from 'http-errors';
-import crypto from 'crypto';
-import bcrypt from 'bcrypt';
-import { sendMail } from '~/utils/mailer';
 import { IUser } from '../user/userEntity';
 import passport from 'passport';
+import geoip from 'geoip-lite';
+import { UAParser } from 'ua-parser-js';
+import LoginHistoryRepository from '~/modules/loginHistory/loginHistoryRepository';
 
 const authController = {
   async register(
@@ -20,6 +17,13 @@ const authController = {
       const userData: IUser = req.body;
 
       const newUser = await authService.register(userData);
+
+      await authController.saveLoginHistories(
+        newUser.createdUser.id,
+        req,
+        res,
+        next
+      );
 
       res.cookie('refreshToken', newUser.refreshToken, {
         httpOnly: true,
@@ -54,6 +58,7 @@ const authController = {
       const userData: IUser = req.body;
 
       const user = await authService.login(userData);
+      await authController.saveLoginHistories(user.user.id, req, res, next);
 
       res.cookie('refreshToken', user.refreshToken, {
         httpOnly: true,
@@ -93,6 +98,8 @@ const authController = {
         username: email.split('@')[0],
         avatarUrl: profile.photos?.[0]?.value
       });
+
+      await authController.saveLoginHistories(result.user.id, req, res, next);
 
       res.cookie('refreshToken', result.refreshToken, {
         httpOnly: true,
@@ -206,6 +213,50 @@ const authController = {
         })
       );
     } catch (error) {
+      next(error);
+    }
+  },
+
+  async saveLoginHistories(
+    userId: string,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      let ip: any =
+        req.headers['x-forwarded-for'] ||
+        req.headers['x-real-ip'] ||
+        req.connection.remoteAddress ||
+        '';
+      ip = ip.split(',')[0];
+      if (ip.includes('::ffff:')) {
+        ip = ip.split(':').reverse()[0];
+      }
+
+      const geo = geoip.lookup(ip as string);
+
+      const ua = new UAParser(req.headers['user-agent']);
+      const userAgent = ua.getResult();
+
+      const location = geo ? [geo.city, geo.region, geo.country] : [];
+
+      await LoginHistoryRepository.create({
+        user: userId,
+        ip: ip,
+        browser: userAgent.browser.name
+          ? `${userAgent.browser.name}/${userAgent.browser.version}`
+          : null,
+        os: userAgent.os.name
+          ? `${userAgent.os.name}/${userAgent.os.version}`
+          : null,
+        device: userAgent.device.vendor
+          ? `${userAgent.device.vendor}/${userAgent.device.model}`
+          : null,
+        location: location.filter(Boolean).join(', ')
+      });
+    } catch (error) {
+      console.error('Failed to save login history:', error);
       next(error);
     }
   }
