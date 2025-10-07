@@ -11,6 +11,7 @@ export interface IUser extends Document {
   email: string;
   phoneNumber: string;
   password: string;
+  dob?: Date;
   avatarUrl?: string;
   coverUrl?: string;
   role: 'admin' | 'customer' | 'shop';
@@ -51,6 +52,7 @@ const UserEntity = new Schema<IUser>(
       required: true,
       enum: ['admin', 'customer', 'shop']
     },
+    dob: { type: Date, default: null },
     avatarUrl: { type: String, default: '' },
     coverUrl: { type: String, default: '' }
   },
