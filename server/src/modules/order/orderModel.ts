@@ -6,6 +6,7 @@ import mongoose, {
 } from 'mongoose';
 import { generateSKU } from '~/utils/generateSKU';
 import aggregatePaginate from 'mongoose-aggregate-paginate-v2';
+import { discountType } from '~/modules/voucher/voucherEntity';
 
 export type OrderStatus =
   | 'pending'
@@ -60,6 +61,16 @@ export interface ICustomization {
   notes?: string;
 }
 
+export interface IMetadata {
+  voucherData?: {
+    code?: string;
+    priceBeforeDiscount?: number;
+    discountType?: discountType;
+    discountValue?: number;
+    id?: string;
+  };
+}
+
 export interface IOrder extends Document {
   orderNumber: string;
   shop: mongoose.Types.ObjectId;
@@ -74,6 +85,7 @@ export interface IOrder extends Document {
   customization?: ICustomization;
   description?: string;
   expectedDeliveryAt?: Date;
+  metadata?: IMetadata;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -177,7 +189,8 @@ const OrderSchema = new Schema<IOrder>(
     shipment: { type: ShipmentSchema, required: true },
     customization: { type: CustomizationSchema },
     description: { type: String, trim: true },
-    expectedDeliveryAt: { type: Date }
+    expectedDeliveryAt: { type: Date },
+    metadata: { type: Schema.Types.Mixed as unknown as IMetadata, default: {} }
   },
   { timestamps: true }
 );
