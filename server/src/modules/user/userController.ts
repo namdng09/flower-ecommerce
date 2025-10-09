@@ -138,6 +138,8 @@ export const userController = {
     try {
       const { userId } = req.params;
       const userData: IUser = req.body;
+      const user = await userService.show(userId);
+      if (user.dob && userData.dob) throw new Error('Cannot change dob');
 
       const resUser = await userService.update(userId, userData);
 

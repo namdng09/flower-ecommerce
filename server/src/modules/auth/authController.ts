@@ -15,7 +15,7 @@ const authController = {
   ): Promise<Response | void> {
     try {
       const userData: IUser = req.body;
-
+      console.log(userData);
       const newUser = await authService.register(userData);
 
       await authController.saveLoginHistories(
