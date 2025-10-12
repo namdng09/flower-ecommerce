@@ -66,7 +66,7 @@ export const reviewController = {
   update: async (req: Request, res: Response): Promise<Response> => {
     const { reviewId } = req.params;
     const reviewData: IReviewRequest = req.body;
-
+    req.body.userId = (req.user as any)?._id;
     const review = await reviewService.update(reviewId, reviewData);
 
     return res

@@ -12,6 +12,7 @@ import orderRoute from '~/modules/order/orderRoute';
 import paymentRoute from '~/modules/payment/paymentRoute';
 import revenueRoute from '~/modules/revenue/revenueRoute';
 import imageRoute from '~/modules/image/imageRoute';
+import voucherRoute from '~/modules/voucher/voucherRoute';
 import { authorize } from '~/middleware/authorize';
 import jwtAuth from '~/middleware/jwtAuth';
 
@@ -44,5 +45,7 @@ router.use('/orders', orderRoute);
 router.use('/revenue', revenueRoute);
 
 router.use('/images', imageRoute);
+
+router.use('/vouchers', voucherRoute);
 
 export default router;

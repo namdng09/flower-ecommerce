@@ -207,7 +207,7 @@ const ProductTableDisplay = () => {
       <div className='flex justify-between items-center flex-col sm:flex-row mb-6 gap-2'>
         <div>
           <p className='text-sm text-gray-500'>
-            🏪 Shop:{' '}
+            Quản lý sản phẩm{' '}
             <span className='font-medium text-green-700'>
               {user.fullName || user.email}
             </span>
