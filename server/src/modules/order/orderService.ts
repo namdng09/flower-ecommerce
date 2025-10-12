@@ -278,7 +278,7 @@ export const orderService = {
   },
 
   create: async (orderData: IOrder) => {
-    const { user, address, items, payment, shipment, customization } =
+    const { user, address, items, payment, shipment, customization, metadata } =
       orderData;
 
     if (!Types.ObjectId.isValid(user))
@@ -404,7 +404,8 @@ export const orderService = {
           paymentDate: payment.paymentDate
         },
         shipment,
-        customization
+        customization,
+        metadata
       });
 
       orders.push(order);

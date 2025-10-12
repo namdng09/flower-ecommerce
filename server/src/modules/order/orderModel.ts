@@ -64,7 +64,7 @@ export interface ICustomization {
 export interface IMetadata {
   voucherData?: {
     code?: string;
-    priceBeforeDiscount?: number;
+    // priceBeforeDiscount?: number;
     discountType?: discountType;
     discountValue?: number;
     id?: string;
