@@ -61,6 +61,27 @@ const OrderPage: React.FC = () => {
     customization = {}
   } = order;
 
+    const totalProductPrice = Array.isArray(items)
+    ? items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    : 0;
+
+    const voucherData = order.metadata?.voucherData;
+  let discountValue = 0;
+  if (voucherData) {
+    if (voucherData.discountType === 'percentage') {
+      discountValue = Math.floor((totalProductPrice * (voucherData.discountValue || 0)) / 100);
+    } else {
+      discountValue = voucherData.discountValue || 0;
+    }
+  }
+
+    const totalPriceAfterDiscount = Math.max(totalProductPrice - discountValue, 0);
+  const shippingCost = shipment.shippingCost || 0;
+  const grandTotal = totalPriceAfterDiscount + shippingCost;
+
+
+
+
   return (
     <div className='max-w-4xl mx-auto px-4 py-8 text-black mt-45'>
       <div className='bg-white shadow-md rounded-lg p-6'>
@@ -85,14 +106,6 @@ const OrderPage: React.FC = () => {
                   </span>
                 </p>
 
-                <p className='text-sm text-gray-700 flex items-center gap-1 mt-1'>
-                  <FiPhone className='text-pink-500' size={14} />
-                  <span>{order.shop.phoneNumber}</span>
-                </p>
-                <p className='text-sm text-gray-700 flex items-center gap-1'>
-                  <FiMail className='text-pink-500' size={14} />
-                  <span>{order.shop.email}</span>
-                </p>
               </div>
             </div>
 
@@ -180,20 +193,27 @@ const OrderPage: React.FC = () => {
           </div>
         )}
 
+        
         <div className='space-y-2 mt-10'>
           <div className='flex justify-between'>
             <span>Tạm tính:</span>
             <span>
-              {(totalPrice - (shipment.shippingCost || 0)).toLocaleString()}₫
+              {totalProductPrice.toLocaleString()}₫
             </span>
           </div>
+          {discountValue > 0 && (
+            <div className='flex justify-between text-green-700'>
+              <span>Giảm giá voucher:</span>
+              <span>-{discountValue.toLocaleString()}₫</span>
+            </div>
+          )}
           <div className='flex justify-between'>
             <span>Phí vận chuyển:</span>
-            <span>{(shipment.shippingCost || 0).toLocaleString()}₫</span>
+            <span>{shippingCost.toLocaleString()}₫</span>
           </div>
           <div className='flex justify-between font-bold text-lg text-[#C4265B]'>
             <span>Tổng cộng:</span>
-            <span>{totalPrice.toLocaleString()}₫</span>
+            <span>{grandTotal.toLocaleString()}₫</span>
           </div>
           <div className='flex justify-between pt-2'>
             <span>Thanh toán:</span>
