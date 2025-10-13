@@ -54,6 +54,19 @@ export interface ICustomization {
   notes?: string;
 }
 
+export type discountType = 'percentage' | 'fixed';
+
+export interface IVoucherData {
+  code?: string;
+  discountType?: discountType;
+  discountValue?: number;
+  id?: string;
+}
+
+export interface IMetadata {
+  voucherData?: IVoucherData;
+}
+
 export interface IOrder {
   _id: string;
   orderNumber: string;
@@ -69,10 +82,11 @@ export interface IOrder {
   customization?: ICustomization;
   description?: string;
   expectedDeliveryAt?: string;
-  metadata?: IMetadata; 
+  metadata?: IMetadata;
   createdAt: string;
   updatedAt: string;
 }
+
 export interface OrderFilterParams {
   page?: number;
   limit?: number;
@@ -137,20 +151,7 @@ const initialState: OrderState = {
   shopOrders: []
 };
 
-export type discountType = 'percent' | 'fixed';
-
-export interface IVoucherData {
-  code?: string;
-  discountType?: discountType;
-  discountValue?: number;
-  id?: string;
-}
-
-export interface IMetadata {
-  voucherData?: IVoucherData;
-}
-
-
+// Fetch orders with filter & pagination
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
   async (params: OrderFilterParams = {}, { rejectWithValue }) => {
@@ -160,10 +161,10 @@ export const fetchOrders = createAsyncThunk(
         if (value !== undefined && value !== '')
           queryParams.append(key, String(value));
       });
-      const res = await axios.get(
-        `/api/orders/filter?${queryParams.toString()}`
-      );
-      return { data: res.data.data.result, filters: params };
+      const res = await axios.get(`/api/orders/filter?${queryParams.toString()}`);
+      // backend trả về { result: { docs, ...pagination } }
+      const result = res.data.data.result;
+      return { docs: result.docs, pagination: result, filters: params };
     } catch (err: any) {
       return rejectWithValue(
         err.response?.data?.message || 'Failed to fetch orders'
@@ -172,6 +173,7 @@ export const fetchOrders = createAsyncThunk(
   }
 );
 
+// Fetch order by ID
 export const fetchOrderById = createAsyncThunk(
   'orders/fetchOrderById',
   async (id: string, { rejectWithValue }) => {
@@ -186,6 +188,7 @@ export const fetchOrderById = createAsyncThunk(
   }
 );
 
+// Fetch orders by user
 export const fetchOrdersByUser = createAsyncThunk(
   'orders/fetchOrdersByUser',
   async (userId: string, { rejectWithValue }) => {
@@ -200,6 +203,7 @@ export const fetchOrdersByUser = createAsyncThunk(
   }
 );
 
+// Fetch orders by shop
 export const fetchOrdersByShop = createAsyncThunk(
   'orders/fetchOrdersByShop',
   async (shopId: string, { rejectWithValue }) => {
@@ -214,6 +218,7 @@ export const fetchOrdersByShop = createAsyncThunk(
   }
 );
 
+// Create order
 export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (orderData: Partial<IOrder>, { rejectWithValue }) => {
@@ -228,6 +233,7 @@ export const createOrder = createAsyncThunk(
   }
 );
 
+// Update order (only status, description, expectedDeliveryAt)
 export const updateOrder = createAsyncThunk(
   'orders/updateOrder',
   async (
@@ -245,6 +251,7 @@ export const updateOrder = createAsyncThunk(
   }
 );
 
+// Update shipment
 export const updateShipment = createAsyncThunk(
   'orders/updateShipment',
   async (
@@ -262,6 +269,7 @@ export const updateShipment = createAsyncThunk(
   }
 );
 
+// Update payment
 export const updatePayment = createAsyncThunk(
   'orders/updatePayment',
   async (
@@ -279,6 +287,7 @@ export const updatePayment = createAsyncThunk(
   }
 );
 
+// Delete order
 export const deleteOrder = createAsyncThunk(
   'orders/deleteOrder',
   async (id: string, { rejectWithValue }) => {
@@ -316,17 +325,19 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload.data.docs || [];
+        state.orders = action.payload.docs || [];
+        // pagination fields
+        const pag = action.payload.pagination;
         state.pagination = {
-          totalDocs: action.payload.data.totalDocs || 0,
-          limit: action.payload.data.limit || 10,
-          page: action.payload.data.page || 1,
-          totalPages: action.payload.data.totalPages || 1,
-          pagingCounter: action.payload.data.pagingCounter || 1,
-          hasPrevPage: action.payload.data.hasPrevPage || false,
-          hasNextPage: action.payload.data.hasNextPage || false,
-          prevPage: action.payload.data.prevPage || null,
-          nextPage: action.payload.data.nextPage || null
+          totalDocs: pag.totalDocs || 0,
+          limit: pag.limit || 10,
+          page: pag.page || 1,
+          totalPages: pag.totalPages || 1,
+          pagingCounter: pag.pagingCounter || 1,
+          hasPrevPage: pag.hasPrevPage || false,
+          hasNextPage: pag.hasNextPage || false,
+          prevPage: pag.prevPage || null,
+          nextPage: pag.nextPage || null
         };
         state.filters = { ...state.filters, ...action.payload.filters };
       })
@@ -356,7 +367,7 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrdersByUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.userOrders = action.payload;
+        state.userOrders = action.payload || [];
       })
       .addCase(fetchOrdersByUser.rejected, (state, action) => {
         state.loading = false;
@@ -370,7 +381,7 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrdersByShop.fulfilled, (state, action) => {
         state.loading = false;
-        state.shopOrders = action.payload;
+        state.shopOrders = action.payload || [];
       })
       .addCase(fetchOrdersByShop.rejected, (state, action) => {
         state.loading = false;
@@ -382,15 +393,16 @@ const orderSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      // .addCase(createOrder.fulfilled, (state, action) => {
-      //   state.loading = false;
-      //   state.orders.unshift(action.payload);
-      // })
-
       .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders.unshift(action.payload);
-        state.currentOrder = action.payload;
+        // backend trả về mảng orders (multi-shop), lấy order đầu tiên làm currentOrder
+        if (Array.isArray(action.payload)) {
+          state.orders = [...action.payload, ...state.orders];
+          state.currentOrder = action.payload[0];
+        } else {
+          state.orders.unshift(action.payload);
+          state.currentOrder = action.payload;
+        }
       })
       .addCase(createOrder.rejected, (state, action) => {
         state.loading = false;
@@ -417,6 +429,9 @@ const orderSlice = createSlice({
         state.orders = state.orders.filter(
           order => order._id !== action.payload
         );
+        if (state.currentOrder?._id === action.payload) {
+          state.currentOrder = null;
+        }
       });
   }
 });

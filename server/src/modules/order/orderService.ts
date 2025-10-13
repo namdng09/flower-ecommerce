@@ -388,7 +388,7 @@ export const orderService = {
         (sum, it) => sum + it.quantity * it.price,
         0
       );
-      const totalBeforeDiscount = itemsTotal + shipment.shippingCost;
+      const totalBeforeDiscount = itemsTotal;
 
       let discountAmount = 0;
       if (metadata?.voucherData && metadata?.voucherData.code) {
@@ -411,9 +411,10 @@ export const orderService = {
         if (discountAmount > totalBeforeDiscount)
           discountAmount = totalBeforeDiscount;
       }
-      const finalTotal = parseFloat(
-        Math.max(totalBeforeDiscount - discountAmount, 0).toFixed(3)
-      );
+      const finalTotal =
+        parseFloat(
+          Math.max(totalBeforeDiscount - discountAmount, 0).toFixed(3)
+        ) + shipment.shippingCost;
 
       const order = await OrderModel.create({
         user,
