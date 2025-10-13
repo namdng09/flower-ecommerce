@@ -7,6 +7,8 @@ import createHttpError from 'http-errors';
 import { Types } from 'mongoose';
 import ProductRepository from '../product/productRepository';
 import { mailService } from '../email/emailService';
+import VoucherRepository from '~/modules/voucher/voucherRepository';
+import { voucherService } from '~/modules/voucher/voucherService';
 
 export const orderService = {
   list: async () => {
@@ -386,7 +388,32 @@ export const orderService = {
         (sum, it) => sum + it.quantity * it.price,
         0
       );
-      const totalPrice = itemsTotal + shipment.shippingCost;
+      const totalBeforeDiscount = itemsTotal + shipment.shippingCost;
+
+      let discountAmount = 0;
+      if (metadata?.voucherData && metadata?.voucherData.code) {
+        const voucher = await VoucherRepository.findById(
+          metadata?.voucherData.id
+        );
+        if (!voucher) throw createHttpError(404, 'Voucher not found');
+        if (voucher.status === 'expired')
+          throw createHttpError(400, 'Voucher expired');
+        if (voucher.usageLimit && voucher.usedCount >= voucher.usageLimit)
+          throw createHttpError(400, 'Voucher usage limit reached');
+
+        if (voucher.discountType === 'percentage') {
+          discountAmount =
+            (totalBeforeDiscount * Math.abs(voucher.discountValue)) / 100;
+        } else if (voucher.discountType === 'fixed') {
+          discountAmount = Math.abs(voucher.discountValue);
+        }
+
+        if (discountAmount > totalBeforeDiscount)
+          discountAmount = totalBeforeDiscount;
+      }
+      const finalTotal = parseFloat(
+        Math.max(totalBeforeDiscount - discountAmount, 0).toFixed(3)
+      );
 
       const order = await OrderModel.create({
         user,
@@ -394,9 +421,9 @@ export const orderService = {
         address,
         items: groupedItems.map(({ shopId, ...rest }) => rest),
         totalQuantity,
-        totalPrice,
+        totalPrice: finalTotal,
         payment: {
-          amount: totalPrice,
+          amount: finalTotal,
           method: payment.method,
           status: paymentStatus,
           description: payment.description,
@@ -407,7 +434,10 @@ export const orderService = {
         customization,
         metadata
       });
-
+      if (order)
+        await voucherService.updateUsedCount(
+          metadata?.voucherData?.id as string
+        );
       orders.push(order);
     }
 
