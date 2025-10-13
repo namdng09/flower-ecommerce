@@ -69,10 +69,10 @@ export interface IOrder {
   customization?: ICustomization;
   description?: string;
   expectedDeliveryAt?: string;
+  metadata?: IMetadata; 
   createdAt: string;
   updatedAt: string;
 }
-
 export interface OrderFilterParams {
   page?: number;
   limit?: number;
@@ -136,6 +136,20 @@ const initialState: OrderState = {
   userOrders: [],
   shopOrders: []
 };
+
+export type discountType = 'percent' | 'fixed';
+
+export interface IVoucherData {
+  code?: string;
+  discountType?: discountType;
+  discountValue?: number;
+  id?: string;
+}
+
+export interface IMetadata {
+  voucherData?: IVoucherData;
+}
+
 
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',

@@ -10,7 +10,7 @@ import orderReducer from './slices/orderSlice';
 import addressReducer from './slices/addressSlice';
 import favouriteReducer from './slices/favouriteSlice';
 import reviewReducer from './slices/reviewSlice';
-
+import voucherReducer from './slices/voucherSlice';
 export const store = configureStore({
   reducer: {
     products: productReducer,
@@ -22,7 +22,8 @@ export const store = configureStore({
     orders: orderReducer,
     addresses: addressReducer,
     favourites: favouriteReducer,
-    reviews: reviewReducer
+    reviews: reviewReducer,
+    voucher: voucherReducer
   }
 });
 
