@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router';
 import { fetchOrderById } from '~/store/slices/orderSlice';
+import { fetchVariants } from '~/store/slices/variantSlice';
 import type { RootState } from '~/store';
 
 import { BsBoxSeam } from 'react-icons/bs';
@@ -17,10 +18,13 @@ const OrderTrackingPage: React.FC = () => {
   const { currentOrder, loading, error } = useSelector(
     (state: RootState) => state.orders
   );
+  const { items: variants } = useSelector((state: RootState) => state.variants);
+
 
   useEffect(() => {
     if (orderId) {
       dispatch(fetchOrderById(orderId));
+      dispatch(fetchVariants());
     }
   }, [dispatch, orderId]);
 
@@ -46,6 +50,31 @@ const OrderTrackingPage: React.FC = () => {
     createdAt,
     status
   } = currentOrder;
+
+  const totalProductPrice = Array.isArray(items)
+    ? items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    : 0;
+
+  const voucherData = currentOrder.metadata?.voucherData;
+  let discountValue = 0;
+  if (voucherData) {
+    if (voucherData.discountType === 'percentage') {
+      discountValue = Math.floor((totalProductPrice * (voucherData.discountValue || 0)) / 100);
+    } else {
+      discountValue = voucherData.discountValue || 0;
+    }
+  }
+
+  const totalPriceAfterDiscount = Math.max(totalProductPrice - discountValue, 0);
+  const shippingCost = shipment.shippingCost || 0;
+  const grandTotal = totalPriceAfterDiscount + shippingCost;
+
+  // Hàm lấy thông tin biến thể
+  const getVariantDetails = (variantId: any) => {
+    const id = typeof variantId === 'object' ? variantId._id : variantId;
+    return variants.find((v: any) => v._id === id);
+  };
+
 
   return (
     <div className='max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-50 text-black mb-10'>
@@ -99,7 +128,9 @@ const OrderTrackingPage: React.FC = () => {
           <thead className='bg-gray-100 text-gray-700'>
             <tr>
               <th className='p-3 text-left'>STT</th>
-              <th className='p-3 text-left'>Mã biến thể</th>
+              <th className='p-3 text-left'>Ảnh</th>
+         
+              <th className='p-3 text-left'>Phân loại</th>
               <th className='p-3 text-left'>Số lượng</th>
               <th className='p-3 text-left'>Đơn giá</th>
               <th className='p-3 text-left'>Tổng</th>
@@ -107,21 +138,37 @@ const OrderTrackingPage: React.FC = () => {
           </thead>
           <tbody className='divide-y divide-gray-200'>
             {Array.isArray(items) &&
-              items.map((item: any, index: number) => (
-                <tr key={item.variant?._id || index} className='text-left'>
-                  <td className='p-3'>{index + 1}</td>
-
-                  <td className='p-3'>
-                    {item.variant?.variantCode || 'Không rõ'}
-                  </td>
-
-                  <td className='p-3'>{item.quantity}</td>
-                  <td className='p-3'>{item.price?.toLocaleString()}₫</td>
-                  <td className='p-3'>
-                    {(item.price * item.quantity).toLocaleString()}₫
-                  </td>
-                </tr>
-              ))}
+              items.map((item: any, index: number) => {
+                const variant = getVariantDetails(item.variant);
+                const imageUrl = variant?.image || variant?.product?.thumbnailImage;
+                return (
+                  <tr key={item.variant?._id || index} className='text-left'>
+                    <td className='p-3'>{index + 1}</td>
+                    <td className='p-3'>
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt="Ảnh sản phẩm"
+                          className="w-10 h-10 object-cover border rounded"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 flex items-center justify-center border rounded text-xs text-gray-400 bg-white">
+                          Không ảnh
+                        </div>
+                      )}
+                    </td>
+                
+                    <td className='p-3'>
+                      {variant?.title || 'Không rõ'}
+                    </td>
+                    <td className='p-3'>{item.quantity}</td>
+                    <td className='p-3'>{item.price?.toLocaleString()}₫</td>
+                    <td className='p-3'>
+                      {(item.price * item.quantity).toLocaleString()}₫
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
@@ -131,12 +178,18 @@ const OrderTrackingPage: React.FC = () => {
           <strong>Tổng số lượng:</strong> {totalQuantity}
         </p>
         <p>
-          <strong>Phí vận chuyển:</strong>{' '}
-          {shipment.shippingCost.toLocaleString()}₫
+          <strong>Tạm tính:</strong> {totalProductPrice.toLocaleString()}₫
+        </p>
+        {discountValue > 0 && (
+          <p className='text-green-700'>
+            <strong>Giảm giá voucher:</strong> -{discountValue.toLocaleString()}₫
+          </p>
+        )}
+        <p>
+          <strong>Phí vận chuyển:</strong> {shippingCost.toLocaleString()}₫
         </p>
         <p className='text-xl font-bold text-[#C4265B]'>
-          Tổng thanh toán:{' '}
-          {(totalPrice + shipment.shippingCost).toLocaleString()}₫
+          Tổng thanh toán: {grandTotal.toLocaleString()}₫
         </p>
       </div>
     </div>

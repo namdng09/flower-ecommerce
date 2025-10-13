@@ -4,6 +4,13 @@ import { useNavigate } from 'react-router';
 import type { RootState } from '~/store';
 import { createOrder } from '~/store/slices/orderSlice';
 import { fetchAddresses, createAddress } from '~/store/slices/addressSlice';
+import {
+  fetchVouchers,
+  validateVoucher,
+  calculateDiscount,
+  clearError,
+  clearCurrentVoucher
+} from '~/store/slices/voucherSlice';
 import { AuthContext } from '~/contexts/authContext';
 import { FaShoppingCart, FaUserSecret, FaMoneyBillWave } from 'react-icons/fa';
 import {
@@ -23,6 +30,7 @@ const OrderPage: React.FC = () => {
 
   const cart = useSelector((state: RootState) => state.carts);
   const { addresses } = useSelector((state: RootState) => state.addresses);
+  const voucherState = useSelector((state: RootState) => state.voucher);
 
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'banking'>('cod');
   const [shippingCost] = useState<number>(30000);
@@ -43,15 +51,15 @@ const OrderPage: React.FC = () => {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const totalPrice = cart.items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  // Voucher form
+  const [voucherInput, setVoucherInput] = useState('');
+  const [voucherError, setVoucherError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.id) {
       dispatch(fetchAddresses(user.id));
     }
+    dispatch(fetchVouchers());
   }, [user, dispatch]);
 
   useEffect(() => {
@@ -60,6 +68,46 @@ const OrderPage: React.FC = () => {
       setSelectedAddressId(defaultAddress?._id || addresses[0]._id);
     }
   }, [addresses]);
+
+  // Tổng tiền trước giảm giá
+  const totalPrice = cart.items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+
+  // Tính giảm giá từ voucher
+  const discountValue = voucherState.currentVoucher
+    ? Math.floor(calculateDiscount(voucherState.currentVoucher, totalPrice))
+    : 0;
+
+  // Tổng tiền sau giảm giá
+  const totalPriceAfterDiscount = Math.max(totalPrice - discountValue, 0);
+
+  // Xử lý nhập voucher
+  const handleApplyVoucher = async () => {
+    setVoucherError(null);
+    dispatch(clearError());
+    if (!voucherInput.trim()) {
+      setVoucherError('Vui lòng nhập mã voucher');
+      return;
+    }
+    try {
+      await dispatch(
+        validateVoucher({ code: voucherInput, orderValue: totalPrice })
+      ).unwrap();
+    } catch (err: any) {
+      setVoucherError(
+        typeof err === 'string' ? err : 'Mã voucher không hợp lệ'
+      );
+    }
+  };
+
+  // Xoá voucher
+  const handleRemoveVoucher = () => {
+    setVoucherInput('');
+    dispatch(clearCurrentVoucher());
+    setVoucherError(null);
+  };
 
   const redirectToPayOS = (paymentData: any) => {
     const form = document.createElement('form');
@@ -103,6 +151,17 @@ const OrderPage: React.FC = () => {
       }
     }
 
+    // Thêm voucher vào metadata nếu có
+    const metadata: any = {};
+    if (voucherState.currentVoucher) {
+      metadata.voucherData = {
+        code: voucherState.currentVoucher.code,
+        discountType: voucherState.currentVoucher.discountType,
+        discountValue: voucherState.currentVoucher.discountValue,
+        id: voucherState.currentVoucher._id
+      };
+    }
+
     const orderData = {
       user: user.id,
       address: selectedAddressId,
@@ -112,7 +171,7 @@ const OrderPage: React.FC = () => {
         price: item.price
       })),
       payment: {
-        amount: totalPrice + shippingCost,
+        amount: totalPriceAfterDiscount + shippingCost,
         method: paymentMethod
       },
       shipment: {
@@ -124,33 +183,57 @@ const OrderPage: React.FC = () => {
         isAnonymous,
         deliveryTimeRequested
       },
-      description: note.trim() || 'Gửi đơn hàng'
+      description: note.trim() || 'Gửi đơn hàng',
+      metadata: Object.keys(metadata).length ? metadata : undefined
     };
 
     try {
       const result = await dispatch(createOrder(orderData));
 
-      if (createOrder.fulfilled.match(result)) {
+           if (createOrder.fulfilled.match(result)) {
         const orders = result.payload;
 
+        // Nếu trả về mảng
         if (Array.isArray(orders) && orders.length > 0) {
-          const orderIds = orders.map(o => o._id);
-          const orderNumbers = orders.map(o => o.orderNumber).join(', ');
+          // Đơn hàng mới nhất là cuối mảng (thường backend push theo thứ tự tạo)
+          const latestOrder = orders[orders.length - 1];
+          const orderId = latestOrder._id;
+          const orderNumber = latestOrder.orderNumber;
 
           if (paymentMethod === 'banking') {
+            const amountInt = Math.max(
+              Math.floor(totalPriceAfterDiscount + shippingCost),
+              1
+            );
             redirectToPayOS({
-              amount: orders.reduce((sum, o) => sum + o.payment.amount, 0),
-              description: orderNumbers,
-              returnUrl: `${window.location.origin}/home/order-success/${orderIds[0]}`,
+              amount: amountInt,
+              description: orderNumber,
+              returnUrl: `${window.location.origin}/home/order-success/${orderId}`,
               cancelUrl: `${window.location.origin}/home/order-fail`
             });
             return;
           }
 
           // Nếu COD
-          navigate(`/home/order-success/${orderIds[0]}`);
+          navigate(`/home/order-success/${orderId}`);
+        } else if (orders && orders._id) {
+          // Nếu trả về 1 object
+          const orderId = orders._id;
+          if (paymentMethod === 'banking') {
+            const amountInt = Math.max(
+              Math.floor(totalPriceAfterDiscount + shippingCost),
+              1
+            );
+            redirectToPayOS({
+              amount: amountInt,
+              description: orders.orderNumber,
+              returnUrl: `${window.location.origin}/home/order-success/${orderId}`,
+              cancelUrl: `${window.location.origin}/home/order-fail`
+            });
+            return;
+          }
+          navigate(`/home/order-success/${orderId}`);
         } else {
-          console.error('❗ Không có đơn hàng nào trong phản hồi:', orders);
           toast.error('Không có đơn hàng nào được tạo.');
           navigate('/home/order-fail');
         }
@@ -325,6 +408,54 @@ const OrderPage: React.FC = () => {
         </table>
       </div>
 
+      {/* Voucher form */}
+      <div className='bg-white shadow-md rounded p-4 mb-4'>
+        <h3 className='font-bold mb-2 text-[#C4265B]'>Mã giảm giá (Voucher)</h3>
+        {voucherState.currentVoucher ? (
+          <div className='flex items-center justify-between bg-green-50 border border-green-400 rounded p-2 mb-2'>
+            <div>
+              <span className='font-semibold text-green-700'>
+                {voucherState.currentVoucher.code}
+              </span>
+              <span className='ml-2 text-sm text-gray-700'>
+                {voucherState.currentVoucher.description}
+              </span>
+              <div className='text-sm text-green-600'>
+                Giảm: {discountValue.toLocaleString()}₫
+              </div>
+            </div>
+            <button
+              onClick={handleRemoveVoucher}
+              className='text-red-500 px-2 py-1 rounded hover:bg-red-100'
+            >
+              Xoá
+            </button>
+          </div>
+        ) : (
+          <div className='flex gap-2 items-center'>
+            <input
+              type='text'
+              placeholder='Nhập mã voucher...'
+              className='border rounded p-2 flex-1'
+              value={voucherInput}
+              onChange={e => setVoucherInput(e.target.value)}
+            />
+            <button
+              onClick={handleApplyVoucher}
+              className='bg-[#C4265B] text-white px-4 py-2 rounded'
+              disabled={voucherState.loading}
+            >
+              Áp dụng
+            </button>
+          </div>
+        )}
+        {(voucherError || voucherState.error) && (
+          <div className='text-red-500 mt-2 text-sm'>
+            {voucherError || voucherState.error}
+          </div>
+        )}
+      </div>
+
       {/* Tuỳ chọn */}
       <div className='bg-white shadow-md rounded p-4 space-y-4 mb-4'>
         <label className='block'>
@@ -402,12 +533,23 @@ const OrderPage: React.FC = () => {
       </div>
 
       <div className='bg-white shadow-md rounded-xl p-4 mb-6'>
+        {discountValue > 0 && (
+          <div className='flex justify-between items-center text-sm text-green-700 mt-2'>
+            <span>Đã giảm giá:</span>
+            <span>-{discountValue.toLocaleString()}₫</span>
+          </div>
+        )}
+        <div className='flex justify-between'>
+            <span>Phí vận chuyển:</span>
+            <span>{shippingCost.toLocaleString()}₫</span>
+          </div>
         <div className='flex justify-between items-center text-lg md:text-xl font-semibold'>
           <span className='text-gray-800'>Tổng cộng:</span>
           <span className='text-[#C4265B] text-2xl bold'>
-            {(totalPrice + shippingCost).toLocaleString()}₫
+            {(totalPriceAfterDiscount + shippingCost).toLocaleString()}₫
           </span>
         </div>
+        
       </div>
 
       <button
