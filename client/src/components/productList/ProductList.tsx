@@ -230,7 +230,10 @@ const ProductList = () => {
   const renderPaginationButtons = () => {
     const buttons = [];
     const maxVisibleButtons = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisibleButtons / 2));
+    let startPage = Math.max(
+      1,
+      currentPage - Math.floor(maxVisibleButtons / 2)
+    );
     let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
 
     if (endPage - startPage < maxVisibleButtons - 1) {
@@ -335,8 +338,8 @@ const ProductList = () => {
 
           <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-4 text-black gap-4'>
             <p>
-              Hiển thị {startIndex + 1}-{Math.min(endIndex, totalItems)} trong tổng
-              số {totalItems} sản phẩm
+              Hiển thị {startIndex + 1}-{Math.min(endIndex, totalItems)} trong
+              tổng số {totalItems} sản phẩm
               {selectedCategoryId && ` theo danh mục đã chọn`}
               {searchTerm && ` với từ khóa "${searchTerm}"`}
               {province && ` tại ${province}`}
@@ -365,7 +368,9 @@ const ProductList = () => {
             <p className='text-red-600 text-center'>Lỗi: {error}</p>
           ) : currentProducts.length === 0 ? (
             <div className='text-center py-12'>
-              <p className='text-gray-500 text-lg'>Không tìm thấy sản phẩm nào</p>
+              <p className='text-gray-500 text-lg'>
+                Không tìm thấy sản phẩm nào
+              </p>
             </div>
           ) : (
             <>
@@ -461,7 +466,8 @@ const ProductList = () => {
                   </div>
 
                   <div className='text-sm text-gray-600'>
-                    {startIndex + 1}-{Math.min(endIndex, totalItems)} / {totalItems}
+                    {startIndex + 1}-{Math.min(endIndex, totalItems)} /{' '}
+                    {totalItems}
                   </div>
                 </div>
               )}
