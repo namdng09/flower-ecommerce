@@ -61,26 +61,28 @@ const OrderPage: React.FC = () => {
     customization = {}
   } = order;
 
-    const totalProductPrice = Array.isArray(items)
+  const totalProductPrice = Array.isArray(items)
     ? items.reduce((sum, item) => sum + item.price * item.quantity, 0)
     : 0;
 
-    const voucherData = order.metadata?.voucherData;
+  const voucherData = order.metadata?.voucherData;
   let discountValue = 0;
   if (voucherData) {
     if (voucherData.discountType === 'percentage') {
-      discountValue = Math.floor((totalProductPrice * (voucherData.discountValue || 0)) / 100);
+      discountValue = Math.floor(
+        (totalProductPrice * (voucherData.discountValue || 0)) / 100
+      );
     } else {
       discountValue = voucherData.discountValue || 0;
     }
   }
 
-    const totalPriceAfterDiscount = Math.max(totalProductPrice - discountValue, 0);
+  const totalPriceAfterDiscount = Math.max(
+    totalProductPrice - discountValue,
+    0
+  );
   const shippingCost = shipment.shippingCost || 0;
   const grandTotal = totalPriceAfterDiscount + shippingCost;
-
-
-
 
   return (
     <div className='max-w-4xl mx-auto px-4 py-8 text-black mt-45'>
@@ -105,7 +107,6 @@ const OrderPage: React.FC = () => {
                     ({order.shop.username})
                   </span>
                 </p>
-
               </div>
             </div>
 
@@ -193,13 +194,10 @@ const OrderPage: React.FC = () => {
           </div>
         )}
 
-        
         <div className='space-y-2 mt-10'>
           <div className='flex justify-between'>
             <span>Tạm tính:</span>
-            <span>
-              {totalProductPrice.toLocaleString()}₫
-            </span>
+            <span>{totalProductPrice.toLocaleString()}₫</span>
           </div>
           {discountValue > 0 && (
             <div className='flex justify-between text-green-700'>

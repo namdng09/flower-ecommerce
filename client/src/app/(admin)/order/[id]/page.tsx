@@ -363,9 +363,9 @@ const OrderDetailPage = () => {
               <p>
                 <b className='text-gray-700'>Thời gian giao yêu cầu:</b>{' '}
                 <span className='text-gray-900'>
-                  {new Date(
-                    customization.deliveryTimeRequested
-                  ).toLocaleString('vi-VN')}
+                  {new Date(customization.deliveryTimeRequested).toLocaleString(
+                    'vi-VN'
+                  )}
                 </span>
               </p>
             )}
@@ -521,12 +521,10 @@ const OrderDetailPage = () => {
                       {variant ? (
                         <div>
                           <div className='flex items-center gap-2 mb-1'>
-                      
                             <span className='text-gray-700 text-lg'>
                               {variant.title}
                             </span>
                           </div>
-                   
                         </div>
                       ) : (
                         <span className='text-gray-400'>N/A</span>

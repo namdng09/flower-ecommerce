@@ -190,7 +190,7 @@ const OrderPage: React.FC = () => {
     try {
       const result = await dispatch(createOrder(orderData));
 
-           if (createOrder.fulfilled.match(result)) {
+      if (createOrder.fulfilled.match(result)) {
         const orders = result.payload;
 
         // Nếu trả về mảng
@@ -540,16 +540,15 @@ const OrderPage: React.FC = () => {
           </div>
         )}
         <div className='flex justify-between'>
-            <span>Phí vận chuyển:</span>
-            <span>{shippingCost.toLocaleString()}₫</span>
-          </div>
+          <span>Phí vận chuyển:</span>
+          <span>{shippingCost.toLocaleString()}₫</span>
+        </div>
         <div className='flex justify-between items-center text-lg md:text-xl font-semibold'>
           <span className='text-gray-800'>Tổng cộng:</span>
           <span className='text-[#C4265B] text-2xl bold'>
             {(totalPriceAfterDiscount + shippingCost).toLocaleString()}₫
           </span>
         </div>
-        
       </div>
 
       <button

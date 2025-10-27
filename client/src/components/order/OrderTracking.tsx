@@ -20,7 +20,6 @@ const OrderTrackingPage: React.FC = () => {
   );
   const { items: variants } = useSelector((state: RootState) => state.variants);
 
-
   useEffect(() => {
     if (orderId) {
       dispatch(fetchOrderById(orderId));
@@ -59,13 +58,18 @@ const OrderTrackingPage: React.FC = () => {
   let discountValue = 0;
   if (voucherData) {
     if (voucherData.discountType === 'percentage') {
-      discountValue = Math.floor((totalProductPrice * (voucherData.discountValue || 0)) / 100);
+      discountValue = Math.floor(
+        (totalProductPrice * (voucherData.discountValue || 0)) / 100
+      );
     } else {
       discountValue = voucherData.discountValue || 0;
     }
   }
 
-  const totalPriceAfterDiscount = Math.max(totalProductPrice - discountValue, 0);
+  const totalPriceAfterDiscount = Math.max(
+    totalProductPrice - discountValue,
+    0
+  );
   const shippingCost = shipment.shippingCost || 0;
   const grandTotal = totalPriceAfterDiscount + shippingCost;
 
@@ -74,7 +78,6 @@ const OrderTrackingPage: React.FC = () => {
     const id = typeof variantId === 'object' ? variantId._id : variantId;
     return variants.find((v: any) => v._id === id);
   };
-
 
   return (
     <div className='max-w-5xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-50 text-black mb-10'>
@@ -129,7 +132,7 @@ const OrderTrackingPage: React.FC = () => {
             <tr>
               <th className='p-3 text-left'>STT</th>
               <th className='p-3 text-left'>Ảnh</th>
-         
+
               <th className='p-3 text-left'>Phân loại</th>
               <th className='p-3 text-left'>Số lượng</th>
               <th className='p-3 text-left'>Đơn giá</th>
@@ -140,7 +143,8 @@ const OrderTrackingPage: React.FC = () => {
             {Array.isArray(items) &&
               items.map((item: any, index: number) => {
                 const variant = getVariantDetails(item.variant);
-                const imageUrl = variant?.image || variant?.product?.thumbnailImage;
+                const imageUrl =
+                  variant?.image || variant?.product?.thumbnailImage;
                 return (
                   <tr key={item.variant?._id || index} className='text-left'>
                     <td className='p-3'>{index + 1}</td>
@@ -148,19 +152,17 @@ const OrderTrackingPage: React.FC = () => {
                       {imageUrl ? (
                         <img
                           src={imageUrl}
-                          alt="Ảnh sản phẩm"
-                          className="w-10 h-10 object-cover border rounded"
+                          alt='Ảnh sản phẩm'
+                          className='w-10 h-10 object-cover border rounded'
                         />
                       ) : (
-                        <div className="w-10 h-10 flex items-center justify-center border rounded text-xs text-gray-400 bg-white">
+                        <div className='w-10 h-10 flex items-center justify-center border rounded text-xs text-gray-400 bg-white'>
                           Không ảnh
                         </div>
                       )}
                     </td>
-                
-                    <td className='p-3'>
-                      {variant?.title || 'Không rõ'}
-                    </td>
+
+                    <td className='p-3'>{variant?.title || 'Không rõ'}</td>
                     <td className='p-3'>{item.quantity}</td>
                     <td className='p-3'>{item.price?.toLocaleString()}₫</td>
                     <td className='p-3'>
@@ -182,7 +184,8 @@ const OrderTrackingPage: React.FC = () => {
         </p>
         {discountValue > 0 && (
           <p className='text-green-700'>
-            <strong>Giảm giá voucher:</strong> -{discountValue.toLocaleString()}₫
+            <strong>Giảm giá voucher:</strong> -{discountValue.toLocaleString()}
+            ₫
           </p>
         )}
         <p>

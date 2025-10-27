@@ -372,9 +372,9 @@ const OrderDetailPage = () => {
               <p>
                 <b className='text-gray-700'>Thời gian giao yêu cầu:</b>{' '}
                 <span className='text-gray-900'>
-                  {new Date(
-                    customization.deliveryTimeRequested
-                  ).toLocaleString('vi-VN')}
+                  {new Date(customization.deliveryTimeRequested).toLocaleString(
+                    'vi-VN'
+                  )}
                 </span>
               </p>
             )}
