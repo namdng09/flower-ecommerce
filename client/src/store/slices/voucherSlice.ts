@@ -124,7 +124,7 @@ export const validateVoucher = createAsyncThunk(
     { rejectWithValue, getState }
   ) => {
     try {
-        const state = getState() as { voucher: VoucherState };
+      const state = getState() as { voucher: VoucherState };
       const vouchers: IVoucher[] = Array.isArray(state.voucher.vouchers)
         ? state.voucher.vouchers
         : [];

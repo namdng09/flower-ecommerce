@@ -168,7 +168,7 @@ const Page = () => {
     const data = paidOrders.map(order => ({
       'Mã đơn': order.orderNumber,
       'Khách hàng': order.user?.fullName || order.user,
-      'Shop': order.shop?.name || order.shop,
+      Shop: order.shop?.name || order.shop,
       'Tổng SL': order.totalQuantity,
       'Tổng tiền': order.totalPrice,
       'Trạng thái': order.status,
@@ -288,7 +288,10 @@ const Page = () => {
 
       {/* Filters */}
       <div className='mb-6'>
-        <form className='flex flex-wrap gap-2' onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className='flex flex-wrap gap-2'
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <input
             {...register('orderNumber')}
             className='input input-bordered'
@@ -357,7 +360,9 @@ const Page = () => {
             <Pagination
               page={pagination.page || page}
               setPage={handlePageChange}
-              totalPages={pagination.totalPages || Math.ceil(orders.length / limit)}
+              totalPages={
+                pagination.totalPages || Math.ceil(orders.length / limit)
+              }
               limit={limit}
               setLimit={handleLimitChange}
               totalItems={pagination.totalDocs || orders.length}

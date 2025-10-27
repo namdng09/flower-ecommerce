@@ -161,7 +161,9 @@ export const fetchOrders = createAsyncThunk(
         if (value !== undefined && value !== '')
           queryParams.append(key, String(value));
       });
-      const res = await axios.get(`/api/orders/filter?${queryParams.toString()}`);
+      const res = await axios.get(
+        `/api/orders/filter?${queryParams.toString()}`
+      );
       // backend trả về { result: { docs, ...pagination } }
       const result = res.data.data.result;
       return { docs: result.docs, pagination: result, filters: params };

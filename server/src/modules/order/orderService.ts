@@ -435,7 +435,7 @@ export const orderService = {
         customization,
         metadata
       });
-      if (order)
+      if (order && metadata?.voucherData)
         await voucherService.updateUsedCount(
           metadata?.voucherData?.id as string
         );
