@@ -166,5 +166,18 @@ export const voucherService = {
     }
 
     return deleted;
+  },
+
+  updateUsedCount: async (voucherId: string) => {
+    const voucher = await VoucherRepository.findById(voucherId);
+    if (!voucher) throw new Error('Voucher not found');
+    voucher.usedCount = (voucher.usedCount || 0) + 1;
+
+    if (voucher.usageLimit && voucher.usedCount >= voucher.usageLimit) {
+      voucher.status = discountStatus.expired;
+    }
+
+    await voucher.save();
+    return voucher;
   }
 };
