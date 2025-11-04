@@ -1,8 +1,10 @@
+// ...existing code...
 import { useParams } from 'react-router';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useAppSelector } from '~/hooks/useAppSelector';
 import { fetchProductsByShop } from '~/store/slices/productSlice';
+import { fetchUserById } from '~/store/slices/userSlice'; // added
 import { Link } from 'react-router';
 import {
   FaEnvelope,
@@ -20,13 +22,18 @@ const ShopProfilePage = () => {
     state => state.products
   );
 
+  const { currentUser: shopUser, loading: userLoading } = useAppSelector(
+    state => state.users
+  ); // get fetched user details
+
   useEffect(() => {
     if (shopId) {
       dispatch(fetchProductsByShop(shopId));
+      dispatch(fetchUserById(shopId)); // fetch full shop (user) info
     }
   }, [dispatch, shopId]);
 
-  if (loading)
+  if (loading || userLoading)
     return (
       <div className='pt-[200px] text-center'>Đang tải dữ liệu shop...</div>
     );
@@ -36,25 +43,41 @@ const ShopProfilePage = () => {
       <div className='pt-[200px] text-center text-red-600'>❌ {error}</div>
     );
 
+  // prefer detailed user info when available
+  const shop = shopUser || shopInfo || null;
+
   return (
     <div className='max-w-7xl mx-auto px-4 py-12 text-black mt-40'>
-      {shopInfo && (
-        <div className='bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-10 flex flex-col sm:flex-row items-center gap-6'>
-          <div className='w-20 h-20 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center text-4xl shadow-inner'>
-            <FaStore />
-          </div>
+      {shop && (
+        <div className='bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-10'>
+          {/* cover */}
+          <div
+            className='w-full h-40 bg-cover bg-center'
+            style={{
+              backgroundImage: `url(${shop.coverUrl || shop.avatarUrl || ''})`
+            }}
+            aria-hidden
+          />
+          <div className='p-6 flex flex-col sm:flex-row items-center gap-6'>
+            <div className='w-28 h-28 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center shadow-inner'>
+              {shop.avatarUrl ? (
+                <img
+                  src={shop.avatarUrl}
+                  alt={shop.fullName || shop.username}
+                  className='w-full h-full object-cover'
+                />
+              ) : (
+                <FaUserCircle className='text-4xl text-gray-400' />
+              )}
+            </div>
 
-          <div className='flex-1 space-y-1'>
-            <h2 className='text-xl font-bold text-pink-700 flex items-center gap-2'>
-              <FaUserCircle className='text-gray-500' />
-              {shopInfo.fullName} ({shopInfo.username})
-            </h2>
-            <p className='text-sm text-gray-700 flex items-center gap-2'>
-              <FaPhoneAlt className='text-gray-500' /> {shopInfo.phoneNumber}
-            </p>
-            <p className='text-sm text-gray-700 flex items-center gap-2'>
-              <FaEnvelope className='text-gray-500' /> {shopInfo.email}
-            </p>
+            <div className='flex-1 space-y-1 text-left'>
+              <h2 className='text-xl font-bold text-pink-700 flex items-center gap-2'>
+                <FaStore className='text-pink-600' />
+                {shop.fullName || shop.username}{' '}
+                <span className='text-sm text-gray-500'>({shop.username})</span>
+              </h2>
+            </div>
           </div>
         </div>
       )}
@@ -87,7 +110,7 @@ const ShopProfilePage = () => {
                     {product.title}
                   </h4>
                   <p className='text-xs text-gray-500 line-clamp-2 mb-2'>
-                    {product.description.replace(/"/g, '')}
+                    {product.description?.replace(/"/g, '')}
                   </p>
                   <span className='text-[13px] text-pink-600 font-medium'>
                     ➤ Xem chi tiết
@@ -103,3 +126,4 @@ const ShopProfilePage = () => {
 };
 
 export default ShopProfilePage;
+// ...existing code...

@@ -243,9 +243,6 @@ const ProductPage = () => {
             >
               Thêm vào giỏ
             </button>
-            <button className='bg-yellow-400 px-6 py-2 rounded hover:bg-yellow-500 text-black font-semibold'>
-              Mua ngay
-            </button>
           </div>
 
           <div className='pt-6 text-sm space-y-1'>

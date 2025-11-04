@@ -6,6 +6,7 @@ import CarouselC from '../../components/carousel/CarouselC';
 import CategoryGridC from '../../components/CategoryGridC/CategoryGridC';
 import FeaturedProductsC from '../../components/FeaturedProductsC/FeaturedProductsC';
 import FeedbackC from '../../components/Feedback/FeedbackC';
+import Snowfall from '../../components/Snowfall/Snowfall'; // added
 
 function Homepage() {
   const navigate = useNavigate();
@@ -21,7 +22,8 @@ function Homepage() {
   }, [navigate]);
 
   return (
-    <div>
+    <div className='relative'>
+      <Snowfall count={110} size={[1.2, 4.2]} speed={[0.4, 1.1]} zIndex={40} />
       <CarouselC />
       <CategoryGridC />
       <FeaturedProductsC />
